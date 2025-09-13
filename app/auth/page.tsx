@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { authService } from "@/lib/auth"
+import { BusinessCategory, SubscriptionPlan } from "@/lib/types"
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -467,19 +469,12 @@ export default function SlidingSignupPage() {
           <div className="flex items-center justify-between">
             <button 
               onClick={handleBack}
-              className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed lg:hidden transform hover:scale-105 active:scale-95 transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}
+              className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}
               disabled={currentStep === 0 || loading}
             >
               <ArrowLeft className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" />
               <span>Back</span>
             </button>
-            
-            <div className={`lg:hidden flex items-center space-x-2 transform transition-all duration-1000 delay-300 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-pink-400 rounded-lg flex items-center justify-center transform transition-all duration-300 hover:scale-110 hover:rotate-3">
-                <span className="text-white font-bold text-sm">X7</span>
-              </div>
-              <span className="text-xl font-semibold text-gray-900 dark:text-white">X-SevenAI</span>
-            </div>
             
             <div className={`flex items-center space-x-4 transform transition-all duration-1000 delay-400 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
               <div className="flex space-x-2">
@@ -1211,7 +1206,12 @@ export default function SlidingSignupPage() {
               <div className="space-y-4 overflow-hidden">
                 <div className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`} style={{animationDelay: '1700ms'}}>
                   <Button
-                    onClick={() => console.log("Navigate to dashboard")}
+                    onClick={() => {
+                      // In production, this would navigate to the dashboard
+                      if (typeof window !== 'undefined') {
+                        window.location.href = "/dashboard"
+                      }
+                    }}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg py-4 transition-all duration-500 font-semibold transform hover:scale-105 active:scale-95 hover:shadow-2xl group relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
