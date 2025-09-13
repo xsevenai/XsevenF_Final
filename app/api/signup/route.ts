@@ -1,4 +1,4 @@
-// app/api/signup/route.ts - Updated with RLS and schema fixes
+// app/api/signup/route.ts - Updated with slug generation
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -33,6 +33,71 @@ interface SignupData {
 }
 
 class SignupService {
+  // Generate a unique slug from business name
+  static generateSlug(businessName: string): string {
+    return businessName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      || 'business' // Fallback if name becomes empty after processing
+  }
+
+  // Check if slug exists in database
+  static async slugExists(slug: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+        console.error('Slug check error:', error)
+        return false
+      }
+
+      return !!data
+    } catch (error) {
+      console.error('Slug existence check failed:', error)
+      return false
+    }
+  }
+
+  // Generate a unique slug by appending numbers if needed
+  static async generateUniqueSlug(businessName: string, businessId?: string): Promise<string> {
+    let baseSlug = this.generateSlug(businessName)
+    let slug = baseSlug
+    let counter = 1
+
+    // If we have a business ID, we can use it as part of the slug
+    if (businessId) {
+      const shortId = businessId.split('-')[0]
+      slug = `${baseSlug}-${shortId}`
+      
+      if (!(await this.slugExists(slug))) {
+        return slug
+      }
+    }
+
+    // Check if base slug exists and increment until unique
+    while (await this.slugExists(slug)) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+      
+      // Prevent infinite loops
+      if (counter > 100) {
+        // Use timestamp as last resort
+        slug = `${baseSlug}-${Date.now()}`
+        break
+      }
+    }
+
+    return slug
+  }
+
   // Fix the schema check method
   static async getBusinessesTableSchema() {
     try {
@@ -58,15 +123,15 @@ class SignupService {
           console.log('Test insert failed:', e)
         }
 
-        // Return default expected columns
-        return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'is_active', 'created_at', 'updated_at']
+        // Return default expected columns including slug
+        return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'slug', 'is_active', 'created_at', 'updated_at']
       }
 
       return data?.map((row: any) => row.column_name) || []
     } catch (error) {
       console.error('Schema check error:', error)
       // Return default expected columns if we can't check
-      return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'is_active', 'created_at', 'updated_at']
+      return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'slug', 'is_active', 'created_at', 'updated_at']
     }
   }
 
@@ -100,9 +165,13 @@ class SignupService {
       const userId = authData.user.id
       console.log('User created with ID:', userId)
 
-      // 2. Create the business record with all expected columns
+      // 2. Create the business record with all expected columns including unique slug
       const businessId = crypto.randomUUID()
       console.log('Creating business with ID:', businessId)
+      
+      // Generate unique slug
+      const slug = await this.generateUniqueSlug(signupData.businessName, businessId)
+      console.log('Generated unique slug:', slug)
       
       const businessData = {
         id: businessId,
@@ -113,6 +182,7 @@ class SignupService {
         email: signupData.email,
         phone: signupData.phone || null,
         category: signupData.category,
+        slug: slug, // Add the unique slug
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -128,37 +198,69 @@ class SignupService {
       if (businessError) {
         console.error('Business creation error:', businessError)
         
-        // If RLS is the issue, try with a different approach
-        if (businessError.message.includes('row-level security')) {
-          console.log('RLS policy violation detected, trying alternative approach...')
+        // Handle specific duplicate slug error with retry
+        if (businessError.code === '23505' && businessError.message.includes('businesses_slug_key')) {
+          console.log('Slug conflict detected, generating new unique slug...')
           
-          // Try to temporarily set the auth context
-          try {
-            const { error: altError } = await supabase
-              .from('businesses')
-              .insert([businessData])
+          // Generate a new unique slug with timestamp
+          const newSlug = await this.generateUniqueSlug(`${signupData.businessName}-${Date.now()}`)
+          const updatedBusinessData = { ...businessData, slug: newSlug }
           
-            if (altError) {
-              console.error('Alternative insert also failed:', altError)
+          console.log('Retrying with new slug:', newSlug)
+          
+          const { error: retryError } = await supabase
+            .from('businesses')
+            .insert([updatedBusinessData])
+          
+          if (retryError) {
+            console.error('Retry failed:', retryError)
+            
+            // Cleanup auth user
+            try {
+              if (supabaseServiceKey) {
+                await supabase.auth.admin.deleteUser(userId)
+              }
+            } catch (cleanupError) {
+              console.error('Cleanup error:', cleanupError)
             }
-          } catch (altErr) {
-            console.error('Alternative approach failed:', altErr)
+            
+            throw new Error(`Business creation failed after retry: ${retryError.message}`)
           }
-        }
+          
+          console.log('Business created successfully on retry')
+        } else {
+          // Handle other errors
+          if (businessError.message.includes('row-level security')) {
+            console.log('RLS policy violation detected, trying alternative approach...')
+            
+            // Try to temporarily set the auth context
+            try {
+              const { error: altError } = await supabase
+                .from('businesses')
+                .insert([businessData])
+            
+              if (altError) {
+                console.error('Alternative insert also failed:', altError)
+              }
+            } catch (altErr) {
+              console.error('Alternative approach failed:', altErr)
+            }
+          }
 
-        // Try to cleanup auth user
-        try {
-          if (supabaseServiceKey) {
-            await supabase.auth.admin.deleteUser(userId)
+          // Try to cleanup auth user
+          try {
+            if (supabaseServiceKey) {
+              await supabase.auth.admin.deleteUser(userId)
+            }
+          } catch (cleanupError) {
+            console.error('Cleanup error:', cleanupError)
           }
-        } catch (cleanupError) {
-          console.error('Cleanup error:', cleanupError)
+          
+          throw new Error(`Business creation error: ${businessError.message}`)
         }
-        
-        throw new Error(`Business creation error: ${businessError.message}. Please ensure RLS policies are properly configured.`)
+      } else {
+        console.log('Business created successfully')
       }
-
-      console.log('Business created successfully')
 
       // 3. Create subscription record
       try {
@@ -209,6 +311,7 @@ class SignupService {
         success: true,
         userId,
         businessId,
+        slug, // Return the generated slug
         message: 'Account created successfully'
       }
 
