@@ -33,6 +33,18 @@ interface FormErrors {
   [key: string]: string
 }
 
+interface SignupData {
+  businessName: string
+  businessDescription: string
+  websiteUrl: string
+  ownerName: string
+  email: string
+  phone: string
+  password: string
+  category: string
+  planId: string
+}
+
 export default function SignupPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState<BusinessCategory | null>(null)
@@ -45,6 +57,7 @@ export default function SignupPage() {
   const [mounted, setMounted] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [dashboardProgress, setDashboardProgress] = useState(0)
+  const [signupResult, setSignupResult] = useState<any>(null)
   const [formData, setFormData] = useState<FormData>({
     businessName: "",
     businessDescription: "",
@@ -163,6 +176,24 @@ export default function SignupPage() {
     return Object.keys(newErrors).length === 0
   }
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      })
+      
+      const data = await response.json()
+      return data.exists
+    } catch (error) {
+      console.error('Error checking email:', error)
+      return false
+    }
+  }
+
   const handleCategorySelect = (category: BusinessCategory) => {
     setSelectedCategory(category)
     setTimeout(() => {
@@ -185,11 +216,22 @@ export default function SignupPage() {
     setSubmitError("")
 
     try {
+      // Check if email already exists
+      const emailExists = await checkEmailExists(formData.email)
+      if (emailExists) {
+        setErrors({
+          ...errors,
+          email: "This email is already registered"
+        })
+        setLoading(false)
+        return
+      }
+
       await new Promise(resolve => setTimeout(resolve, 1500))
       setCurrentStep(2)
     } catch (error) {
-      console.error("Registration error:", error)
-      setSubmitError((error as Error).message || "Registration failed. Please try again.")
+      console.error("Email validation error:", error)
+      setSubmitError("Failed to validate email. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -214,12 +256,54 @@ export default function SignupPage() {
     }
   }
 
-  const handlePlanSelect = (plan: SubscriptionPlan) => {
+  const handlePlanSelect = async (plan: SubscriptionPlan) => {
     setSelectedPlan(plan)
-    setTimeout(() => {
-      setCurrentStep(4)
-      startDashboardCreation()
-    }, 500)
+    setLoading(true)
+    setSubmitError("")
+    
+    try {
+      // Prepare signup data
+      const signupData: SignupData = {
+        businessName: formData.businessName,
+        businessDescription: formData.businessDescription,
+        websiteUrl: formData.websiteUrl,
+        ownerName: formData.ownerName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        category: selectedCategory?.id || '',
+        planId: plan.id
+      }
+
+      // Call the signup API
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(signupData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Signup failed')
+      }
+
+      // Store result for later use
+      setSignupResult(result)
+      
+      // Success - proceed to dashboard creation step
+      setTimeout(() => {
+        setCurrentStep(4)
+        startDashboardCreation()
+      }, 500)
+
+    } catch (error) {
+      console.error('Signup error:', error)
+      setSubmitError(error instanceof Error ? error.message : 'Signup failed')
+      setLoading(false)
+    }
   }
 
   const dashboardSteps = [
@@ -240,10 +324,25 @@ export default function SignupPage() {
         if (step.progress === 100) {
           setTimeout(() => {
             setCurrentStep(5)
+            setLoading(false)
           }, 1000)
         }
       }, (index + 1) * 2000)
     })
+  }
+
+  const handleDashboardNavigation = async () => {
+    try {
+      // In production, you might want to set up the user session here
+      if (signupResult?.userId) {
+        // Redirect to dashboard
+        if (typeof window !== 'undefined') {
+          window.location.href = "/dashboard"
+        }
+      }
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
   }
 
   if (!mounted) {
@@ -355,6 +454,7 @@ export default function SignupPage() {
               selectedPlan={selectedPlan}
               formData={formData}
               isLoaded={isLoaded}
+              onDashboardClick={handleDashboardNavigation}
             />
           </div>
         )
@@ -479,10 +579,10 @@ export default function SignupPage() {
             <div className="text-center">
               <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Processing...
+                {currentStep === 3 ? 'Creating Your Account...' : 'Processing...'}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                This will only take a moment
+                {currentStep === 3 ? 'Setting up your business profile' : 'This will only take a moment'}
               </p>
             </div>
           </div>
