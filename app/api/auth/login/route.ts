@@ -214,13 +214,44 @@ export async function POST(request: NextRequest) {
     // Perform login
     const result = await AuthService.signIn(loginData)
 
-    // Set session cookies if needed (optional - depends on your auth strategy)
+    // Set multiple cookies for different purposes
     const response = NextResponse.json(result, { status: 200 })
     
-    // You can set httpOnly cookies here for additional security
+    // Set session cookie (for server-side auth)
     if (result.session?.access_token) {
       response.cookies.set('session', result.session.access_token, {
         httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+      })
+
+      // Set access token cookie (for client-side API calls)
+      response.cookies.set('access_token', result.session.access_token, {
+        httpOnly: false, // Allow client-side access
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+      })
+
+      // Set refresh token cookie
+      if (result.session.refresh_token) {
+        response.cookies.set('refresh_token', result.session.refresh_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30 // 30 days
+        })
+      }
+
+      // Set user info cookie
+      response.cookies.set('user_info', JSON.stringify({
+        id: result.user.id,
+        email: result.user.email,
+        business_id: result.business.id,
+        business_name: result.business.name
+      }), {
+        httpOnly: false, // Allow client-side access
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7 // 7 days
@@ -273,8 +304,11 @@ export async function DELETE(request: NextRequest) {
     
     const response = NextResponse.json(result, { status: 200 })
     
-    // Clear session cookie
+    // Clear all auth-related cookies
     response.cookies.delete('session')
+    response.cookies.delete('access_token')
+    response.cookies.delete('refresh_token')
+    response.cookies.delete('user_info')
     
     return response
   } catch (error) {

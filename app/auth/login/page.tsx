@@ -130,14 +130,21 @@ export default function LoginPage() {
         throw new Error(result.error || 'Login failed')
       }
 
-      // Success - redirect to dashboard
+      // Success - cookies are automatically set by the server
+      // Redirect to dashboard
       if (typeof window !== 'undefined') {
         window.location.href = "/dashboard"
       }
 
     } catch (error) {
       console.error('Login error:', error)
-      setSubmitError(error instanceof Error ? error.message : 'Login failed')
+      
+      // Handle specific error messages from the API
+      if (error instanceof Error) {
+        setSubmitError(error.message)
+      } else {
+        setSubmitError('Login failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -213,7 +220,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <Link 
               href="/"
-              className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}
+              className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 group transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}
             >
               <ArrowLeft className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" />
               <span>Back to Home</span>
@@ -253,7 +260,7 @@ export default function LoginPage() {
             {/* Error Message */}
             {submitError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center space-x-3 animate-in fade-in-0 slide-in-from-top-5 duration-500">
-                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
                 <p className="text-sm text-red-700 dark:text-red-400">{submitError}</p>
               </div>
             )}
@@ -277,7 +284,8 @@ export default function LoginPage() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 ${
+                    disabled={loading}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.email 
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'email'
@@ -290,7 +298,7 @@ export default function LoginPage() {
                 </div>
                 {errors.email && (
                   <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1 animate-in fade-in-0 slide-in-from-top-2 duration-300">
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     <span>{errors.email}</span>
                   </p>
                 )}
@@ -313,7 +321,8 @@ export default function LoginPage() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 ${
+                    disabled={loading}
+                    className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.password 
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'password'
@@ -326,7 +335,8 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                    disabled={loading}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 disabled:opacity-50"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -337,7 +347,7 @@ export default function LoginPage() {
                 </div>
                 {errors.password && (
                   <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1 animate-in fade-in-0 slide-in-from-top-2 duration-300">
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     <span>{errors.password}</span>
                   </p>
                 )}
@@ -347,7 +357,7 @@ export default function LoginPage() {
               <div className="text-right">
                 <Link 
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-200 hover:underline"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
                 >
                   Forgot your password?
                 </Link>
@@ -357,26 +367,28 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl disabled:shadow-md flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:from-orange-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none active:scale-95 group"
               >
                 {loading ? (
-                  <>
+                  <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Signing In...</span>
-                  </>
+                  </div>
                 ) : (
-                  <span>Sign In</span>
+                  <span className="group-hover:tracking-wide transition-all duration-300">
+                    Sign In
+                  </span>
                 )}
               </button>
             </form>
 
             {/* Sign Up Link */}
-            <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-800">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-center pt-6 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <Link 
-                  href="/auth"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-200 hover:underline font-medium"
+                  href="/auth/signup"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200"
                 >
                   Sign up here
                 </Link>
@@ -385,23 +397,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
-            <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Signing You In...
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Please wait while we authenticate your account
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
