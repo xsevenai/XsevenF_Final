@@ -3,13 +3,16 @@
 "use client"
 
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, BarChart3, Settings, Search } from "lucide-react"
 import TableList from "./TableList"
 import TablePostingForm from "./TablePostingForm"
+import TableAvailabilitySearch from "./TableAvailabiltySearch"
+import TableLayoutManager from "./TableLayoutManager"
 
 export default function TableComponent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'availability' | 'layout'>('overview')
 
   // Handle table updates
   const handleTableUpdate = () => {
@@ -20,6 +23,17 @@ export default function TableComponent() {
   const handleTableCreated = () => {
     handleTableUpdate()
     setShowAddForm(false)
+  }
+
+  // Handle availability check
+  const handleAvailabilityCheck = (data: any) => {
+    // You can use this data to show notifications or update other components
+    console.log('Availability data:', data)
+  }
+
+  // Handle layout update
+  const handleLayoutUpdate = () => {
+    handleTableUpdate()
   }
 
   return (
@@ -45,8 +59,68 @@ export default function TableComponent() {
         </div>
       </div>
 
-      {/* Table List Component */}
-      <TableList onTableUpdate={handleTableUpdate} />
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+            activeTab === 'overview'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+              : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" />
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('availability')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+            activeTab === 'availability'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+              : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
+          }`}
+        >
+          <Search className="h-4 w-4" />
+          Availability
+        </button>
+        <button
+          onClick={() => setActiveTab('layout')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+            activeTab === 'layout'
+              ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
+              : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
+          }`}
+        >
+          <Settings className="h-4 w-4" />
+          Layout Manager
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-6">
+        {/* Overview Tab - Default Table List */}
+        {activeTab === 'overview' && (
+          <>
+            <TableList onTableUpdate={handleTableUpdate} />
+          </>
+        )}
+
+        {/* Availability Tab */}
+        {activeTab === 'availability' && (
+          <TableAvailabilitySearch 
+            onAvailabilityCheck={handleAvailabilityCheck} 
+            autoExpanded={true}
+          />
+        )}
+
+        {/* Layout Manager Tab */}
+        {activeTab === 'layout' && (
+          <TableLayoutManager 
+            onLayoutUpdate={handleLayoutUpdate} 
+            autoExpanded={true}
+          />
+        )}
+      </div>
 
       {/* Table Posting Form Modal */}
       <TablePostingForm

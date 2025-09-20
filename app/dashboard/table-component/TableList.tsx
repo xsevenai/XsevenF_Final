@@ -3,9 +3,10 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw } from "lucide-react"
+import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, QrCode, MoreVertical } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTables, useTableStats } from "@/hooks/use-tables"
+import TableQRCode from "./TableQRCode"
 
 interface TableListProps {
   onTableUpdate?: () => void
@@ -18,12 +19,18 @@ export default function TableList({ onTableUpdate }: TableListProps) {
     error,
     refresh,
     updateTableStatus,
+    deleteTable,
   } = useTables()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [updating, setUpdating] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  
+  // QR Code modal state
+  const [qrModal, setQrModal] = useState<{ tableId: string; tableNumber: number } | null>(null)
 
   const tableStats = useTableStats(tables)
 
@@ -39,6 +46,39 @@ export default function TableList({ onTableUpdate }: TableListProps) {
     } finally {
       setUpdating(null)
     }
+  }
+
+  // Handle table deletion
+  const handleDeleteTable = async (tableId: string) => {
+    try {
+      setDeleting(tableId)
+      await deleteTable(tableId)
+      setDeleteConfirm(null)
+      onTableUpdate?.()
+    } catch (err) {
+      console.error('Failed to delete table:', err)
+      // Error is already handled in the hook
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  // QR Code handlers
+  const openQRModal = (tableId: string, tableNumber: number) => {
+    setQrModal({ tableId, tableNumber })
+  }
+
+  const closeQRModal = () => {
+    setQrModal(null)
+  }
+
+  // Confirm delete dialog
+  const confirmDelete = (tableId: string, tableNumber: number) => {
+    setDeleteConfirm(tableId)
+  }
+
+  const cancelDelete = () => {
+    setDeleteConfirm(null)
   }
 
   // Filter tables based on search and status
@@ -82,11 +122,37 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   const renderTableCard = (table: any) => (
     <Card
       key={table.id}
-      className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300 group"
+      className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300 group relative"
     >
+      {/* Action Buttons */}
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+        {/* QR Code Button */}
+        <button
+          onClick={() => openQRModal(table.id, table.number)}
+          className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
+          title="Generate QR Code"
+        >
+          <QrCode className="h-4 w-4" />
+        </button>
+        
+        {/* Delete Button */}
+        <button
+          onClick={() => confirmDelete(table.id, table.number)}
+          disabled={deleting === table.id || table.status === 'occupied'}
+          className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
+        >
+          {deleting === table.id ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+
       <div className="text-center space-y-4">
         {/* Table Number */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pr-16">
           <h3 className="text-white font-bold text-lg">Table {table.number}</h3>
           <span className="text-gray-400 text-sm">{table.seats} seats</span>
         </div>
@@ -115,7 +181,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           >
             <option value="available">Available</option>
             <option value="occupied">Occupied</option>
-            <option value="cleaning">Cleaning</option>
+            <option value="maintenance">Maintenance</option>
             <option value="reserved">Reserved</option>
           </select>
           {updating === table.id && (
@@ -165,6 +231,29 @@ export default function TableList({ onTableUpdate }: TableListProps) {
               </div>
             )}
           </div>
+          
+          {/* QR Code Button for List View */}
+          <button
+            onClick={() => openQRModal(table.id, table.number)}
+            className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
+            title="Generate QR Code"
+          >
+            <QrCode className="h-4 w-4" />
+          </button>
+          
+          {/* Delete Button for List View */}
+          <button
+            onClick={() => confirmDelete(table.id, table.number)}
+            disabled={deleting === table.id || table.status === 'occupied'}
+            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
+          >
+            {deleting === table.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </div>
     </Card>
@@ -202,6 +291,59 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border border-gray-700/50 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="h-6 w-6 text-red-400" />
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-2">Delete Table</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete Table {tables.find(t => t.id === deleteConfirm)?.number}? 
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTable(deleteConfirm)}
+                  disabled={deleting === deleteConfirm}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {deleting === deleteConfirm ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {qrModal && (
+        <TableQRCode
+          tableId={qrModal.tableId}
+          tableNumber={qrModal.tableNumber}
+          isOpen={true}
+          onClose={closeQRModal}
+        />
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">

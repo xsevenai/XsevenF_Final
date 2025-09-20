@@ -113,14 +113,42 @@ export function useTables(): UseTablesReturn {
   const deleteTable = useCallback(async (id: string) => {
     try {
       setError(null)
+      
+      // Find table to get details for better error messages
+      const table = tables.find(t => t.id === id)
+      
       await tablesApi.deleteTable(id)
+      
+      // Remove table from local state
       setTables(prevTables => prevTables.filter(table => table.id !== id))
+      
+      // Show success message or handle success state
+      console.log(`Table ${table?.number || id} deleted successfully`)
+      
     } catch (err) {
       console.error('Error deleting table:', err)
-      setError(err instanceof Error ? err.message : 'Failed to delete table')
-      throw err
+      
+      // Handle specific error cases
+      let errorMessage = 'Failed to delete table'
+      
+      if (err instanceof Error) {
+        const message = err.message.toLowerCase()
+        
+        if (message.includes('occupied')) {
+          errorMessage = 'Cannot delete table that is currently occupied'
+        } else if (message.includes('active orders')) {
+          errorMessage = 'Cannot delete table with active orders. Please complete or cancel all orders first.'
+        } else if (message.includes('not found')) {
+          errorMessage = 'Table not found'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }, [])
+  }, [tables])
 
   const refresh = useCallback(async () => {
     await fetchTables()
