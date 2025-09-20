@@ -183,6 +183,7 @@ class SignupService {
         phone: signupData.phone || null,
         category: signupData.category,
         slug: slug, // Add the unique slug
+        owner_id: userId,
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
