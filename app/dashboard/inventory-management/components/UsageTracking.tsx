@@ -294,7 +294,7 @@ export default function UsageTracking({
             </div>
           </Card>
         </div>
-      )}
+      )
     </div>
   ) className="text-2xl font-bold text-white">{totalSold}</div>
                 <p className="text-gray-400 text-sm mt-1">{periodLabels[currentPeriod]}</p>
