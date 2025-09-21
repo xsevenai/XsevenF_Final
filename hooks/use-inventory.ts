@@ -4,31 +4,29 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { 
-  inventoryApi, 
-  reorderApi, 
-  usageApi, 
-  inventoryStatsApi,
-  type InventoryItem,
-  type LowStockItem,
+  frontendInventoryApi,
+  type ExtendedInventoryItem,
+  type ExtendedLowStockItem,
+  type InventoryUpdate,
   type ReorderRequest,
-  type IngredientUsage,
-  type CreateInventoryItemRequest,
-  type UpdateInventoryItemRequest,
-  type CreateReorderRequest,
-  type RecordUsageRequest
-} from '@/lib/inventory-api'
+  type ReorderResponse,
+  type UsageTracking
+} from '@/app/api/inventory'
 
 // Hook for inventory items management
 export const useInventoryItems = () => {
-  const [items, setItems] = useState<InventoryItem[]>([])
+  const [items, setItems] = useState<ExtendedInventoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (params?: {
+    low_stock_only?: boolean
+    category_id?: number
+  }) => {
     try {
       setLoading(true)
       setError(null)
-      const data = await inventoryApi.getItems()
+      const data = await frontendInventoryApi.getItems(params)
       setItems(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch inventory items')
@@ -37,19 +35,9 @@ export const useInventoryItems = () => {
     }
   }, [])
 
-  const createItem = useCallback(async (data: CreateInventoryItemRequest) => {
+  const updateItem = useCallback(async (itemId: number, data: InventoryUpdate) => {
     try {
-      const newItem = await inventoryApi.createItem(data)
-      setItems(prev => [...prev, newItem])
-      return newItem
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to create inventory item')
-    }
-  }, [])
-
-  const updateItem = useCallback(async (itemId: string, data: UpdateInventoryItemRequest) => {
-    try {
-      const updatedItem = await inventoryApi.updateItem(itemId, data)
+      const updatedItem = await frontendInventoryApi.updateItem(itemId, data)
       setItems(prev => prev.map(item => item.id === itemId ? updatedItem : item))
       return updatedItem
     } catch (err) {
@@ -57,14 +45,13 @@ export const useInventoryItems = () => {
     }
   }, [])
 
-  const deleteItem = useCallback(async (itemId: string) => {
-    try {
-      await inventoryApi.deleteItem(itemId)
-      setItems(prev => prev.filter(item => item.id !== itemId))
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to delete inventory item')
+  const updateStockQuantity = useCallback(async (itemId: number, stockQuantity: number, minThreshold?: number) => {
+    const updateData: InventoryUpdate = { stock_quantity: stockQuantity }
+    if (minThreshold !== undefined) {
+      updateData.min_stock_threshold = minThreshold
     }
-  }, [])
+    return updateItem(itemId, updateData)
+  }, [updateItem])
 
   useEffect(() => {
     fetchItems()
@@ -75,15 +62,15 @@ export const useInventoryItems = () => {
     loading,
     error,
     refresh: fetchItems,
-    createItem,
     updateItem,
-    deleteItem
+    updateStockQuantity,
+    fetchItems
   }
 }
 
 // Hook for low stock items
 export const useLowStockItems = () => {
-  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([])
+  const [lowStockItems, setLowStockItems] = useState<ExtendedLowStockItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,7 +78,7 @@ export const useLowStockItems = () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await inventoryApi.getLowStockItems()
+      const data = await frontendInventoryApi.getLowStockItems()
       setLowStockItems(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch low stock items')
@@ -114,122 +101,63 @@ export const useLowStockItems = () => {
 
 // Hook for reorder management
 export const useReorders = () => {
-  const [reorders, setReorders] = useState<ReorderRequest[]>([])
-  const [loading, setLoading] = useState(true)
+  const [reorderHistory, setReorderHistory] = useState<ReorderResponse[]>([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchReorders = useCallback(async () => {
+  const createReorder = useCallback(async (data: ReorderRequest) => {
     try {
       setLoading(true)
       setError(null)
-      const data = await reorderApi.getReorders()
-      setReorders(data)
+      const response = await frontendInventoryApi.createReorder(data)
+      setReorderHistory(prev => [response, ...prev])
+      return response
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch reorder requests')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create reorder request'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const createReorder = useCallback(async (data: CreateReorderRequest) => {
-    try {
-      const newReorder = await reorderApi.createReorder(data)
-      setReorders(prev => [...prev, newReorder])
-      return newReorder
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to create reorder request')
+  const createReorderFromLowStock = useCallback(async (item: ExtendedLowStockItem, quantity?: number, supplier?: string, notes?: string) => {
+    const defaultQuantity = Math.max(item.threshold * 2, 10) // Default to 2x threshold or 10 units
+    
+    const reorderData: ReorderRequest = {
+      item_id: item.item_id,
+      quantity: quantity || defaultQuantity,
+      supplier: supplier || item.supplier,
+      notes: notes || `Auto-generated reorder for ${item.status} item`
     }
-  }, [])
-
-  const updateReorderStatus = useCallback(async (
-    reorderId: string, 
-    status: ReorderRequest['status'],
-    notes?: string
-  ) => {
-    try {
-      const updatedReorder = await reorderApi.updateReorderStatus(reorderId, status, notes)
-      setReorders(prev => prev.map(reorder => 
-        reorder.id === reorderId ? updatedReorder : reorder
-      ))
-      return updatedReorder
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to update reorder status')
-    }
-  }, [])
-
-  const approveReorder = useCallback(async (reorderId: string, notes?: string) => {
-    try {
-      const updatedReorder = await reorderApi.approveReorder(reorderId, notes)
-      setReorders(prev => prev.map(reorder => 
-        reorder.id === reorderId ? updatedReorder : reorder
-      ))
-      return updatedReorder
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to approve reorder')
-    }
-  }, [])
-
-  const markReceived = useCallback(async (
-    reorderId: string, 
-    receivedQuantity: number, 
-    notes?: string
-  ) => {
-    try {
-      const updatedReorder = await reorderApi.markReceived(reorderId, receivedQuantity, notes)
-      setReorders(prev => prev.map(reorder => 
-        reorder.id === reorderId ? updatedReorder : reorder
-      ))
-      return updatedReorder
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to mark reorder as received')
-    }
-  }, [])
-
-  const cancelReorder = useCallback(async (reorderId: string, reason?: string) => {
-    try {
-      const updatedReorder = await reorderApi.cancelReorder(reorderId, reason)
-      setReorders(prev => prev.map(reorder => 
-        reorder.id === reorderId ? updatedReorder : reorder
-      ))
-      return updatedReorder
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to cancel reorder')
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchReorders()
-  }, [fetchReorders])
+    
+    return createReorder(reorderData)
+  }, [createReorder])
 
   return {
-    reorders,
+    reorderHistory,
     loading,
     error,
-    refresh: fetchReorders,
     createReorder,
-    updateReorderStatus,
-    approveReorder,
-    markReceived,
-    cancelReorder
+    createReorderFromLowStock,
+    clearError: () => setError(null)
   }
 }
 
 // Hook for usage tracking
 export const useUsageTracking = () => {
-  const [usageHistory, setUsageHistory] = useState<IngredientUsage[]>([])
+  const [usageHistory, setUsageHistory] = useState<UsageTracking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPeriod, setCurrentPeriod] = useState<'7d' | '30d' | '90d'>('7d')
 
-  const fetchUsageHistory = useCallback(async (
-    startDate?: string, 
-    endDate?: string, 
-    itemId?: string
-  ) => {
+  const fetchUsageHistory = useCallback(async (period: '7d' | '30d' | '90d' = '7d') => {
     try {
       setLoading(true)
       setError(null)
-      const data = await usageApi.getUsageHistory(startDate, endDate, itemId)
+      const data = await frontendInventoryApi.getUsageTracking(period)
       setUsageHistory(data)
+      setCurrentPeriod(period)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch usage history')
     } finally {
@@ -237,15 +165,9 @@ export const useUsageTracking = () => {
     }
   }, [])
 
-  const recordUsage = useCallback(async (data: RecordUsageRequest) => {
-    try {
-      const newUsage = await usageApi.recordUsage(data)
-      setUsageHistory(prev => [newUsage, ...prev])
-      return newUsage
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to record usage')
-    }
-  }, [])
+  const changePeriod = useCallback(async (period: '7d' | '30d' | '90d') => {
+    await fetchUsageHistory(period)
+  }, [fetchUsageHistory])
 
   useEffect(() => {
     fetchUsageHistory()
@@ -255,49 +177,58 @@ export const useUsageTracking = () => {
     usageHistory,
     loading,
     error,
-    refresh: fetchUsageHistory,
-    recordUsage,
-    fetchUsageHistory
+    currentPeriod,
+    refresh: () => fetchUsageHistory(currentPeriod),
+    fetchUsageHistory,
+    changePeriod
   }
 }
 
-// Hook for inventory statistics
+// Hook for inventory statistics (computed from available data)
 export const useInventoryStats = () => {
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { items: inventoryItems } = useInventoryItems()
+  const { lowStockItems } = useLowStockItems()
+  const { usageHistory } = useUsageTracking()
 
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const [overview, valueByCategory, expiringItems] = await Promise.all([
-        inventoryStatsApi.getOverviewStats(),
-        inventoryStatsApi.getValueByCategory(),
-        inventoryStatsApi.getExpiringItems(7)
-      ])
-      
-      setStats({
-        overview,
-        valueByCategory,
-        expiringItems
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch inventory stats')
-    } finally {
-      setLoading(false)
+  const stats = React.useMemo(() => {
+    const totalItems = inventoryItems.length
+    const lowStockCount = lowStockItems.length
+    const outOfStockCount = inventoryItems.filter(item => item.is_out_of_stock).length
+    const inStockCount = inventoryItems.filter(item => !item.is_low_stock && !item.is_out_of_stock).length
+    
+    // Calculate total value (would need cost_per_unit from menu_items)
+    const totalValue = inventoryItems.reduce((sum, item) => {
+      return sum + (item.current_stock * (item.cost_per_unit || 0))
+    }, 0)
+
+    // Top usage items from current period
+    const topUsageItems = usageHistory.slice(0, 5)
+
+    // Revenue from usage tracking
+    const totalRevenue = usageHistory.reduce((sum, item) => sum + item.total_revenue, 0)
+
+    return {
+      overview: {
+        totalItems,
+        totalValue,
+        lowStockCount,
+        outOfStockCount,
+        inStockCount,
+        totalRevenue
+      },
+      lowStockItems,
+      topUsageItems,
+      usageHistory
     }
-  }, [])
-
-  useEffect(() => {
-    fetchStats()
-  }, [fetchStats])
+  }, [inventoryItems, lowStockItems, usageHistory])
 
   return {
     stats,
-    loading,
-    error,
-    refresh: fetchStats
+    loading: false,
+    error: null,
+    refresh: () => {
+      // This would trigger refresh of all dependent hooks
+    }
   }
 }
 
@@ -313,16 +244,12 @@ export const useInventoryManagement = () => {
     await Promise.all([
       inventoryItems.refresh(),
       lowStockItems.refresh(),
-      reorders.refresh(),
-      usageTracking.refresh(),
-      stats.refresh()
+      usageTracking.refresh()
     ])
   }, [
     inventoryItems.refresh,
     lowStockItems.refresh,
-    reorders.refresh,
-    usageTracking.refresh,
-    stats.refresh
+    usageTracking.refresh
   ])
 
   return {
@@ -334,3 +261,6 @@ export const useInventoryManagement = () => {
     refreshAll
   }
 }
+
+// React import for useMemo
+import React from 'react'

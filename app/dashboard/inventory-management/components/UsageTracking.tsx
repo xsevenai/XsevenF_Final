@@ -11,7 +11,8 @@ import {
   Calendar,
   DollarSign,
   Package,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react"
 import type { UsageTracking as UsageData, ExtendedInventoryItem } from '@/app/api/inventory'
 
@@ -44,6 +45,7 @@ export default function UsageTracking({
 
   const totalSold = usageHistory.reduce((sum, item) => sum + item.total_sold, 0)
   const totalRevenue = usageHistory.reduce((sum, item) => sum + item.total_revenue, 0)
+  const averagePerItem = usageHistory.length > 0 ? totalRevenue / usageHistory.length : 0
 
   if (loading) {
     return (
@@ -102,17 +104,34 @@ export default function UsageTracking({
                 {periodLabels[period]}
               </button>
             ))}
+            <button
+              onClick={onRefresh}
+              className="p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-blue-400 font-semibold mb-2">Total Items Sold</h3>
+                <div className="text-2xl font-bold text-white">{totalSold}</div>
+                <p className="text-gray-400 text-sm mt-1">{periodLabels[currentPeriod]}</p>
+              </div>
+              <Package className="h-8 w-8 text-blue-400" />
+            </div>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-green-400 font-semibold mb-2">Total Revenue</h3>
                 <div className="text-2xl font-bold text-white">${totalRevenue.toFixed(2)}</div>
                 <p className="text-gray-400 text-sm mt-1">{periodLabels[currentPeriod]}</p>
               </div>
@@ -128,6 +147,17 @@ export default function UsageTracking({
                 <p className="text-gray-400 text-sm mt-1">Different items</p>
               </div>
               <BarChart3 className="h-8 w-8 text-purple-400" />
+            </div>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-orange-400 font-semibold mb-2">Avg Revenue/Item</h3>
+                <div className="text-2xl font-bold text-white">${averagePerItem.toFixed(2)}</div>
+                <p className="text-gray-400 text-sm mt-1">Per item average</p>
+              </div>
+              <TrendingDown className="h-8 w-8 text-orange-400" />
             </div>
           </Card>
         </div>
@@ -147,13 +177,14 @@ export default function UsageTracking({
                   <th className="text-left p-4 text-gray-300 font-semibold">Item</th>
                   <th className="text-left p-4 text-gray-300 font-semibold">Units Sold</th>
                   <th className="text-left p-4 text-gray-300 font-semibold">Revenue</th>
+                  <th className="text-left p-4 text-gray-300 font-semibold">Avg per Unit</th>
                   <th className="text-left p-4 text-gray-300 font-semibold">Period</th>
                 </tr>
               </thead>
               <tbody>
                 {usageHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-400">
+                    <td colSpan={6} className="text-center py-8 text-gray-400">
                       <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>No usage data available for {periodLabels[currentPeriod].toLowerCase()}</p>
                       <p className="text-sm mt-1">Sales data will appear here once orders are completed</p>
@@ -188,6 +219,11 @@ export default function UsageTracking({
                       </td>
                       <td className="p-4">
                         <span className="text-green-400 font-semibold">${usage.total_revenue.toFixed(2)}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-gray-300">
+                          ${usage.total_sold > 0 ? (usage.total_revenue / usage.total_sold).toFixed(2) : '0.00'}
+                        </span>
                       </td>
                       <td className="p-4">
                         <span className="text-gray-300">{usage.period}</span>
@@ -294,17 +330,7 @@ export default function UsageTracking({
             </div>
           </Card>
         </div>
-      )
+      )}
     </div>
-  ) className="text-2xl font-bold text-white">{totalSold}</div>
-                <p className="text-gray-400 text-sm mt-1">{periodLabels[currentPeriod]}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-400" />
-            </div>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-green-400 font-semibold mb-2">Total Revenue</h3>
-                <div
+  )
+}
