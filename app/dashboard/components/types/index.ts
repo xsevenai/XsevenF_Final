@@ -67,8 +67,8 @@ export interface LiveChat {
   status: "online" | "offline"
 }
 
-// Updated to include profile
-export type SectionType = "dashboard" | "ai-chat" | "menu" | "orders" | "tables" | "working-hours" | "profile"
+// Updated to include inventory
+export type SectionType = "dashboard" | "ai-chat" | "menu" | "orders" | "inventory" | "tables" | "working-hours" | "profile"
 
 export type ExpandedViewType = 
   | "add-menu-item" 

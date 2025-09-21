@@ -9,7 +9,8 @@ import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, Expanded
 import Profile from "../profile/page"
 import MenuComponent from "./MenuComponent"
 import OrderComponent from "../order-component/OrderComponent"
-import TableComponent from "../table-component/TableComponent" // Import the new component
+import TableComponent from "../table-component/TableComponent"
+import InventoryComponent from "../inventory-management/InventoryComponent"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -234,6 +235,11 @@ export default function MainPanel({
     />
   )
 
+  // Render the InventoryComponent (it handles its own navigation internally)
+  const renderInventory = () => (
+    <InventoryComponent />
+  )
+
   // Updated renderTables to use the new TableComponent
   const renderTables = () => (
     <TableComponent />
@@ -316,6 +322,8 @@ export default function MainPanel({
         return renderMenu()
       case "orders":
         return renderOrders()
+      case "inventory":
+        return renderInventory()
       case "tables":
         return renderTables()
       case "working-hours":
@@ -340,6 +348,8 @@ export default function MainPanel({
           return "Add New Menu Item"
         case "add-category":
           return "Add New Category"
+        case "add-inventory-item":
+          return "Add New Inventory Item"
         case "generate-qr":
           return "Generate QR Codes"
         case "import-data":
@@ -360,6 +370,8 @@ export default function MainPanel({
         return "Menu Management"
       case "orders":
         return "Order Management"
+      case "inventory":
+        return "Inventory Management"
       case "tables":
         return "Table Management"
       case "working-hours":
@@ -385,6 +397,8 @@ export default function MainPanel({
         return "Manage your restaurant menu items and categories"
       case "orders":
         return "Track and manage all customer orders"
+      case "inventory":
+        return "Monitor stock levels, track usage, and manage reorders"
       case "tables":
         return "Monitor and manage restaurant table status"
       case "working-hours":
