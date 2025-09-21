@@ -14,7 +14,7 @@ import {
   XCircle,
   AlertTriangle
 } from "lucide-react"
-import type { ReorderResponse, ExtendedInventoryItem, ReorderRequest } from '@/app/api/inventory'
+import type { ReorderResponse, ExtendedInventoryItem, ReorderRequest } from '@/app/api/inventory/route'
 
 interface ReorderManagementProps {
   reorders: ReorderResponse[]
@@ -36,7 +36,7 @@ export default function ReorderManagement({
   inventoryItems
 }: ReorderManagementProps) {
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [selectedItem, setSelectedItem] = useState('')
+  const [selectedItem, setSelectedItem] = useState('')  // FIXED: Keep as string
   const [quantity, setQuantity] = useState(0)
   const [supplier, setSupplier] = useState('')
   const [notes, setNotes] = useState('')
@@ -49,9 +49,9 @@ export default function ReorderManagement({
 
     try {
       setCreating(true)
-      const itemId = parseInt(selectedItem)
+      // FIXED: Use selectedItem directly as string (no parseInt)
       await onCreateReorder({
-        item_id: itemId,
+        item_id: selectedItem,
         quantity,
         supplier: supplier || undefined,
         notes: notes || undefined

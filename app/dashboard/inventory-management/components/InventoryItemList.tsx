@@ -18,7 +18,7 @@ import {
   RefreshCw,
   ArrowLeft
 } from "lucide-react"
-import type { ExtendedInventoryItem, InventoryUpdate } from '@/app/api/inventory'
+import type { ExtendedInventoryItem, InventoryUpdate } from '@/app/api/inventory/route'
 import UpdateStockModal from './UpdateStockModel'
 
 interface InventoryItemsListProps {
@@ -26,7 +26,7 @@ interface InventoryItemsListProps {
   loading: boolean
   error: string | null
   onRefresh: () => void
-  onUpdateItem: (itemId: number, data: InventoryUpdate) => Promise<ExtendedInventoryItem>
+  onUpdateItem: (itemId: string, data: InventoryUpdate) => Promise<ExtendedInventoryItem>  // FIXED: Use string
   onBack: () => void
 }
 
@@ -41,7 +41,7 @@ export default function InventoryItemsList({
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [editingItem, setEditingItem] = useState<ExtendedInventoryItem | null>(null)
-  const [updatingStock, setUpdatingStock] = useState<number | null>(null)
+  const [updatingStock, setUpdatingStock] = useState<string | null>(null)  // FIXED: Use string
 
   const statuses = ['all', 'in-stock', 'low-stock', 'out-of-stock']
 
@@ -62,7 +62,8 @@ export default function InventoryItemsList({
     }
   }
 
-  const handleUpdateStock = async (itemId: number, stockQuantity: number, minThreshold?: number) => {
+  // FIXED: Use string for itemId
+  const handleUpdateStock = async (itemId: string, stockQuantity: number, minThreshold?: number) => {
     try {
       setUpdatingStock(itemId)
       const updateData: InventoryUpdate = { stock_quantity: stockQuantity }
@@ -128,48 +129,51 @@ export default function InventoryItemsList({
       {/* Search and Filters */}
       <div className="px-6">
         <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search items by name or category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
-          >
-            {statuses.map(status => (
-              <option key={status} value={status}>
-                {status === 'all' ? 'All Status' : status.replace('-', ' ').toUpperCase()}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search items by name or category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+            />
+          </div>
           
-          <button
-            onClick={onRefresh}
-            className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-purple-500 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
+          <div className="flex gap-2">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            >
+              {statuses.map(status => (
+                <option key={status} value={status}>
+                  {status === 'all' ? 'All Status' : status.replace('-', ' ').toUpperCase()}
+                </option>
+              ))}
+            </select>
+            
+            <button
+              onClick={onRefresh}
+              className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-purple-500 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Items Count */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-400">
-          Showing {filteredItems.length} of {items.length} items
-        </p>
+      <div className="px-6">
+        <div className="flex items-center justify-between">
+          <p className="text-gray-400">
+            Showing {filteredItems.length} of {items.length} items
+          </p>
+        </div>
       </div>
 
       {/* Items Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="px-6">
         {filteredItems.map((item) => (
           <Card key={item.id} className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300">
             <div className="flex items-start justify-between mb-4">

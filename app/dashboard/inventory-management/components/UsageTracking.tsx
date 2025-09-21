@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   RefreshCw
 } from "lucide-react"
-import type { UsageTracking as UsageData, ExtendedInventoryItem } from '@/app/api/inventory'
+import type { UsageTracking as UsageData, ExtendedInventoryItem } from '@/app/api/inventory/route'
 
 interface UsageTrackingProps {
   usageHistory: UsageData[]

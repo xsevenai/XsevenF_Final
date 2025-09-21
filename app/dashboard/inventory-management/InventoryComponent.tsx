@@ -65,7 +65,7 @@ export default function InventoryComponent() {
             loading={inventoryItems.loading}
             error={inventoryItems.error}
             onRefresh={inventoryItems.refresh}
-            onUpdateItem={inventoryItems.updateItem}
+            onUpdateItem={inventoryItems.updateItem}  // Already fixed - now uses string IDs
             onBack={handleBackToOverview}
           />
         )

@@ -1,8 +1,9 @@
-// hooks/use-inventory.ts
+// hooks/use-inventory.ts - FIXED VERSION
 
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import React from 'react'
 import { 
   frontendInventoryApi,
   type ExtendedInventoryItem,
@@ -11,9 +12,9 @@ import {
   type ReorderRequest,
   type ReorderResponse,
   type UsageTracking
-} from '@/app/api/inventory'
+} from '@/app/api/inventory/route'
 
-// Hook for inventory items management
+// Hook for inventory items management - FIXED: Use string for IDs
 export const useInventoryItems = () => {
   const [items, setItems] = useState<ExtendedInventoryItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,7 +36,8 @@ export const useInventoryItems = () => {
     }
   }, [])
 
-  const updateItem = useCallback(async (itemId: number, data: InventoryUpdate) => {
+  // FIXED: Use string for itemId
+  const updateItem = useCallback(async (itemId: string, data: InventoryUpdate) => {
     try {
       const updatedItem = await frontendInventoryApi.updateItem(itemId, data)
       setItems(prev => prev.map(item => item.id === itemId ? updatedItem : item))
@@ -45,7 +47,8 @@ export const useInventoryItems = () => {
     }
   }, [])
 
-  const updateStockQuantity = useCallback(async (itemId: number, stockQuantity: number, minThreshold?: number) => {
+  // FIXED: Use string for itemId
+  const updateStockQuantity = useCallback(async (itemId: string, stockQuantity: number, minThreshold?: number) => {
     const updateData: InventoryUpdate = { stock_quantity: stockQuantity }
     if (minThreshold !== undefined) {
       updateData.min_stock_threshold = minThreshold
@@ -125,7 +128,7 @@ export const useReorders = () => {
     const defaultQuantity = Math.max(item.threshold * 2, 10) // Default to 2x threshold or 10 units
     
     const reorderData: ReorderRequest = {
-      item_id: item.item_id,
+      item_id: item.item_id,  // This is now correctly a string
       quantity: quantity || defaultQuantity,
       supplier: supplier || item.supplier,
       notes: notes || `Auto-generated reorder for ${item.status} item`
@@ -261,6 +264,3 @@ export const useInventoryManagement = () => {
     refreshAll
   }
 }
-
-// React import for useMemo
-import React from 'react'

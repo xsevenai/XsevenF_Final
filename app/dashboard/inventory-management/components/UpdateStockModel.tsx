@@ -4,12 +4,12 @@
 
 import React, { useState } from 'react'
 import { X, Save, Loader2, Package, AlertTriangle } from 'lucide-react'
-import type { ExtendedInventoryItem } from '@/app/api/inventory'
+import type { ExtendedInventoryItem } from '@/app/api/inventory/route'
 
 interface UpdateStockModalProps {
   item: ExtendedInventoryItem
   onClose: () => void
-  onSubmit: (itemId: number, stockQuantity: number, minThreshold?: number) => Promise<void>
+  onSubmit: (itemId: string, stockQuantity: number, minThreshold?: number) => Promise<void>  // FIXED: Use string
   loading?: boolean
 }
 

@@ -14,14 +14,15 @@ import {
   Truck,
   ArrowLeft
 } from "lucide-react"
-import type { LowStockItem, CreateReorderRequest, ReorderRequest } from '@/lib/inventory-api'
+import type { ExtendedLowStockItem, ReorderRequest, ReorderResponse } from '@/app/api/inventory/route'
 
 interface LowStockAlertsProps {
-  lowStockItems: LowStockItem[]
+  lowStockItems: ExtendedLowStockItem[]
   loading: boolean
   error: string | null
   onRefresh: () => void
-  onCreateReorder: (data: CreateReorderRequest) => Promise<ReorderRequest>
+  onCreateReorder: (data: ReorderRequest) => Promise<ReorderResponse>
+  onBack: () => void
 }
 
 export default function LowStockAlerts({
@@ -32,6 +33,7 @@ export default function LowStockAlerts({
   onCreateReorder,
   onBack
 }: LowStockAlertsProps) {
+  // FIXED: Use string instead of number for item IDs
   const [creatingReorder, setCreatingReorder] = useState<string | null>(null)
 
   // Group items by urgency
@@ -61,17 +63,17 @@ export default function LowStockAlerts({
     }
   }
 
-  const handleCreateReorder = async (item: LowStockItem) => {
+  const handleCreateReorder = async (item: ExtendedLowStockItem) => {
     try {
-      setCreatingReorder(item.id)
+      setCreatingReorder(item.item_id)
       
       // Calculate suggested reorder quantity (to reach max stock)
-      const suggestedQuantity = Math.max(item.minStock * 2, 10) // At least double min stock or 10 units
+      const suggestedQuantity = Math.max(item.threshold * 2, 10) // At least double min stock or 10 units
       
       await onCreateReorder({
-        itemId: item.id,
-        requestedQuantity: suggestedQuantity,
-        priority: item.urgency,
+        item_id: item.item_id,
+        quantity: suggestedQuantity,
+        supplier: item.supplier,
         notes: `Auto-generated reorder for ${item.status} item`
       })
       
@@ -91,11 +93,11 @@ export default function LowStockAlerts({
       if (highPriorityItems.length === 0) return
 
       for (const item of highPriorityItems) {
-        const suggestedQuantity = Math.max(item.minStock * 2, 10)
+        const suggestedQuantity = Math.max(item.threshold * 2, 10)
         await onCreateReorder({
-          itemId: item.id,
-          requestedQuantity: suggestedQuantity,
-          priority: 'high',
+          item_id: item.item_id,
+          quantity: suggestedQuantity,
+          supplier: item.supplier,
           notes: 'Bulk reorder for high priority low stock items'
         })
       }
@@ -180,63 +182,39 @@ export default function LowStockAlerts({
         </div>
       </div>
 
-      {/* Header with Actions */}
-      <div className="px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-semibold text-white">Low Stock & Critical Alerts</h3>
-            <p className="text-gray-400">Items that need immediate attention</p>
-          </div>
-        <div className="flex gap-2">
-          {groupedItems.high.length > 0 && (
-            <button
-              onClick={createBulkReorder}
-              className="px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg hover:from-red-700 hover:to-orange-700 transition-all duration-200 flex items-center gap-2"
-            >
-              <Truck className="h-4 w-4" />
-              Bulk Reorder High Priority
-            </button>
-          )}
-          <button
-            onClick={onRefresh}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-red-900/20 to-red-800/20 border-red-500/30 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-red-400 font-semibold">High Priority</h4>
-              <div className="text-2xl font-bold text-white">{groupedItems.high.length}</div>
+      <div className="px-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-red-900/20 to-red-800/20 border-red-500/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-red-400 font-semibold">High Priority</h4>
+                <div className="text-2xl font-bold text-white">{groupedItems.high.length}</div>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-400" />
             </div>
-            <AlertTriangle className="h-8 w-8 text-red-400" />
-          </div>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-500/30 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-yellow-400 font-semibold">Medium Priority</h4>
-              <div className="text-2xl font-bold text-white">{groupedItems.medium.length}</div>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-500/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-yellow-400 font-semibold">Medium Priority</h4>
+                <div className="text-2xl font-bold text-white">{groupedItems.medium.length}</div>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-400" />
             </div>
-            <Clock className="h-8 w-8 text-yellow-400" />
-          </div>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-orange-900/20 to-orange-800/20 border-orange-500/30 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-orange-400 font-semibold">Low Priority</h4>
-              <div className="text-2xl font-bold text-white">{groupedItems.low.length}</div>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-orange-900/20 to-orange-800/20 border-orange-500/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-orange-400 font-semibold">Low Priority</h4>
+                <div className="text-2xl font-bold text-white">{groupedItems.low.length}</div>
+              </div>
+              <TrendingDown className="h-8 w-8 text-orange-400" />
             </div>
-            <TrendingDown className="h-8 w-8 text-orange-400" />
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       {/* High Priority Items */}
@@ -248,10 +226,10 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {groupedItems.high.map((item) => (
-              <Card key={item.id} className={`p-6 ${getUrgencyColor(item.urgency)}`}>
+              <Card key={item.item_id} className={`p-6 ${getUrgencyColor(item.urgency)}`}>
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h4 className="text-white font-semibold text-lg">{item.name}</h4>
+                    <h4 className="text-white font-semibold text-lg">{item.item_name}</h4>
                     <p className="text-gray-400 text-sm">{item.category}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
@@ -262,11 +240,11 @@ export default function LowStockAlerts({
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Current Stock:</span>
-                    <span className="text-red-400 font-bold">{item.currentStock} {item.unit}</span>
+                    <span className="text-red-400 font-bold">{item.current_stock} {item.unit}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Minimum Required:</span>
-                    <span className="text-yellow-400">{item.minStock} {item.unit}</span>
+                    <span className="text-yellow-400">{item.threshold} {item.unit}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Supplier:</span>
@@ -276,15 +254,15 @@ export default function LowStockAlerts({
                 
                 <button 
                   onClick={() => handleCreateReorder(item)}
-                  disabled={creatingReorder === item.id}
+                  disabled={creatingReorder === item.item_id}
                   className="w-full px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg hover:from-red-700 hover:to-orange-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {creatingReorder === item.id ? (
+                  {creatingReorder === item.item_id ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   ) : (
                     <Plus className="h-4 w-4" />
                   )}
-                  {creatingReorder === item.id ? 'Creating...' : 'Create Reorder Request'}
+                  {creatingReorder === item.item_id ? 'Creating...' : 'Create Reorder Request'}
                 </button>
               </Card>
             ))}
@@ -301,10 +279,10 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {groupedItems.medium.map((item) => (
-              <Card key={item.id} className={`p-4 ${getUrgencyColor(item.urgency)}`}>
+              <Card key={item.item_id} className={`p-4 ${getUrgencyColor(item.urgency)}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h4 className="text-white font-semibold">{item.name}</h4>
+                    <h4 className="text-white font-semibold">{item.item_name}</h4>
                     <p className="text-gray-400 text-sm">{item.category}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
@@ -315,7 +293,7 @@ export default function LowStockAlerts({
                 <div className="space-y-2 mb-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Stock:</span>
-                    <span className="text-white">{item.currentStock}/{item.minStock} {item.unit}</span>
+                    <span className="text-white">{item.current_stock}/{item.threshold} {item.unit}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Supplier:</span>
@@ -325,15 +303,15 @@ export default function LowStockAlerts({
                 
                 <button 
                   onClick={() => handleCreateReorder(item)}
-                  disabled={creatingReorder === item.id}
+                  disabled={creatingReorder === item.item_id}
                   className="w-full px-3 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all duration-200 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
                 >
-                  {creatingReorder === item.id ? (
+                  {creatingReorder === item.item_id ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                   ) : (
                     <Plus className="h-3 w-3" />
                   )}
-                  {creatingReorder === item.id ? 'Creating...' : 'Reorder'}
+                  {creatingReorder === item.item_id ? 'Creating...' : 'Reorder'}
                 </button>
               </Card>
             ))}
@@ -350,30 +328,30 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             {groupedItems.low.map((item) => (
-              <Card key={item.id} className={`p-4 ${getUrgencyColor(item.urgency)}`}>
+              <Card key={item.item_id} className={`p-4 ${getUrgencyColor(item.urgency)}`}>
                 <div className="mb-3">
-                  <h4 className="text-white font-semibold text-sm">{item.name}</h4>
+                  <h4 className="text-white font-semibold text-sm">{item.item_name}</h4>
                   <p className="text-gray-400 text-xs">{item.category}</p>
                 </div>
                 
                 <div className="space-y-2 mb-3">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Stock:</span>
-                    <span className="text-white">{item.currentStock}/{item.minStock} {item.unit}</span>
+                    <span className="text-white">{item.current_stock}/{item.threshold} {item.unit}</span>
                   </div>
                 </div>
                 
                 <button 
                   onClick={() => handleCreateReorder(item)}
-                  disabled={creatingReorder === item.id}
+                  disabled={creatingReorder === item.item_id}
                   className="w-full px-2 py-1 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded text-xs hover:from-orange-700 hover:to-red-700 transition-all duration-200 flex items-center justify-center gap-1 disabled:opacity-50"
                 >
-                  {creatingReorder === item.id ? (
+                  {creatingReorder === item.item_id ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                   ) : (
                     <Plus className="h-3 w-3" />
                   )}
-                  {creatingReorder === item.id ? 'Creating...' : 'Reorder'}
+                  {creatingReorder === item.item_id ? 'Creating...' : 'Reorder'}
                 </button>
               </Card>
             ))}

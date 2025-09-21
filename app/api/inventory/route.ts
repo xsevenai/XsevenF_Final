@@ -1,4 +1,4 @@
-// app/api/inventory.ts
+// app/api/inventory.ts - FIXED VERSION
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -29,9 +29,9 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   return response.json()
 }
 
-// Backend API Types (matching Python models)
+// Backend API Types (matching Python models) - FIXED TO USE STRINGS FOR UUIDs
 export interface InventoryItem {
-  id: number
+  id: string  // FIXED: Changed from number to string
   name: string
   current_stock: number
   min_threshold: number
@@ -46,7 +46,7 @@ export interface InventoryUpdate {
 }
 
 export interface LowStockItem {
-  item_id: number
+  item_id: string  // FIXED: Changed from number to string
   item_name: string
   current_stock: number
   threshold: number
@@ -54,7 +54,7 @@ export interface LowStockItem {
 }
 
 export interface ReorderRequest {
-  item_id: number
+  item_id: string  // FIXED: Changed from number to string
   quantity: number
   supplier?: string
   notes?: string
@@ -62,13 +62,13 @@ export interface ReorderRequest {
 
 export interface ReorderResponse {
   message: string
-  item_id: number
+  item_id: string  // FIXED: Changed from number to string
   item_name: string
   requested_quantity: number
 }
 
 export interface UsageTracking {
-  item_id: number
+  item_id: string  // FIXED: Changed from number to string
   item_name: string
   total_sold: number
   total_revenue: number
@@ -92,8 +92,8 @@ export const inventoryApi = {
     return apiCall(endpoint)
   },
 
-  // Update inventory item stock
-  updateItem: async (itemId: number, data: InventoryUpdate): Promise<InventoryItem> => {
+  // Update inventory item stock - FIXED: Use string for itemId
+  updateItem: async (itemId: string, data: InventoryUpdate): Promise<InventoryItem> => {
     return apiCall(`/api/v1/food/inventory/items/${itemId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -199,8 +199,8 @@ export const frontendInventoryApi = {
     return items.map(transformInventoryItem)
   },
 
-  // Update item with proper error handling
-  updateItem: async (itemId: number, data: InventoryUpdate): Promise<ExtendedInventoryItem> => {
+  // Update item with proper error handling - FIXED: Use string for itemId
+  updateItem: async (itemId: string, data: InventoryUpdate): Promise<ExtendedInventoryItem> => {
     const item = await inventoryApi.updateItem(itemId, data)
     return transformInventoryItem(item)
   },
@@ -231,10 +231,10 @@ export const frontendInventoryApi = {
   },
 }
 
-// WebSocket event types for real-time updates
+// WebSocket event types for real-time updates - FIXED: Use string for item_id
 export interface InventoryWebSocketMessage {
   type: 'low_stock_alert' | 'reorder_request'
-  item_id: number
+  item_id: string  // FIXED: Changed from number to string
   item_name: string
   current_stock?: number
   threshold?: number

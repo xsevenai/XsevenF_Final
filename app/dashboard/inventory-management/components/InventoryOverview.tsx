@@ -17,7 +17,7 @@ import {
   Clock,
   RefreshCw
 } from "lucide-react"
-import type { ExtendedInventoryItem, ExtendedLowStockItem, UsageTracking } from '@/app/api/inventory'
+import type { ExtendedInventoryItem, ExtendedLowStockItem, UsageTracking } from '@/app/api/inventory/route'
 
 interface InventoryOverviewProps {
   stats: any
