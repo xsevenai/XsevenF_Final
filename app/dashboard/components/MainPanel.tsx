@@ -11,6 +11,7 @@ import MenuComponent from "./MenuComponent"
 import OrderComponent from "../order-component/OrderComponent"
 import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
+import FoodQRComponent from "../food-qr-component/FoodQRComponent"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -240,6 +241,11 @@ export default function MainPanel({
     <InventoryComponent />
   )
 
+  // Render the FoodQRComponent
+  const renderFoodQR = () => (
+    <FoodQRComponent />
+  )
+
   // Updated renderTables to use the new TableComponent
   const renderTables = () => (
     <TableComponent />
@@ -324,6 +330,8 @@ export default function MainPanel({
         return renderOrders()
       case "inventory":
         return renderInventory()
+      case "food-qr":
+        return renderFoodQR()
       case "tables":
         return renderTables()
       case "working-hours":
@@ -372,6 +380,8 @@ export default function MainPanel({
         return "Order Management"
       case "inventory":
         return "Inventory Management"
+      case "food-qr":
+        return "Food QR Management"
       case "tables":
         return "Table Management"
       case "working-hours":
@@ -399,6 +409,8 @@ export default function MainPanel({
         return "Track and manage all customer orders"
       case "inventory":
         return "Monitor stock levels, track usage, and manage reorders"
+      case "food-qr":
+        return "Generate and manage QR codes for digital menu access"
       case "tables":
         return "Monitor and manage restaurant table status"
       case "working-hours":

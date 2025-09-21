@@ -27,6 +27,33 @@ export interface MenuCategory {
   updated_at?: string
 }
 
+// QR Code related interfaces - matching backend API
+export interface QRCode {
+  id: string
+  type: "TABLE" | "MENU" | "CUSTOM"
+  data: string
+  image_base64: string
+  size: number
+  color: string
+  background_color: string
+  logo_url?: string
+  created_at: string
+  business_id: string
+  table_id?: number
+  scan_count?: number
+  last_scanned_at?: string
+}
+
+export interface GenerateQRRequest {
+  type: "TABLE" | "MENU" | "CUSTOM"
+  table_id?: number
+  size?: number
+  color?: string
+  background_color?: string
+  logo_url?: string
+  custom_data?: string
+}
+
 export interface Table {
   id: string
   number: number
@@ -67,8 +94,17 @@ export interface LiveChat {
   status: "online" | "offline"
 }
 
-// Updated to include inventory
-export type SectionType = "dashboard" | "ai-chat" | "menu" | "orders" | "inventory" | "tables" | "working-hours" | "profile"
+// Updated to include food-qr
+export type SectionType = 
+  | "dashboard" 
+  | "ai-chat" 
+  | "menu" 
+  | "orders" 
+  | "inventory" 
+  | "food-qr"
+  | "tables" 
+  | "working-hours" 
+  | "profile"
 
 export type ExpandedViewType = 
   | "add-menu-item" 
@@ -82,7 +118,9 @@ export type ExpandedViewType =
   | "staff-schedule" 
   | "live-feed" 
   | "live-orders" 
-  | "live-reservations" 
+  | "live-reservations"
+  | "add-inventory-item"
+  | "view-qr-code"
   | string 
   | null
 
@@ -118,4 +156,55 @@ export interface ProfileData {
     twoFactorEnabled: boolean
     theme: string
   }
+}
+
+// Inventory related interfaces
+export interface InventoryItem {
+  id: string
+  business_id: string
+  name: string
+  description?: string
+  category: string
+  unit: string
+  current_stock: number
+  min_stock_threshold: number
+  max_stock_threshold?: number
+  unit_cost: number
+  supplier?: string
+  last_restocked?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface InventoryCategory {
+  id: string
+  name: string
+  description?: string
+}
+
+// Order related interfaces
+export interface Order {
+  id: string
+  business_id: string
+  customer_name?: string
+  customer_phone?: string
+  table_number?: number
+  order_type: "dine-in" | "takeaway" | "delivery"
+  status: "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled"
+  items: OrderItem[]
+  subtotal: number
+  tax: number
+  total: number
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface OrderItem {
+  id: string
+  menu_item_id: string
+  name: string
+  price: number
+  quantity: number
+  special_instructions?: string
 }

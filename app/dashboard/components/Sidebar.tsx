@@ -14,6 +14,7 @@ import {
   User,
   ShoppingCart,
   Package,
+  QrCode,
 } from "lucide-react"
 import Link from "next/link"
 import type { SectionType, ExpandedViewType } from "./types"
@@ -35,6 +36,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
     { id: "menu" as const, label: "Menu", icon: MenuIcon },
     { id: "orders" as const, label: "Orders", icon: ShoppingCart },
     { id: "inventory" as const, label: "Inventory", icon: Package },
+    { id: "food-qr" as const, label: "Food QR", icon: QrCode },
     { id: "tables" as const, label: "Tables", icon: Users },
     { id: "working-hours" as const, label: "Working Hours", icon: Clock },
   ]
@@ -43,6 +45,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
     { label: "Add New Menu Item", icon: Plus, action: () => setExpandedView("add-menu-item") },
     { label: "Add New Category", icon: Plus, action: () => setExpandedView("add-category") },
     { label: "Add Inventory Item", icon: Package, action: () => setExpandedView("add-inventory-item") },
+    { label: "Generate QR Code", icon: QrCode, action: () => setExpandedView("generate-qr") },
     { label: "Import Customer Data", icon: UserPlus, action: () => setExpandedView("import-data") },
     { label: "Create Staff Schedule", icon: Clock, action: () => setExpandedView("staff-schedule") },
   ]
