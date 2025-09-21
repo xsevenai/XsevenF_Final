@@ -86,6 +86,20 @@ export interface TableLayoutUpdateResponse {
   updated_tables: number
 }
 
+export interface CustomerAssignmentData {
+  customer_name?: string
+  customer_phone?: string
+  customer_email?: string
+  party_size: number
+  special_requests?: string
+}
+
+export interface CustomerAssignmentResponse {
+  message: string
+  table: Table
+  order_id: string
+}
+
 export const tablesApi = {
   // Get all tables
   async getTables(): Promise<Table[]> {

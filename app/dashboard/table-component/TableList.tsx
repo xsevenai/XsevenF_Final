@@ -3,10 +3,11 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, QrCode, MoreVertical } from "lucide-react"
+import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, QrCode, UserPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTables, useTableStats } from "@/hooks/use-tables"
 import TableQRCode from "./TableQRCode"
+import CustomerAssignment from "./CustomerAssignment"
 
 interface TableListProps {
   onTableUpdate?: () => void
@@ -31,6 +32,13 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   
   // QR Code modal state
   const [qrModal, setQrModal] = useState<{ tableId: string; tableNumber: number } | null>(null)
+  
+  // Customer assignment modal state
+  const [assignmentModal, setAssignmentModal] = useState<{ 
+    tableId: string; 
+    tableNumber: number; 
+    tableCapacity: number;
+  } | null>(null)
 
   const tableStats = useTableStats(tables)
 
@@ -70,6 +78,20 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
   const closeQRModal = () => {
     setQrModal(null)
+  }
+
+  // Customer assignment handlers
+  const openAssignmentModal = (tableId: string, tableNumber: number, tableCapacity: number) => {
+    setAssignmentModal({ tableId, tableNumber, tableCapacity })
+  }
+
+  const closeAssignmentModal = () => {
+    setAssignmentModal(null)
+  }
+
+  const handleAssignmentSuccess = (orderId: string) => {
+    console.log('Customer assigned successfully, order ID:', orderId)
+    onTableUpdate?.() // Refresh table data
   }
 
   // Confirm delete dialog
@@ -125,7 +147,18 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300 group relative"
     >
       {/* Action Buttons */}
-      <div className="absolute top-4 right-4 flex gap-2 z-10">
+      <div className="absolute top-4 right-4 flex gap-1 z-10">
+        {/* Assign Customer Button - only for available tables */}
+        {table.status === 'available' && (
+          <button
+            onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
+            className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+            title="Assign Customer"
+          >
+            <UserPlus className="h-4 w-4" />
+          </button>
+        )}
+        
         {/* QR Code Button */}
         <button
           onClick={() => openQRModal(table.id, table.number)}
@@ -152,7 +185,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
       <div className="text-center space-y-4">
         {/* Table Number */}
-        <div className="flex items-center justify-between pr-16">
+        <div className="flex items-center justify-between pr-20">
           <h3 className="text-white font-bold text-lg">Table {table.number}</h3>
           <span className="text-gray-400 text-sm">{table.seats} seats</span>
         </div>
@@ -232,28 +265,42 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             )}
           </div>
           
-          {/* QR Code Button for List View */}
-          <button
-            onClick={() => openQRModal(table.id, table.number)}
-            className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
-            title="Generate QR Code"
-          >
-            <QrCode className="h-4 w-4" />
-          </button>
-          
-          {/* Delete Button for List View */}
-          <button
-            onClick={() => confirmDelete(table.id, table.number)}
-            disabled={deleting === table.id || table.status === 'occupied'}
-            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
-          >
-            {deleting === table.id ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
+          {/* Action Buttons for List View */}
+          <div className="flex items-center gap-1">
+            {/* Assign Customer Button - only for available tables */}
+            {table.status === 'available' && (
+              <button
+                onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
+                className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                title="Assign Customer"
+              >
+                <UserPlus className="h-4 w-4" />
+              </button>
             )}
-          </button>
+            
+            {/* QR Code Button for List View */}
+            <button
+              onClick={() => openQRModal(table.id, table.number)}
+              className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
+              title="Generate QR Code"
+            >
+              <QrCode className="h-4 w-4" />
+            </button>
+            
+            {/* Delete Button for List View */}
+            <button
+              onClick={() => confirmDelete(table.id, table.number)}
+              disabled={deleting === table.id || table.status === 'occupied'}
+              className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
+            >
+              {deleting === table.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </Card>
@@ -341,6 +388,18 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           tableNumber={qrModal.tableNumber}
           isOpen={true}
           onClose={closeQRModal}
+        />
+      )}
+
+      {/* Customer Assignment Modal */}
+      {assignmentModal && (
+        <CustomerAssignment
+          tableId={assignmentModal.tableId}
+          tableNumber={assignmentModal.tableNumber}
+          tableCapacity={assignmentModal.tableCapacity}
+          isOpen={true}
+          onClose={closeAssignmentModal}
+          onSuccess={handleAssignmentSuccess}
         />
       )}
 
