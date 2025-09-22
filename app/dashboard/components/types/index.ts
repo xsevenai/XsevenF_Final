@@ -105,6 +105,7 @@ export type SectionType =
   | "tables" 
   | "working-hours" 
   | "profile"
+  | "analytics" 
 
 export type ExpandedViewType = 
   | "add-menu-item" 
@@ -207,4 +208,41 @@ export interface OrderItem {
   price: number
   quantity: number
   special_instructions?: string
+}
+
+export interface OrderAnalytics {
+  id: string
+  orderId: string
+  customerId?: string
+  totalAmount: number
+  status: "pending" | "confirmed" | "preparing" | "ready" | "delivered" | "cancelled"
+  items: OrderItem[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MessageAnalytics {
+  id: string
+  sessionId: string
+  content: string
+  sender: "customer" | "ai" | "staff"
+  timestamp: string
+  metadata?: Record<string, any>
+}
+
+export interface AnalyticsSummary {
+  totalOrders: number
+  totalRevenue: number
+  totalMessages: number
+  totalSessions: number
+  averageOrderValue: number
+  averageMessagesPerSession: number
+}
+
+export interface AnalyticsData {
+  summary: AnalyticsSummary
+  orders: OrderAnalytics[]
+  messages: MessageAnalytics[]
+  timeRange: string
+  generatedAt: string
 }

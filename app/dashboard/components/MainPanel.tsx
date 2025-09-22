@@ -12,6 +12,7 @@ import OrderComponent from "../order-component/OrderComponent"
 import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
 import FoodQRComponent from "../food-qr-component/FoodQRComponent"
+import AnalyticsComponent from "../analytics-component/AnalyticsComponent" // New analytics component
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -220,6 +221,11 @@ export default function MainPanel({
     </div>
   )
 
+  // New analytics render function
+  const renderAnalytics = () => (
+    <AnalyticsComponent />
+  )
+
   // Use the MenuComponent instead of the original renderMenu function
   const renderMenu = () => (
     <MenuComponent 
@@ -322,6 +328,8 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return renderDashboardOverview()
+      case "analytics": // New analytics case
+        return renderAnalytics()
       case "ai-chat":
         return renderAIChat()
       case "menu":
@@ -372,6 +380,8 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return "Dashboard Overview"
+      case "analytics": // New analytics case
+        return "Analytics Dashboard"
       case "ai-chat":
         return "AI Chat Support"
       case "menu":
@@ -401,6 +411,8 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return "Welcome back! Here's your business overview"
+      case "analytics": // New analytics case
+        return "Comprehensive business analytics and insights"
       case "ai-chat":
         return "Manage customer conversations and AI responses"
       case "menu":

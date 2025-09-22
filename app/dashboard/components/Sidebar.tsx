@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   Package,
   QrCode,
+  BarChart3, // New analytics icon
 } from "lucide-react"
 import Link from "next/link"
 import type { SectionType, ExpandedViewType } from "./types"
@@ -32,6 +33,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
 
   const mainNavItems = [
     { id: "dashboard" as const, label: "Dashboard", icon: Home },
+    { id: "analytics" as const, label: "Analytics", icon: BarChart3 }, // New analytics item
     { id: "ai-chat" as const, label: "AI Chat", icon: MessageSquare },
     { id: "menu" as const, label: "Menu", icon: MenuIcon },
     { id: "orders" as const, label: "Orders", icon: ShoppingCart },
