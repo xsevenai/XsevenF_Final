@@ -1,63 +1,106 @@
-// app/dashboard/analytics-component/ExportData.tsx
-
-"use client"
-
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Download, FileText, Database, Calendar, Filter, Loader2 } from "lucide-react"
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Download, FileText, Database, Calendar, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { analyticsApi } from '@/lib/analytics-api';
 
 export default function ExportData() {
-  const [exportType, setExportType] = useState("orders")
-  const [format, setFormat] = useState("json")
-  const [timeRange, setTimeRange] = useState("30d")
-  const [isExporting, setIsExporting] = useState(false)
+  const [exportType, setExportType] = useState('orders');
+  const [format, setFormat] = useState('json');
+  const [timeRange, setTimeRange] = useState('30d');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   const exportTypes = [
-    { value: "orders", label: "Orders Data", description: "Export all order information and analytics" },
-    { value: "messages", label: "Messages Data", description: "Export customer messages and chat analytics" },
-    { value: "combined", label: "Combined Data", description: "Export comprehensive analytics data" }
-  ]
+    { value: 'orders', label: 'Orders Data', description: 'Export all order information and analytics' },
+    { value: 'messages', label: 'Messages Data', description: 'Export customer messages and chat analytics' }
+  ];
 
   const formats = [
-    { value: "json", label: "JSON", description: "JavaScript Object Notation" },
-    { value: "csv", label: "CSV", description: "Comma Separated Values" },
-    { value: "xlsx", label: "Excel", description: "Microsoft Excel format" }
-  ]
+    { value: 'json', label: 'JSON', description: 'JavaScript Object Notation' },
+    { value: 'csv', label: 'CSV', description: 'Comma Separated Values' },
+    { value: 'xlsx', label: 'Excel', description: 'Microsoft Excel format (JSON for now)' }
+  ];
 
   const timeRanges = [
-    { value: "7d", label: "Last 7 days" },
-    { value: "30d", label: "Last 30 days" },
-    { value: "90d", label: "Last 90 days" },
-    { value: "1y", label: "Last year" }
-  ]
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+    { value: '90d', label: 'Last 90 days' },
+    { value: '1y', label: 'Last year' }
+  ];
 
   const handleExport = async () => {
-    setIsExporting(true)
+    setIsExporting(true);
+    setExportStatus(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Get business ID and auth token
+      const businessId = localStorage.getItem('business_id') || 
+                        localStorage.getItem('businessId') || 
+                        localStorage.getItem('current_business_id');
       
-      // In a real implementation, you would call your export API here
-      const response = await fetch(`/api/analytics/${exportType}/export?period=${timeRange}&format=${format}`)
+      const token = localStorage.getItem('accessToken');
       
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `analytics-${exportType}-${timeRange}.${format}`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+      if (!businessId) {
+        throw new Error('Business ID not found. Please log in again.');
       }
+      
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
+      // Call the appropriate export API
+      const endpoint = `/api/analytics/${exportType}/${businessId}/export?period=${timeRange}&format=${format}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Export failed with status ${response.status}`);
+      }
+      
+      // Get the filename from Content-Disposition header or create one
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `analytics-${exportType}-${timeRange}.${format}`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setExportStatus({
+        type: 'success',
+        message: `Successfully exported ${exportType} data as ${format.toUpperCase()}`
+      });
+      
     } catch (error) {
-      console.error('Export failed:', error)
+      console.error('Export failed:', error);
+      setExportStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Export failed with unknown error'
+      });
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -65,18 +108,40 @@ export default function ExportData() {
       <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Export Configuration</h3>
         
+        {/* Export Status */}
+        {exportStatus && (
+          <div className={`mb-6 p-4 rounded-lg border ${
+            exportStatus.type === 'success' 
+              ? 'border-green-500/30 bg-green-500/10' 
+              : 'border-red-500/30 bg-red-500/10'
+          }`}>
+            <div className="flex items-center gap-3">
+              {exportStatus.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 text-green-400" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-400" />
+              )}
+              <p className={`text-sm ${
+                exportStatus.type === 'success' ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {exportStatus.message}
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Data Type Selection */}
         <div className="mb-6">
           <label className="text-sm font-medium text-gray-300 mb-3 block">Data Type</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {exportTypes.map((type) => (
               <div
                 key={type.value}
                 onClick={() => setExportType(type.value)}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                   exportType === type.value
-                    ? "border-purple-500 bg-purple-500/10"
-                    : "border-gray-600 hover:border-gray-500"
+                    ? 'border-purple-500 bg-purple-500/10'
+                    : 'border-gray-600 hover:border-gray-500'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -99,8 +164,8 @@ export default function ExportData() {
                 onClick={() => setFormat(fmt.value)}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                   format === fmt.value
-                    ? "border-blue-500 bg-blue-500/10"
-                    : "border-gray-600 hover:border-gray-500"
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-600 hover:border-gray-500'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -152,34 +217,6 @@ export default function ExportData() {
         </button>
       </Card>
 
-      {/* Export History */}
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Recent Exports</h3>
-        <div className="space-y-3">
-          {[
-            { type: "Orders", format: "CSV", date: "2024-01-15 14:30", size: "2.4 MB" },
-            { type: "Messages", format: "JSON", date: "2024-01-14 09:15", size: "1.8 MB" },
-            { type: "Combined", format: "Excel", date: "2024-01-13 16:45", size: "3.2 MB" }
-          ].map((export_, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-white font-medium">{export_.type} Data - {export_.format}</p>
-                  <p className="text-gray-400 text-sm">{export_.date}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-gray-300 text-sm">{export_.size}</p>
-                <button className="text-purple-400 hover:text-purple-300 text-sm">
-                  Download
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
       {/* Export Guidelines */}
       <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Export Guidelines</h3>
@@ -200,8 +237,25 @@ export default function ExportData() {
             <div className="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
             <p className="text-sm">Large datasets may take several minutes to generate</p>
           </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
+            <p className="text-sm">Excel format downloads as JSON for now (proper Excel support coming soon)</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Export Preview */}
+      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Export Preview</h3>
+        <div className="bg-gray-700/30 p-4 rounded-lg">
+          <div className="text-sm text-gray-300 space-y-2">
+            <p><span className="text-white font-medium">Data Type:</span> {exportTypes.find(t => t.value === exportType)?.label}</p>
+            <p><span className="text-white font-medium">Format:</span> {formats.find(f => f.value === format)?.label}</p>
+            <p><span className="text-white font-medium">Time Range:</span> {timeRanges.find(r => r.value === timeRange)?.label}</p>
+            <p><span className="text-white font-medium">Filename:</span> analytics-{exportType}-{timeRange}.{format}</p>
+          </div>
         </div>
       </Card>
     </div>
-  )
+  );
 }
