@@ -1,5 +1,4 @@
 // app/dashboard/food-qr-component/FoodQRComponent.tsx
-
 "use client"
 
 import React, { useState } from 'react'
@@ -14,7 +13,6 @@ import EditQRModal from './components/EditQRModel'
 import type { QRCode, GenerateQRRequest } from '@/lib/food-qr'
 
 export default function FoodQRComponent() {
-  // Hook with proper error handling
   const {
     qrCodes,
     loading,
@@ -22,6 +20,7 @@ export default function FoodQRComponent() {
     success,
     generateQRCode,
     updateQRCode,
+    deleteQRCode,
     refreshQRCodes,
     clearMessages
   } = useFoodQR()
@@ -48,6 +47,7 @@ export default function FoodQRComponent() {
   const handleGenerate = async (request: GenerateQRRequest) => {
     try {
       await generateQRCode(request)
+      setShowGenerateModal(false)
     } catch (error) {
       console.error('Failed to generate QR code:', error)
     }
@@ -62,8 +62,17 @@ export default function FoodQRComponent() {
   }) => {
     try {
       await updateQRCode(qrId, updates)
+      setShowEditModal(false)
     } catch (error) {
       console.error('Failed to update QR code:', error)
+    }
+  }
+
+  const handleDelete = async (qrCode: QRCode) => {
+    try {
+      await deleteQRCode(qrCode.id)
+    } catch (error) {
+      console.error('Failed to delete QR code:', error)
     }
   }
 
@@ -156,7 +165,6 @@ export default function FoodQRComponent() {
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-3 flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -184,7 +192,6 @@ export default function FoodQRComponent() {
           </div>
         </div>
 
-        {/* Generate Button */}
         <button
           onClick={() => setShowGenerateModal(true)}
           className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center space-x-2"
@@ -233,6 +240,7 @@ export default function FoodQRComponent() {
               onDownload={handleDownload}
               onView={handleView}
               onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ))}
         </div>

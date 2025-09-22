@@ -1,5 +1,4 @@
 // hooks/use-food-qr.ts
-
 import { useState, useEffect } from 'react'
 import { foodQRService } from '@/lib/food-qr'
 import type { QRCode, GenerateQRRequest } from '@/lib/food-qr'
@@ -41,21 +40,6 @@ export const useFoodQR = () => {
     }
   }
 
-  // Delete QR code
-  const deleteQRCode = async (id: string) => {
-    try {
-      setLoading(true)
-      setError(null)
-      await foodQRService.deleteQRCode(id)
-      setQRCodes(prev => prev.filter(qr => qr.id !== id))
-      setSuccess('QR code deleted successfully!')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete QR code')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Update QR code
   const updateQRCode = async (qrId: string, updates: {
     size?: number
@@ -69,7 +53,6 @@ export const useFoodQR = () => {
       setError(null)
       const updatedQRCode = await foodQRService.updateQRCode(qrId, updates)
       
-      // Update the QR code in the list
       setQRCodes(prev => prev.map(qr => 
         qr.id === qrId ? updatedQRCode : qr
       ))
@@ -84,13 +67,44 @@ export const useFoodQR = () => {
     }
   }
 
+  // Delete QR code
+  const deleteQRCode = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await foodQRService.deleteQRCode(id)
+      setQRCodes(prev => prev.filter(qr => qr.id !== id))
+      setSuccess('QR code deleted successfully!')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete QR code')
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Get single QR code
+  const getSingleQRCode = async (qrId: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const qrCode = await foodQRService.getSingleQRCode(qrId)
+      return qrCode
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch QR code')
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Clear messages
   const clearMessages = () => {
     setError(null)
     setSuccess(null)
   }
 
-  // Refresh QR codes (alias for fetchQRCodes for component compatibility)
+  // Refresh QR codes
   const refreshQRCodes = fetchQRCodes
 
   // Load QR codes on mount
@@ -98,7 +112,6 @@ export const useFoodQR = () => {
     fetchQRCodes()
   }, [])
 
-  // Return all the state and functions
   return {
     qrCodes,
     loading,
@@ -107,6 +120,7 @@ export const useFoodQR = () => {
     generateQRCode,
     updateQRCode,
     deleteQRCode,
+    getSingleQRCode,
     refreshQRCodes,
     clearMessages
   }

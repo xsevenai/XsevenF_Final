@@ -1,5 +1,4 @@
 // components/EditQRModal.tsx
-
 import React, { useState, useEffect } from 'react'
 import { X, QrCode, Loader2, Save } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -29,7 +28,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Initialize form data when QR code changes
   useEffect(() => {
     if (qrCode) {
       setFormData({
@@ -71,7 +69,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -94,7 +91,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
@@ -114,7 +110,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
             </button>
           </div>
 
-          {/* Current QR Preview */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-300 mb-2">Current QR Code</label>
             <div className="bg-white p-4 rounded-lg flex items-center justify-center">
@@ -126,9 +121,7 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Size */}
             <div>
               <label htmlFor="size" className="block text-sm font-medium text-gray-300 mb-2">
                 Size (pixels)
@@ -150,7 +143,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               )}
             </div>
 
-            {/* Colors */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="color" className="block text-sm font-medium text-gray-300 mb-2">
@@ -181,7 +173,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               </div>
             </div>
 
-            {/* Logo URL */}
             <div>
               <label htmlFor="logo_url" className="block text-sm font-medium text-gray-300 mb-2">
                 Logo URL (optional)
@@ -200,7 +191,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               </p>
             </div>
 
-            {/* Template ID */}
             <div>
               <label htmlFor="template_id" className="block text-sm font-medium text-gray-300 mb-2">
                 Template ID (optional)
@@ -216,7 +206,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               />
             </div>
 
-            {/* Info Box */}
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
               <p className="text-blue-400 text-sm">
                 <strong>Note:</strong> Updating this QR code will generate a new version with your changes. 
@@ -224,7 +213,6 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               </p>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex items-center space-x-3 pt-4">
               <button
                 type="button"

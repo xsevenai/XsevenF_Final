@@ -1,15 +1,8 @@
 // components/GenerateQRModal.tsx
-
 import React, { useState, useEffect } from 'react'
-import { X, QrCode, Loader2, Monitor, Menu, Settings } from 'lucide-react'
+import { X, QrCode, Loader2, Plus, Monitor, Menu, Settings } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import type { GenerateQRRequest } from '@/lib/food-qr'
-
-interface Table {
-  id: string  // UUID string
-  table_number: string
-  location: string
-}
 
 interface GenerateQRModalProps {
   isOpen: boolean
@@ -18,38 +11,54 @@ interface GenerateQRModalProps {
   loading: boolean
 }
 
+interface Table {
+  id: string
+  table_number: string
+  seats: number
+}
+
 export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }: GenerateQRModalProps) {
   const [formData, setFormData] = useState<GenerateQRRequest>({
     type: 'TABLE',
     size: 256,
     color: '#000000',
-    background_color: '#FFFFFF'
+    background_color: '#FFFFFF',
+    logo_url: '',
+    custom_data: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [tables, setTables] = useState<Table[]>([])
   const [loadingTables, setLoadingTables] = useState(false)
 
-  // Load tables when modal opens and type is TABLE
+  // Reset form when modal opens
   useEffect(() => {
-    if (isOpen && formData.type === 'TABLE') {
-      loadTables()
+    if (isOpen) {
+      setFormData({
+        type: 'TABLE',
+        size: 256,
+        color: '#000000',
+        background_color: '#FFFFFF',
+        logo_url: '',
+        custom_data: ''
+      })
+      setErrors({})
+      fetchTables()
     }
-  }, [isOpen, formData.type])
+  }, [isOpen])
 
-  const loadTables = async () => {
+  const fetchTables = async () => {
     try {
       setLoadingTables(true)
-      // Mock data - replace with actual API call to get tables
-      const mockTables: Table[] = [
-        { id: '1', table_number: 'A1', location: 'Main Floor' },
-        { id: '2', table_number: 'A2', location: 'Main Floor' },
-        { id: '3', table_number: 'B1', location: 'Patio' },
-        { id: '4', table_number: 'B2', location: 'Patio' },
-        { id: '5', table_number: 'VIP1', location: 'VIP Section' }
-      ]
-      setTables(mockTables)
+      const token = localStorage.getItem('accessToken')
+      const response = await fetch('/api/tables', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setTables(data)
+      }
     } catch (error) {
-      console.error('Failed to load tables:', error)
+      console.error('Failed to fetch tables:', error)
     } finally {
       setLoadingTables(false)
     }
@@ -63,11 +72,11 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
     if (formData.type === 'TABLE' && !formData.table_id) {
       newErrors.table_id = 'Please select a table'
     }
-
-    if (formData.type === 'CUSTOM' && !formData.custom_data?.trim()) {
-      newErrors.custom_data = 'Custom data is required for custom QR codes'
+    
+    if (formData.type === 'CUSTOM' && !formData.custom_data) {
+      newErrors.custom_data = 'Custom data is required'
     }
-
+    
     if (formData.size && (formData.size < 64 || formData.size > 512)) {
       newErrors.size = 'Size must be between 64 and 512 pixels'
     }
@@ -83,13 +92,6 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
 
     try {
       await onGenerate(formData)
-      // Reset form on success
-      setFormData({
-        type: 'TABLE',
-        size: 256,
-        color: '#000000',
-        background_color: '#FFFFFF'
-      })
       setErrors({})
       onClose()
     } catch (error) {
@@ -99,27 +101,28 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
 
   const handleInputChange = (field: keyof GenerateQRRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
   }
 
-  const qrTypes = [
-    { value: 'TABLE' as const, label: 'Table QR', icon: Monitor, description: 'QR code for specific table' },
-    { value: 'MENU' as const, label: 'Menu QR', icon: Menu, description: 'QR code for menu access' },
-    { value: 'CUSTOM' as const, label: 'Custom QR', icon: Settings, description: 'Custom QR with your data' }
-  ]
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'TABLE': return Monitor
+      case 'MENU': return Menu
+      case 'CUSTOM': return Settings
+      default: return QrCode
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                <QrCode className="w-5 h-5 text-white" />
+                <Plus className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Generate QR Code</h2>
@@ -135,58 +138,42 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* QR Type Selection */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* QR Code Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">
-                QR Code Type *
-              </label>
-              <div className="space-y-2">
-                {qrTypes.map((type) => (
-                  <label
-                    key={type.value}
-                    className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      formData.type === type.value
-                        ? 'border-purple-500 bg-purple-500/10'
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="type"
-                      value={type.value}
-                      checked={formData.type === type.value}
-                      onChange={(e) => handleInputChange('type', e.target.value as 'TABLE' | 'MENU' | 'CUSTOM')}
-                      className="text-purple-500"
-                      disabled={loading}
-                    />
-                    <type.icon className={`w-5 h-5 ${
-                      formData.type === type.value ? 'text-purple-400' : 'text-gray-400'
-                    }`} />
-                    <div className="flex-1">
-                      <div className={`font-medium ${
-                        formData.type === type.value ? 'text-white' : 'text-gray-300'
-                      }`}>
-                        {type.label}
-                      </div>
-                      <div className="text-xs text-gray-400">{type.description}</div>
-                    </div>
-                  </label>
-                ))}
+              <label className="block text-sm font-medium text-gray-300 mb-3">QR Code Type</label>
+              <div className="grid grid-cols-3 gap-3">
+                {(['TABLE', 'MENU', 'CUSTOM'] as const).map((type) => {
+                  const Icon = getTypeIcon(type)
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleInputChange('type', type)}
+                      className={`p-4 rounded-lg border transition-all duration-200 ${
+                        formData.type === type
+                          ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                          : 'border-gray-600 bg-gray-700/30 text-gray-400 hover:border-gray-500'
+                      }`}
+                    >
+                      <Icon className="w-6 h-6 mx-auto mb-2" />
+                      <div className="text-sm font-medium">{type}</div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Table Selection - only show for TABLE type */}
+            {/* Table Selection for TABLE type */}
             {formData.type === 'TABLE' && (
               <div>
                 <label htmlFor="table_id" className="block text-sm font-medium text-gray-300 mb-2">
-                  Select Table *
+                  Select Table
                 </label>
                 {loadingTables ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                    <span className="ml-2 text-gray-400 text-sm">Loading tables...</span>
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+                    <span className="ml-2 text-gray-400">Loading tables...</span>
                   </div>
                 ) : (
                   <select
@@ -198,10 +185,10 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
                     }`}
                     disabled={loading}
                   >
-                    <option value="">Select a table...</option>
+                    <option value="">Select a table</option>
                     {tables.map((table) => (
                       <option key={table.id} value={table.id}>
-                        Table {table.table_number} - {table.location}
+                        Table {table.table_number} ({table.seats} seats)
                       </option>
                     ))}
                   </select>
@@ -212,17 +199,17 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
               </div>
             )}
 
-            {/* Custom Data - only show for CUSTOM type */}
+            {/* Custom Data for CUSTOM type */}
             {formData.type === 'CUSTOM' && (
               <div>
                 <label htmlFor="custom_data" className="block text-sm font-medium text-gray-300 mb-2">
-                  Custom Data *
+                  Custom Data
                 </label>
                 <textarea
                   id="custom_data"
                   value={formData.custom_data || ''}
                   onChange={(e) => handleInputChange('custom_data', e.target.value)}
-                  placeholder="Enter your custom QR code data (URL, text, etc.)"
+                  placeholder="Enter URL or custom text for QR code"
                   rows={3}
                   className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-none ${
                     errors.custom_data ? 'border-red-500' : 'border-gray-600'
@@ -235,9 +222,9 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
               </div>
             )}
 
-            {/* Advanced Options */}
-            <div className="space-y-4 pt-4 border-t border-gray-700/50">
-              <h3 className="text-sm font-medium text-gray-300">Advanced Options</h3>
+            {/* Customization Options */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Customization</h3>
               
               {/* Size */}
               <div>
@@ -247,7 +234,7 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
                 <input
                   type="number"
                   id="size"
-                  value={formData.size || 256}
+                  value={formData.size}
                   onChange={(e) => handleInputChange('size', parseInt(e.target.value))}
                   min="64"
                   max="512"
@@ -270,7 +257,7 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
                   <input
                     type="color"
                     id="color"
-                    value={formData.color || '#000000'}
+                    value={formData.color}
                     onChange={(e) => handleInputChange('color', e.target.value)}
                     className="w-full h-10 bg-gray-700/50 border border-gray-600 rounded-lg cursor-pointer"
                     disabled={loading}
@@ -284,7 +271,7 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
                   <input
                     type="color"
                     id="background_color"
-                    value={formData.background_color || '#FFFFFF'}
+                    value={formData.background_color}
                     onChange={(e) => handleInputChange('background_color', e.target.value)}
                     className="w-full h-10 bg-gray-700/50 border border-gray-600 rounded-lg cursor-pointer"
                     disabled={loading}
@@ -335,7 +322,7 @@ export default function GenerateQRModal({ isOpen, onClose, onGenerate, loading }
                 ) : (
                   <>
                     <QrCode className="w-4 h-4" />
-                    <span>Generate QR</span>
+                    <span>Generate QR Code</span>
                   </>
                 )}
               </button>

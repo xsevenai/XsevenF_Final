@@ -1,5 +1,4 @@
 // lib/food-qr.ts
-
 export interface QRCode {
   id: string
   type: "TABLE" | "MENU" | "CUSTOM"
@@ -11,14 +10,14 @@ export interface QRCode {
   logo_url?: string
   created_at: string
   business_id: string
-  table_id?: number
+  table_id?: string
   scan_count?: number
   last_scanned_at?: string
 }
 
 export interface GenerateQRRequest {
   type: "TABLE" | "MENU" | "CUSTOM"
-  table_id?: number
+  table_id?: string
   size?: number
   color?: string
   background_color?: string
@@ -66,10 +65,10 @@ class FoodQRService {
   }
 
   // Get all QR codes with optional filters
-  async getAllQRCodes(type?: string, table_id?: number): Promise<QRCode[]> {
+  async getAllQRCodes(type?: string, table_id?: string): Promise<QRCode[]> {
     const params = new URLSearchParams()
     if (type) params.append('type', type)
-    if (table_id) params.append('table_id', table_id.toString())
+    if (table_id) params.append('table_id', table_id)
     
     const url = params.toString() ? `${this.baseURL}?${params.toString()}` : this.baseURL
     
@@ -90,13 +89,13 @@ class FoodQRService {
     return this.handleResponse<QRCode>(response)
   }
 
-  // Get QR code analytics
-  async getQRAnalytics(qrId: string, timeRange: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<QRCodeAnalytics> {
-    const response = await fetch(`${this.baseURL}/${qrId}/analytics?time_range=${timeRange}`, {
+  // Get single QR code
+  async getSingleQRCode(qrId: string): Promise<QRCode> {
+    const response = await fetch(`${this.baseURL}/${qrId}`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     })
-    return this.handleResponse<QRCodeAnalytics>(response)
+    return this.handleResponse<QRCode>(response)
   }
 
   // Update QR code
@@ -115,33 +114,31 @@ class FoodQRService {
     return this.handleResponse<QRCode>(response)
   }
 
-  // Bulk generate QR codes
-  async bulkGenerateQRCodes(
-    type: 'TABLE' | 'MENU' | 'CUSTOM',
-    count: number = 10,
-    templateId: string = 'food_standard'
-  ): Promise<{
-    total_requested: number
-    qr_codes_generated: number
-    errors: string[]
-    qr_codes: Array<{
-      table_id?: number
-      table_number?: string
-      type?: string
-      qr_code: QRCode
-    }>
-  }> {
-    const response = await fetch(`${this.baseURL}/batch?type=${type}&count=${count}&template_id=${templateId}`, {
+  // Delete QR code
+  async deleteQRCode(qrId: string): Promise<void> {
+    const response = await fetch(`${this.baseURL}/${qrId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+    }
+  }
+
+  // Get QR code analytics
+  async getQRAnalytics(qrId: string, timeRange: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<QRCodeAnalytics> {
+    const response = await fetch(`${this.baseURL}/${qrId}/analytics?time_range=${timeRange}`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     })
-    return this.handleResponse(response)
+    return this.handleResponse<QRCodeAnalytics>(response)
   }
 
-  // Download QR code image (convert base64 to blob)
+  // Download QR code image
   async downloadQRCode(qrCode: QRCode, filename?: string): Promise<void> {
     try {
-      // Convert base64 to blob
       const byteCharacters = atob(qrCode.image_base64)
       const byteNumbers = new Array(byteCharacters.length)
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -150,7 +147,6 @@ class FoodQRService {
       const byteArray = new Uint8Array(byteNumbers)
       const blob = new Blob([byteArray], { type: 'image/png' })
       
-      // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

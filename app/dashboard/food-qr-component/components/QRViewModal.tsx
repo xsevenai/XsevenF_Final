@@ -1,5 +1,4 @@
 // components/QRViewModal.tsx
-
 import React from 'react'
 import { X, Download, QrCode, Calendar, BarChart3, Eye, Link, Monitor, Menu, Settings } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -31,27 +30,19 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
 
   const getTypeIcon = () => {
     switch (qrCode.type) {
-      case 'TABLE':
-        return Monitor
-      case 'MENU':
-        return Menu
-      case 'CUSTOM':
-        return Settings
-      default:
-        return QrCode
+      case 'TABLE': return Monitor
+      case 'MENU': return Menu
+      case 'CUSTOM': return Settings
+      default: return QrCode
     }
   }
 
   const getTypeColor = () => {
     switch (qrCode.type) {
-      case 'TABLE':
-        return 'from-blue-500 to-blue-600'
-      case 'MENU':
-        return 'from-green-500 to-green-600'
-      case 'CUSTOM':
-        return 'from-purple-500 to-purple-600'
-      default:
-        return 'from-gray-500 to-gray-600'
+      case 'TABLE': return 'from-blue-500 to-blue-600'
+      case 'MENU': return 'from-green-500 to-green-600'
+      case 'CUSTOM': return 'from-purple-500 to-purple-600'
+      default: return 'from-gray-500 to-gray-600'
     }
   }
 
@@ -83,7 +74,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r ${getTypeColor()}`}>
@@ -107,7 +97,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* QR Code Display */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">QR Code Preview</h3>
               <div className="bg-white p-6 rounded-lg flex items-center justify-center">
@@ -126,7 +115,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
               </button>
             </div>
 
-            {/* QR Code Details */}
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
@@ -186,7 +174,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
                 </div>
               </div>
 
-              {/* Parsed QR Data */}
               <div>
                 <label className="text-sm text-gray-400 block mb-2">QR Code Content</label>
                 <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
@@ -239,7 +226,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
                 </div>
               </div>
 
-              {/* Business ID */}
               <div>
                 <label className="text-sm text-gray-400 block mb-2">Business ID</label>
                 <div className="bg-gray-700/50 p-3 rounded-lg">
@@ -251,7 +237,6 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-700/50">
             <button
               onClick={onClose}
