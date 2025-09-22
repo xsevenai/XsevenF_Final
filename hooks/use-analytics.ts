@@ -1,15 +1,14 @@
-// hooks/use-analytics.ts
+// hooks/use-analytics.ts - Simplified like tables hooks
 
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { analyticsApi } from "@/lib/analytics-api"
-import type { AnalyticsData, OrderAnalytics, MessageAnalytics } from "@/app/dashboard/components/types"
 
-// Main analytics hook
+// Main analytics hook - simplified API
 export function useAnalytics(timeRange: string = "7d") {
   const [dashboardSummary, setDashboardSummary] = useState<any>(null)
-  const [combinedAnalytics, setCombinedAnalytics] = useState<AnalyticsData | null>(null)
+  const [combinedAnalytics, setCombinedAnalytics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -18,18 +17,16 @@ export function useAnalytics(timeRange: string = "7d") {
       setLoading(true)
       setError(null)
       
-      // Get business ID from local storage or context
-      const businessId = localStorage.getItem('business_id') || '1'
-      
-      // Fetch dashboard summary and combined analytics
+      // No need to get business ID here - analytics API handles it automatically
       const [summaryData, combinedData] = await Promise.all([
-        analyticsApi.getDashboardSummary(businessId),
-        analyticsApi.getCombinedAnalytics(businessId, timeRange)
+        analyticsApi.getDashboardSummary(), // No business ID needed
+        analyticsApi.getCombinedAnalytics(timeRange) // No business ID needed
       ])
       
       setDashboardSummary(summaryData)
       setCombinedAnalytics(combinedData)
     } catch (err) {
+      console.error('Analytics fetch error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch analytics')
     } finally {
       setLoading(false)
@@ -53,7 +50,7 @@ export function useAnalytics(timeRange: string = "7d") {
   }
 }
 
-// Orders analytics hook
+// Orders analytics hook - simplified
 export function useOrdersAnalytics(timeRange: string = "7d", statusFilter?: string) {
   const [ordersData, setOrdersData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -64,11 +61,11 @@ export function useOrdersAnalytics(timeRange: string = "7d", statusFilter?: stri
       setLoading(true)
       setError(null)
       
-      const businessId = localStorage.getItem('business_id') || '1'
-      const data = await analyticsApi.getOrdersAnalytics(businessId, timeRange, statusFilter)
-      
+      // No business ID needed - handled automatically
+      const data = await analyticsApi.getOrdersAnalytics(timeRange, statusFilter)
       setOrdersData(data)
     } catch (err) {
+      console.error('Orders analytics error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch orders analytics')
     } finally {
       setLoading(false)
@@ -91,7 +88,7 @@ export function useOrdersAnalytics(timeRange: string = "7d", statusFilter?: stri
   }
 }
 
-// Messages analytics hook
+// Messages analytics hook - simplified
 export function useMessagesAnalytics(timeRange: string = "7d", sessionId?: string) {
   const [messagesData, setMessagesData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -102,11 +99,11 @@ export function useMessagesAnalytics(timeRange: string = "7d", sessionId?: strin
       setLoading(true)
       setError(null)
       
-      const businessId = localStorage.getItem('business_id') || '1'
-      const data = await analyticsApi.getMessagesAnalytics(businessId, timeRange, sessionId)
-      
+      // No business ID needed - handled automatically
+      const data = await analyticsApi.getMessagesAnalytics(timeRange, sessionId)
       setMessagesData(data)
     } catch (err) {
+      console.error('Messages analytics error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch messages analytics')
     } finally {
       setLoading(false)
@@ -129,7 +126,7 @@ export function useMessagesAnalytics(timeRange: string = "7d", sessionId?: strin
   }
 }
 
-// Order creation hook
+// Order management hooks
 export function useCreateOrderRecord() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -139,9 +136,8 @@ export function useCreateOrderRecord() {
       setLoading(true)
       setError(null)
       
-      const businessId = localStorage.getItem('business_id') || '1'
-      const result = await analyticsApi.createOrderRecord(businessId, orderData)
-      
+      // No business ID needed - handled automatically
+      const result = await analyticsApi.createOrderRecord(orderData)
       return result
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create order record')
@@ -156,9 +152,8 @@ export function useCreateOrderRecord() {
       setLoading(true)
       setError(null)
       
-      const businessId = localStorage.getItem('business_id') || '1'
-      const result = await analyticsApi.updateOrderStatus(businessId, orderId, statusData)
-      
+      // No business ID needed - handled automatically
+      const result = await analyticsApi.updateOrderStatus(orderId, statusData)
       return result
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update order status')
@@ -176,7 +171,7 @@ export function useCreateOrderRecord() {
   }
 }
 
-// Message creation hook
+// Message management hook
 export function useCreateMessageRecord() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -186,9 +181,8 @@ export function useCreateMessageRecord() {
       setLoading(true)
       setError(null)
       
-      const businessId = localStorage.getItem('business_id') || '1'
-      const result = await analyticsApi.createMessageRecord(businessId, messageData)
-      
+      // No business ID needed - handled automatically
+      const result = await analyticsApi.createMessageRecord(messageData)
       return result
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create message record')

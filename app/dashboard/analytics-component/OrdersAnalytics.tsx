@@ -11,21 +11,26 @@ import { useOrdersAnalytics } from "@/hooks/use-analytics"
 // Define interfaces for type safety
 interface OrderItem {
   id?: string
-  name: string
-  quantity: number
-  price: number
+  name?: string
+  quantity?: number
+  price?: number
   category?: string
 }
 
 interface Order {
   id: string
-  orderId: string
+  orderId?: string
+  order_id?: string  // Backend might use snake_case
   customerId?: string
-  totalAmount: number
-  status: string
-  items: OrderItem[]
-  createdAt: string
-  updatedAt: string
+  customer_id?: string
+  totalAmount?: number
+  total_amount?: number  // Backend might use snake_case
+  status?: string
+  items?: OrderItem[]
+  createdAt?: string
+  created_at?: string  // Backend might use snake_case
+  updatedAt?: string
+  updated_at?: string
 }
 
 interface OrdersSummary {
@@ -109,11 +114,34 @@ export default function OrdersAnalytics({ timeRange }: OrdersAnalyticsProps) {
 
   const orders: Order[] = ordersData?.orders || []
 
+  // Helper function to safely get order ID
+  const getOrderId = (order: Order): string => {
+    return order.orderId || order.order_id || order.id || 'N/A'
+  }
+
+  // Helper function to safely get total amount
+  const getTotalAmount = (order: Order): number => {
+    return order.totalAmount || order.total_amount || 0
+  }
+
+  // Helper function to safely get created date
+  const getCreatedAt = (order: Order): string => {
+    return order.createdAt || order.created_at || ''
+  }
+
   // Filter orders based on search term
-  const filteredOrders = orders.filter((order: Order) => 
-    order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.items.some((item: OrderItem) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredOrders = orders.filter((order: Order) => {
+    const orderId = getOrderId(order).toLowerCase()
+    const hasOrderIdMatch = orderId.includes(searchTerm.toLowerCase())
+    
+    const hasItemMatch = order.items && Array.isArray(order.items) 
+      ? order.items.some((item: OrderItem) => 
+          item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : false
+    
+    return hasOrderIdMatch || hasItemMatch
+  })
 
   // Generate chart data for order trends
   const chartData: ChartDataPoint[] = []
@@ -124,28 +152,32 @@ export default function OrdersAnalytics({ timeRange }: OrdersAnalyticsProps) {
     date.setDate(date.getDate() - i)
     const dateStr = date.toISOString().split('T')[0]
     
-    const dayOrders = orders.filter((order: Order) => 
-      order.createdAt.split('T')[0] === dateStr
-    )
+    const dayOrders = orders.filter((order: Order) => {
+      const orderDate = getCreatedAt(order)
+      return orderDate.split('T')[0] === dateStr
+    })
+    
+    const dayRevenue = dayOrders.reduce((sum: number, order: Order) => sum + getTotalAmount(order), 0)
     
     chartData.push({
       date: dateStr,
       orders: dayOrders.length,
-      revenue: dayOrders.reduce((sum: number, order: Order) => sum + order.totalAmount, 0),
-      avgOrderValue: dayOrders.length > 0 ? dayOrders.reduce((sum: number, order: Order) => sum + order.totalAmount, 0) / dayOrders.length : 0
+      revenue: dayRevenue,
+      avgOrderValue: dayOrders.length > 0 ? dayRevenue / dayOrders.length : 0
     })
   }
 
   // Status distribution
-  const statusCounts = orders.reduce((acc: Record<string, number>, order: Order) => {
-    acc[order.status] = (acc[order.status] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  const statusCounts: Record<string, number> = {}
+  orders.forEach((order: Order) => {
+    const status = order.status || 'unknown'
+    statusCounts[status] = (statusCounts[status] || 0) + 1
+  })
 
   const statusData: StatusDataPoint[] = Object.entries(statusCounts).map(([status, count]: [string, number]) => ({
     status: status.charAt(0).toUpperCase() + status.slice(1),
     count,
-    percentage: ((count / orders.length) * 100).toFixed(1)
+    percentage: orders.length > 0 ? ((count / orders.length) * 100).toFixed(1) : '0'
   }))
 
   return (
@@ -302,12 +334,18 @@ export default function OrdersAnalytics({ timeRange }: OrdersAnalyticsProps) {
             <tbody>
               {filteredOrders.slice(0, 10).map((order: Order) => (
                 <tr key={order.id} className="border-b border-gray-700/30 hover:bg-gray-700/20">
-                  <td className="py-3 text-white">{order.orderId}</td>
+                  <td className="py-3 text-white">{getOrderId(order)}</td>
                   <td className="py-3 text-gray-300">
-                    {order.items.slice(0, 2).map((item: OrderItem) => item.name).join(', ')}
-                    {order.items.length > 2 && `... +${order.items.length - 2} more`}
+                    {order.items && Array.isArray(order.items) && order.items.length > 0 
+                      ? order.items
+                          .slice(0, 2)
+                          .map((item: OrderItem) => item.name || 'Unknown Item')
+                          .join(', ') +
+                        (order.items.length > 2 ? `... +${order.items.length - 2} more` : '')
+                      : 'No items'
+                    }
                   </td>
-                  <td className="py-3 text-white">${order.totalAmount.toFixed(2)}</td>
+                  <td className="py-3 text-white">${getTotalAmount(order).toFixed(2)}</td>
                   <td className="py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       order.status === 'delivered' ? 'bg-green-500/20 text-green-400' :
@@ -317,11 +355,14 @@ export default function OrdersAnalytics({ timeRange }: OrdersAnalyticsProps) {
                       order.status === 'cancelled' ? 'bg-gray-500/20 text-gray-400' :
                       'bg-purple-500/20 text-purple-400'
                     }`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
                     </span>
                   </td>
                   <td className="py-3 text-gray-400">
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {getCreatedAt(order)
+                      ? new Date(getCreatedAt(order)).toLocaleDateString()
+                      : 'N/A'
+                    }
                   </td>
                 </tr>
               ))}

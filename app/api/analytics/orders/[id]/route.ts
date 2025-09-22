@@ -33,7 +33,7 @@ export async function GET(
     
     // Make request to backend
     const response = await fetch(
-      `${BACKEND_API_URL}/api/v1/analytics/orders/${businessId}?${queryParams}`,
+      `${BACKEND_API_URL}/analytics/orders/${businessId}?${queryParams}`,
       {
         method: 'GET',
         headers: {
@@ -77,7 +77,7 @@ export async function POST(
     
     // Make request to backend
     const response = await fetch(
-      `${BACKEND_API_URL}/api/v1/analytics/orders/${businessId}`,
+      `${BACKEND_API_URL}/analytics/orders/${businessId}`,
       {
         method: 'POST',
         headers: {
