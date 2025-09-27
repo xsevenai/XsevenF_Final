@@ -216,7 +216,6 @@ export default function SignupPage() {
     setSubmitError("")
 
     try {
-      // Check if email already exists
       const emailExists = await checkEmailExists(formData.email)
       if (emailExists) {
         setErrors({
@@ -262,7 +261,6 @@ export default function SignupPage() {
     setSubmitError("")
     
     try {
-      // Prepare signup data
       const signupData: SignupData = {
         businessName: formData.businessName,
         businessDescription: formData.businessDescription,
@@ -275,7 +273,6 @@ export default function SignupPage() {
         planId: plan.id
       }
 
-      // Call the signup API
       const response = await fetch('/api/signup', {
         method: 'POST',
         headers: {
@@ -290,10 +287,8 @@ export default function SignupPage() {
         throw new Error(result.error || 'Signup failed')
       }
 
-      // Store result for later use
       setSignupResult(result)
       
-      // Success - proceed to dashboard creation step
       setTimeout(() => {
         setCurrentStep(4)
         startDashboardCreation()
@@ -317,6 +312,7 @@ export default function SignupPage() {
 
   const startDashboardCreation = () => {
     setDashboardProgress(0)
+     setLoading(false)
     
     dashboardSteps.forEach((step, index) => {
       setTimeout(() => {
@@ -324,7 +320,7 @@ export default function SignupPage() {
         if (step.progress === 100) {
           setTimeout(() => {
             setCurrentStep(5)
-            setLoading(false)
+           
           }, 1000)
         }
       }, (index + 1) * 2000)
@@ -333,9 +329,7 @@ export default function SignupPage() {
 
   const handleDashboardNavigation = async () => {
     try {
-      // In production, you might want to set up the user session here
       if (signupResult?.userId) {
-        // Redirect to dashboard
         if (typeof window !== 'undefined') {
           window.location.href = "/dashboard"
         }
@@ -369,28 +363,30 @@ export default function SignupPage() {
           </div>
         )
       
-      case 1:
-        return (
-          <div className={`transition-all duration-700 transform h-full ${
-            currentStep === 1 ? 'translate-x-0 opacity-100' : 
-            currentStep > 1 ? '-translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12' : 
-            'translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12'
-          }`}>
-            <BusinessDetailsForm
-              selectedCategory={selectedCategory}
-              formData={formData}
-              errors={errors}
-              focusedField={focusedField}
-              loading={loading}
-              isLoaded={isLoaded}
-              submitError={submitError}
-              onInputChange={handleInputChange}
-              onSubmit={handleBusinessDetailsSubmit}
-              onFocus={setFocusedField}
-              onBlur={() => setFocusedField(null)}
-            />
-          </div>
-        )
+      // In the renderCurrentStep function, update the case 1:
+case 1:
+  return (
+    <div className={`transition-all duration-700 transform h-full ${
+      currentStep === 1 ? 'translate-x-0 opacity-100' : 
+      currentStep > 1 ? '-translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12' : 
+      'translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12'
+    }`}>
+      <BusinessDetailsForm
+        selectedCategory={selectedCategory}
+        formData={formData}
+        errors={errors}
+        focusedField={focusedField}
+        loading={loading}
+        isLoaded={isLoaded}
+        submitError={submitError}
+        onInputChange={handleInputChange}
+        onSubmit={handleBusinessDetailsSubmit}
+        onFocus={setFocusedField}
+        onBlur={() => setFocusedField(null)}
+        onBack={handleBack}
+      />
+    </div>
+  )
       
       case 2:
         return (
@@ -410,6 +406,7 @@ export default function SignupPage() {
               onSubmit={handlePasswordSubmit}
               onFocus={setFocusedField}
               onBlur={() => setFocusedField(null)}
+              onBack={handleBack}
             />
           </div>
         )
@@ -426,6 +423,7 @@ export default function SignupPage() {
               onPlanSelect={handlePlanSelect}
               loading={loading}
               isLoaded={isLoaded}
+              onBack={handleBack}
             />
           </div>
         )
@@ -437,9 +435,13 @@ export default function SignupPage() {
             currentStep > 4 ? '-translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12' : 
             'translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12'
           }`}>
-            <DashboardCreation
-              dashboardProgress={dashboardProgress}
-              isLoaded={isLoaded}
+            <WelcomeScreen
+        selectedCategory={selectedCategory}
+        selectedPlan={selectedPlan}
+        formData={formData}
+        isLoaded={isLoaded}
+        onDashboardClick={handleDashboardNavigation}
+        onBack={handleBack}
             />
           </div>
         )
@@ -449,12 +451,13 @@ export default function SignupPage() {
           <div className={`transition-all duration-700 transform h-full ${
             currentStep === 5 ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute inset-0 p-4 lg:p-8 xl:p-12'
           }`}>
-            <WelcomeScreen
-              selectedCategory={selectedCategory}
-              selectedPlan={selectedPlan}
-              formData={formData}
-              isLoaded={isLoaded}
-              onDashboardClick={handleDashboardNavigation}
+      <WelcomeScreen
+        selectedCategory={selectedCategory}
+        selectedPlan={selectedPlan}
+        formData={formData}
+        isLoaded={isLoaded}
+        onDashboardClick={handleDashboardNavigation}
+        onBack={handleBack}
             />
           </div>
         )
@@ -465,16 +468,45 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex dark:bg-gray-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-pink-400/20 to-orange-600/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-green-400/10 to-blue-600/10 rounded-full blur-3xl animate-spin" style={{animationDuration: '20s'}}></div>
+    <div className="min-h-screen flex relative overflow-hidden">
+      {/* Left Side - Form with Black Emergent Theme */}
+      <div className="w-full lg:w-1/2 bg-black flex flex-col relative">
+        {/* Header with Logo */}
+        <div className="border-b border-gray-800 p-4 lg:p-6 backdrop-blur-sm bg-black/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-black rounded-sm flex items-center justify-center">
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                </div>
+              </div>
+              <span className="text-white text-2xl font-semibold">Company</span>
+            </div>
+            
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full hover:bg-gray-900 transition-all duration-300 transform hover:scale-110 active:scale-95 group"
+              aria-label="Toggle dark mode"
+            >
+              <div className="relative">
+                {darkMode ? (
+                  <Sun className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-yellow-500 group-hover:rotate-180" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-blue-500 group-hover:-rotate-12" />
+                )}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Form Content */}
+        <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
+          {renderCurrentStep()}
+        </div>
       </div>
 
-      {/* Left Side - Content */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-gray-800 flex-col justify-center items-center p-8 xl:p-12 relative overflow-hidden border-r border-gray-200 dark:border-gray-700">
+      {/* Right Side - Original Content */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-gray-800 flex-col justify-center items-center p-8 xl:p-12 relative overflow-hidden border-l border-gray-200 dark:border-gray-700">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
@@ -520,55 +552,6 @@ export default function SignupPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 bg-white dark:bg-gray-900 flex flex-col relative">
-        {/* Header */}
-        <div className="border-b border-gray-200 dark:border-gray-800 p-4 lg:p-6 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={handleBack}
-              className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}
-              disabled={currentStep === 0 || loading}
-            >
-              <ArrowLeft className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" />
-              <span>Back</span>
-            </button>
-            
-            <div className={`flex items-center space-x-4 transform transition-all duration-1000 delay-400 ease-out ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
-              <div className="flex space-x-2">
-                {[0, 1, 2, 3, 4, 5].map((step) => (
-                  <div
-                    key={step}
-                    className={`w-2 h-2 rounded-full transition-all duration-500 transform ${
-                      step <= currentStep ? 'bg-black dark:bg-white scale-125' : 'bg-gray-300 dark:bg-gray-600 scale-100'
-                    } ${step === currentStep ? 'animate-pulse' : ''}`}
-                  />
-                ))}
-              </div>
-              
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 transform hover:scale-110 active:scale-95 group"
-                aria-label="Toggle dark mode"
-              >
-                <div className="relative">
-                  {darkMode ? (
-                    <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300 transition-all duration-300 group-hover:text-yellow-500 group-hover:rotate-180" />
-                  ) : (
-                    <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300 transition-all duration-300 group-hover:text-blue-500 group-hover:-rotate-12" />
-                  )}
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Form Content */}
-        <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
-          {renderCurrentStep()}
         </div>
       </div>
 

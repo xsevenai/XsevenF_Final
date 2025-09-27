@@ -1,12 +1,12 @@
 "use client"
 
 import React from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { 
   Star, 
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft,
+  Sparkles
 } from "lucide-react"
 import { SubscriptionPlan } from "@/lib/types"
 
@@ -16,19 +16,13 @@ const subscriptionPlans = [
     name: "Free Trial",
     price: "Free",
     period: "14 days",
-    description: "Perfect for testing our AI capabilities",
+    description: "Test our AI capabilities",
     features: [
-      "Up to 100 messages/month",
+      "100 messages/month",
       "Basic AI responses",
       "WhatsApp integration",
-      "Email support",
-      "Basic analytics"
+      "Email support"
     ],
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-    hoverColor: "hover:bg-green-100",
-    gradient: "from-green-500 to-emerald-500",
     popular: false
   },
   {
@@ -36,20 +30,14 @@ const subscriptionPlans = [
     name: "Starter",
     price: "$29",
     period: "per month",
-    description: "Great for small businesses getting started",
+    description: "For small businesses",
     features: [
-      "Up to 1,000 messages/month",
+      "1,000 messages/month",
       "Advanced AI responses",
-      "WhatsApp + SMS integration",
+      "WhatsApp + SMS",
       "Priority support",
-      "Advanced analytics",
-      "Custom responses"
+      "Advanced analytics"
     ],
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    hoverColor: "hover:bg-blue-100",
-    gradient: "from-blue-500 to-cyan-500",
     popular: true
   },
   {
@@ -57,21 +45,14 @@ const subscriptionPlans = [
     name: "Professional", 
     price: "$79",
     period: "per month",
-    description: "Perfect for growing businesses",
+    description: "For growing businesses",
     features: [
-      "Up to 5,000 messages/month",
+      "5,000 messages/month",
       "Premium AI responses",
-      "All integrations included",
+      "All integrations",
       "24/7 phone support",
-      "Advanced analytics + reports",
-      "AI training & customization",
-      "Multi-language support"
+      "AI customization"
     ],
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-    borderColor: "border-purple-200", 
-    hoverColor: "hover:bg-purple-100",
-    gradient: "from-purple-500 to-indigo-500",
     popular: false
   },
   {
@@ -79,21 +60,14 @@ const subscriptionPlans = [
     name: "Enterprise",
     price: "Custom",
     period: "contact us",
-    description: "For large businesses with custom needs",
+    description: "Custom enterprise needs",
     features: [
       "Unlimited messages",
       "Custom AI development",
       "All integrations + APIs",
-      "Dedicated account manager",
-      "Custom analytics dashboard",
-      "White-label options",
-      "SLA guarantees"
+      "Dedicated manager",
+      "White-label options"
     ],
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-    hoverColor: "hover:bg-orange-100", 
-    gradient: "from-orange-500 to-red-500",
     popular: false
   }
 ]
@@ -103,119 +77,128 @@ interface PlanSelectionProps {
   onPlanSelect: (plan: SubscriptionPlan) => void
   loading: boolean
   isLoaded: boolean
+  onBack: () => void
 }
 
 export default function PlanSelection({
   selectedPlan,
   onPlanSelect,
   loading,
-  isLoaded
+  isLoaded,
+  onBack
 }: PlanSelectionProps) {
   return (
-    <div className="max-w-4xl mx-auto overflow-y-auto h-full">
+    <div className="h-full overflow-y-auto">
+      {/* Back Button */}
+      <div className={`mb-6 transform transition-all duration-700 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <button
+          onClick={onBack}
+          disabled={loading}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+        >
+          <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+          <span>Back</span>
+        </button>
+      </div>
+
       <div className="text-center mb-8">
         <div className="overflow-hidden mb-4">
           <div className={`flex items-center justify-center transform transition-all duration-800 delay-500 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <Star className="h-6 w-6 text-purple-500 mr-2" />
-            <span className="text-sm font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Step 4 of 6</span>
+            <Sparkles className="h-6 w-6 text-orange-500 mr-2" />
+            <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Step 4 of 6</span>
           </div>
         </div>
         
         <div className="overflow-hidden mb-4">
-          <h2 className={`text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white leading-tight transform transition-all duration-1200 delay-700 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+          <h2 className={`text-3xl lg:text-4xl font-bold text-white leading-tight transform transition-all duration-1200 delay-700 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
             Choose Your Plan
           </h2>
         </div>
         
         <div className="overflow-hidden">
-          <p className={`text-lg text-gray-600 dark:text-gray-300 transform transition-all duration-1000 delay-900 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <p className={`text-lg text-gray-400 transform transition-all duration-1000 delay-900 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Select the perfect plan for your business needs
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-8">
         {subscriptionPlans.map((plan, index) => (
-          <Card
+          <div
             key={plan.id}
-            className={`relative cursor-pointer border-2 transition-all duration-500 hover:shadow-2xl dark:bg-gray-800 group overflow-hidden transform hover:scale-105 active:scale-95 ${
+            className={`relative cursor-pointer border-2 rounded-xl transition-all duration-500 hover:shadow-2xl group overflow-hidden transform hover:scale-[1.03] active:scale-95 ${
               plan.popular 
-                ? 'border-purple-500 shadow-lg scale-105' 
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-900 dark:hover:border-gray-300'
+                ? 'border-orange-500 shadow-lg shadow-orange-500/20 scale-[1.02]' 
+                : 'border-gray-700 hover:border-gray-500'
             } ${
-              selectedPlan?.id === plan.id ? 'border-black dark:border-white shadow-xl scale-105' : ''
+              selectedPlan?.id === plan.id ? 'border-white shadow-xl shadow-white/20 scale-[1.02] bg-[#2a2a2a]' : 'bg-[#1a1a1a]'
             } transition-all duration-800 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}
             style={{animationDelay: `${1100 + index * 100}ms`}}
             onClick={() => !loading && onPlanSelect(plan)}
           >
             {plan.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold animate-pulse">
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-3 py-0.5 rounded-full text-xs font-semibold">
                   Most Popular
                 </div>
               </div>
             )}
-
-            <div className={`absolute inset-0 bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
             
-            <div className="p-6 relative z-10">
-              <div className="text-center mb-6">
-                <div className={`w-12 h-12 rounded-xl ${plan.bgColor} dark:bg-opacity-20 flex items-center justify-center mx-auto mb-3 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3`}>
-                  <Star className={`h-6 w-6 ${plan.color} transition-all duration-300 group-hover:scale-125`} />
+            <div className="p-5 relative z-10">
+              <div className="text-center mb-4">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center mx-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                  <Star className="h-5 w-5 text-orange-500 transition-all duration-300 group-hover:scale-125" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-bold text-white mb-1">
                   {plan.name}
                 </h3>
                 <div className="mb-2">
-                  <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-2xl font-bold text-white">
                     {plan.price}
                   </span>
                   {plan.period !== "contact us" && (
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                    <span className="text-gray-400 text-xs">
                       /{plan.period}
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-xs text-gray-400">
                   {plan.description}
                 </p>
               </div>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 mb-4">
                 {plan.features.map((feature, featureIndex) => (
-                  <div key={featureIndex} className="flex items-start space-x-3">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <div key={featureIndex} className="flex items-start space-x-2">
+                    <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">
                       {feature}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <Button
-                className={`w-full transition-all duration-300 ${
+              <button
+                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
                   plan.popular 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                    : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
-                } group/btn relative overflow-hidden`}
+                    ? 'bg-white text-black hover:bg-gray-100' 
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                } group/btn`}
               >
-                <div className={`absolute inset-0 bg-gradient-to-r ${plan.gradient} opacity-0 group-hover/btn:opacity-10 transition-opacity duration-500`}></div>
-                <span className="relative z-10 flex items-center justify-center space-x-2">
-                  <span>{plan.id === 'free' ? 'Start Free Trial' : 'Choose Plan'}</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                </span>
-              </Button>
+                <span>{plan.id === 'free' ? 'Start Free Trial' : 'Choose Plan'}</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+              </button>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 
-      <div className="text-center mt-8 overflow-hidden">
+      <div className="text-center overflow-hidden">
         <div className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`} style={{animationDelay: '1500ms'}}>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+          <p className="text-gray-400 text-sm mb-4">
             All plans include WhatsApp integration, 24/7 AI responses, and can be upgraded anytime
           </p>
-          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
             <div className="flex items-center space-x-1">
               <CheckCircle className="h-3 w-3 text-green-500" />
               <span>Cancel anytime</span>
