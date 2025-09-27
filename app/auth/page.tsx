@@ -467,110 +467,81 @@ case 1:
     }
   }
 
-  return (
-    <div className="min-h-screen flex relative overflow-hidden">
-      {/* Left Side - Form with Black Emergent Theme */}
-      <div className="w-full lg:w-1/2 bg-black flex flex-col relative">
-        {/* Header with Logo */}
-        <div className="border-b border-gray-800 p-4 lg:p-6 backdrop-blur-sm bg-black/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-black rounded-sm flex items-center justify-center">
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                </div>
-              </div>
-              <span className="text-white text-2xl font-semibold">Company</span>
-            </div>
-            
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-full hover:bg-gray-900 transition-all duration-300 transform hover:scale-110 active:scale-95 group"
-              aria-label="Toggle dark mode"
-            >
-              <div className="relative">
-                {darkMode ? (
-                  <Sun className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-yellow-500 group-hover:rotate-180" />
-                ) : (
-                  <Moon className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-blue-500 group-hover:-rotate-12" />
-                )}
-              </div>
-            </button>
-          </div>
-        </div>
+// Replace the return section of your SignupPage component with this:
 
-        {/* Form Content */}
-        <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
-          {renderCurrentStep()}
+return (
+  <div className="min-h-screen flex relative overflow-hidden bg-black">
+    {/* Left Side - Form */}
+    <div className="w-full lg:w-1/2 bg-black flex flex-col relative z-10">
+      {/* Header with Logo */}
+      <div className="border-b border-gray-800 p-4 lg:p-6 backdrop-blur-sm bg-black/80">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-black rounded-sm flex items-center justify-center">
+                <div className="w-2 h-2 bg-black rounded-full"></div>
+              </div>
+            </div>
+            <span className="text-white text-2xl font-semibold">Company</span>
+          </div>
+          
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full hover:bg-gray-900 transition-all duration-300 transform hover:scale-110 active:scale-95 group"
+            aria-label="Toggle dark mode"
+          >
+            <div className="relative">
+              {darkMode ? (
+                <Sun className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-yellow-500 group-hover:rotate-180" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-blue-500 group-hover:-rotate-12" />
+              )}
+            </div>
+          </button>
         </div>
       </div>
 
-      {/* Right Side - Original Content */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-gray-800 flex-col justify-center items-center p-8 xl:p-12 relative overflow-hidden border-l border-gray-200 dark:border-gray-700">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        </div>
-
-        <div className="relative z-10 text-center max-w-lg">
-          <div className="mb-8">
-            <div className="overflow-hidden mb-6">
-              <div className={`w-16 h-16 bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl group transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-                <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-bold text-xl group-hover:from-pink-500 group-hover:to-orange-500 transition-all duration-300">X7</span>
-              </div>
-            </div>
-            
-            <div className="overflow-hidden mb-6">
-              <h1 className={`text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white leading-tight transform transition-all duration-1200 delay-400 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-                Transform Your 
-                <div className="overflow-hidden">
-                  <span className={`bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent transform transition-all duration-1200 delay-600 ease-out inline-block ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-                    Business Communication
-                  </span>
-                </div>
-              </h1>
-            </div>
-            
-            <div className="overflow-hidden">
-              <p className={`text-xl text-gray-600 dark:text-gray-300 leading-relaxed transform transition-all duration-1000 delay-800 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                Scale your customer support with AI that never sleeps
-              </p>
-            </div>
-          </div>
-
-          <div className="overflow-hidden">
-            <div className={`bg-white dark:bg-gray-800 shadow-lg border border-gray-100 dark:border-gray-700 rounded-2xl p-8 backdrop-blur-sm bg-opacity-90 dark:bg-opacity-90 hover:shadow-xl transition-all duration-300 group transform transition-all duration-1000 delay-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center transform transition-all duration-300 group-hover:scale-105">
-                  <div className="text-3xl font-bold text-orange-500 mb-2">Instant</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Responses</div>
-                </div>
-                <div className="text-center transform transition-all duration-300 group-hover:scale-105">
-                  <div className="text-3xl font-bold text-pink-500 mb-2">10x</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Efficiency</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Form Content */}
+      <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
+        {renderCurrentStep()}
       </div>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
-            <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {currentStep === 3 ? 'Creating Your Account...' : 'Processing...'}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {currentStep === 3 ? 'Setting up your business profile' : 'This will only take a moment'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  )
+
+    {/* Right Side - Video Background */}
+    <div className="hidden lg:block lg:w-1/2 relative">
+      <div className="fixed top-1/2 right-6 -translate-y-1/2 w-[45%] h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/videos/left.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Optional: Dark overlay for better contrast */}
+        <div className="absolute inset-0 bg-black/10"></div>
+      </div>
+    </div>
+
+    {/* Loading Overlay */}
+    {loading && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              {currentStep === 3 ? 'Creating Your Account...' : 'Processing...'}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              {currentStep === 3 ? 'Setting up your business profile' : 'This will only take a moment'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+)
 }

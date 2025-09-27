@@ -80,7 +80,6 @@ export default function PasswordSetup({
       <div className="text-center mb-8">
         <div className="overflow-hidden mb-4">
           <div className={`flex items-center justify-center transform transition-all duration-800 delay-500 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <Sparkles className="h-6 w-6 text-orange-500 mr-2" />
             <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Step 3 of 6</span>
           </div>
         </div>
