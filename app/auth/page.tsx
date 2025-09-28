@@ -474,20 +474,28 @@ return (
     {/* Left Side - Form */}
     <div className="w-full lg:w-1/2 bg-black flex flex-col relative z-10">
       {/* Header with Logo */}
-      <div className="p-4 lg:p-6 backdrop-blur-sm bg-black/80">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-black rounded-sm flex items-center justify-center">
-                <div className="w-2 h-2 bg-black rounded-full"></div>
-              </div>
-            </div>
-            <span className="text-white text-2xl font-semibold">XsevenAI</span>
-          </div>
-          
-     
-        </div>
+// Replace the header section in your SignupPage component with this:
+
+{/* Header with Logo */}
+<div className="p-4 lg:p-6 backdrop-blur-sm bg-black/80">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      {/* Custom SVG Logo */}
+      <div className="w-10 h-10">
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="mask0_7_182" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+            <rect width="100" height="100" fill="#D9D9D9"/>
+          </mask>
+          <g mask="url(#mask0_7_182)">
+            <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+            <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+          </g>
+        </svg>
       </div>
+      <span className="text-white text-2xl font-semibold">XsevenAI</span>
+    </div>
+  </div>
+</div>
 
       <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
         {renderCurrentStep()}
@@ -503,7 +511,7 @@ return (
     <div className="hidden lg:block fixed top-1/2 right-0 -translate-y-1/2 w-1/2 pointer-events-none">
       <div className="flex items-center justify-center px-6">
         {/* Updated video container to match screenshot dimensions */}
-        <div className="relative w-[100%] h-[725px] rounded-[2rem] overflow-hidden shadow-2xl pointer-events-auto">
+        <div className="relative w-[100%] h-[725px] rounded-[4rem] overflow-hidden shadow-2xl pointer-events-auto">
           <video
             autoPlay
             loop
