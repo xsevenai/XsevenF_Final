@@ -474,7 +474,7 @@ return (
     {/* Left Side - Form */}
     <div className="w-full lg:w-1/2 bg-black flex flex-col relative z-10">
       {/* Header with Logo */}
-      <div className="border-b border-gray-800 p-4 lg:p-6 backdrop-blur-sm bg-black/80">
+      <div className="p-4 lg:p-6 backdrop-blur-sm bg-black/80">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
@@ -482,22 +482,10 @@ return (
                 <div className="w-2 h-2 bg-black rounded-full"></div>
               </div>
             </div>
-            <span className="text-white text-2xl font-semibold">Company</span>
+            <span className="text-white text-2xl font-semibold">XsevenAI</span>
           </div>
           
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full hover:bg-gray-900 transition-all duration-300 transform hover:scale-110 active:scale-95 group"
-            aria-label="Toggle dark mode"
-          >
-            <div className="relative">
-              {darkMode ? (
-                <Sun className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-yellow-500 group-hover:rotate-180" />
-              ) : (
-                <Moon className="h-5 w-5 text-gray-400 transition-all duration-300 group-hover:text-blue-500 group-hover:-rotate-12" />
-              )}
-            </div>
-          </button>
+     
         </div>
       </div>
 
@@ -514,7 +502,8 @@ return (
     {/* Fixed Video Container - Outside the flex layout */}
     <div className="hidden lg:block fixed top-1/2 right-0 -translate-y-1/2 w-1/2 pointer-events-none">
       <div className="flex items-center justify-center px-6">
-        <div className="relative w-[90%] h-[750px] rounded-2xl overflow-hidden shadow-2xl pointer-events-auto">
+        {/* Updated video container to match screenshot dimensions */}
+        <div className="relative w-[100%] h-[725px] rounded-3xl overflow-hidden shadow-2xl pointer-events-auto">
           <video
             autoPlay
             loop

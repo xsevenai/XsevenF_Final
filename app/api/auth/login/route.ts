@@ -52,72 +52,107 @@ class AuthService {
       const userId = authData.user.id
       console.log('User authenticated with ID:', userId)
 
-      // 2. Get user's business information
-      const { data: businessData, error: businessError } = await supabase
+      // 2. Get user's business information - Try multiple query approaches
+      // First attempt: direct query with both email and owner_id
+      const { data: businessResults, error: businessError } = await supabase
         .from('businesses')
-        .select(`
-          id,
-          name,
-          email,
-          owner_name,
-          description,
-          website_url,
-          phone,
-          category,
-          is_active,
-          created_at
-        `)
-        .eq('email', loginData.email)
-        .single()
+        .select('*')
+        .or(`email.ilike.${loginData.email},owner_id.eq.${userId}`)
+      
+      console.log('Business query results:', { 
+        found: businessResults?.length || 0
+      })
 
-      if (businessError) {
-        console.error('Business lookup error:', businessError)
+      // If the first query fails, try querying separately
+      if (!businessResults || businessResults.length === 0) {
+        // Try by email (case insensitive)
+        const { data: emailResults } = await supabase
+          .from('businesses')
+          .select('*')
+          .ilike('email', loginData.email)
         
-        // If business not found, it might be an incomplete signup
-        if (businessError.code === 'PGRST116') { // No rows returned
-          throw new Error('Business profile not found. Please complete your registration')
+        console.log('Email query results:', { 
+          found: emailResults?.length || 0 
+        })
+        
+        // Try by owner_id
+        const { data: ownerResults } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('owner_id', userId)
+        
+        console.log('Owner ID query results:', { 
+          found: ownerResults?.length || 0 
+        })
+        
+        // Use results from either query
+        if (emailResults && emailResults.length > 0) {
+          var businessData = emailResults[0]
+        } else if (ownerResults && ownerResults.length > 0) {
+          var businessData = ownerResults[0]
+        } else {
+          // Last resort: fetch all businesses and manually filter
+          const { data: allBusinesses } = await supabase
+            .from('businesses')
+            .select('*')
+          
+          console.log('All businesses count:', allBusinesses?.length || 0)
+          
+          if (allBusinesses && allBusinesses.length > 0) {
+            // Print first few businesses for debugging
+            console.log('Sample businesses:', allBusinesses.slice(0, 2))
+            
+            // Check for exact matches
+            const businessMatch = allBusinesses.find(b => 
+              (b.email && b.email.toLowerCase() === loginData.email.toLowerCase()) ||
+              (b.owner_id && b.owner_id === userId)
+            )
+            
+            if (businessMatch) {
+              var businessData = businessMatch
+            } else {
+              throw new Error('Business profile not found. Please complete your registration')
+            }
+          } else {
+            throw new Error('Business profile not found. Please complete your registration')
+          }
         }
-        
-        throw new Error('Failed to retrieve business information')
+      } else {
+        var businessData = businessResults[0]
       }
+      
+      console.log('Business found:', {
+        id: businessData.id,
+        name: businessData.name,
+        email: businessData.email
+      })
 
       if (!businessData.is_active) {
         throw new Error('Your account has been deactivated. Please contact support')
       }
-
-      console.log('Business found:', businessData.name)
 
       // 3. Get subscription information (optional - may not exist for all users)
       let subscriptionData = null
       try {
         const { data: subData, error: subError } = await supabase
           .from('subscriptions')
-          .select(`
-            id,
-            business_id,
-            subscription_plan,
-            subscription_status,
-            trial_ends_at,
-            created_at
-          `)
+          .select('*')
           .eq('business_id', businessData.id)
-          .single()
-
-        if (!subError) {
+          .maybeSingle()
+        
+        if (!subError && subData) {
           subscriptionData = subData
         }
       } catch (error) {
         console.warn('Subscription lookup failed (may not exist):', error)
       }
 
-      // 4. Update last login timestamp (optional)
+      // 4. Update last login timestamp
       try {
         await supabase
           .from('businesses')
           .update({ 
             updated_at: new Date().toISOString(),
-            // Add last_login field if you have it in your schema
-            // last_login: new Date().toISOString()
           })
           .eq('id', businessData.id)
       } catch (error) {
@@ -211,54 +246,31 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Normalize email - trim spaces and convert to lowercase
+    loginData.email = loginData.email.trim().toLowerCase()
+    console.log('Normalized login email:', loginData.email)
+
     // Perform login
     const result = await AuthService.signIn(loginData)
 
-    // Set multiple cookies for different purposes
-    const response = NextResponse.json(result, { status: 200 })
-    
-    // Set session cookie (for server-side auth)
-    if (result.session?.access_token) {
-      response.cookies.set('session', result.session.access_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      })
-
-      // Set access token cookie (for client-side API calls)
-      response.cookies.set('access_token', result.session.access_token, {
-        httpOnly: false, // Allow client-side access
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      })
-
-      // Set refresh token cookie
-      if (result.session.refresh_token) {
-        response.cookies.set('refresh_token', result.session.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 30 // 30 days
-        })
-      }
-
-      // Set user info cookie
-      response.cookies.set('user_info', JSON.stringify({
+    // Return the auth data in the response body for client-side storage
+    return NextResponse.json({
+      success: true,
+      user: result.user,
+      business: result.business,
+      subscription: result.subscription,
+      auth: {
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+        expires_at: result.session.expires_at
+      },
+      user_info: {
         id: result.user.id,
         email: result.user.email,
         business_id: result.business.id,
         business_name: result.business.name
-      }), {
-        httpOnly: false, // Allow client-side access
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      })
-    }
-
-    return response
+      }
+    }, { status: 200 })
 
   } catch (error) {
     console.error('Login API error:', error)
@@ -302,15 +314,11 @@ export async function DELETE(request: NextRequest) {
   try {
     const result = await AuthService.signOut()
     
-    const response = NextResponse.json(result, { status: 200 })
-    
-    // Clear all auth-related cookies
-    response.cookies.delete('session')
-    response.cookies.delete('access_token')
-    response.cookies.delete('refresh_token')
-    response.cookies.delete('user_info')
-    
-    return response
+    // Just return success - client will clear localStorage
+    return NextResponse.json({
+      success: true,
+      message: 'Signed out successfully'
+    }, { status: 200 })
   } catch (error) {
     console.error('Logout API error:', error)
     return NextResponse.json({ 
