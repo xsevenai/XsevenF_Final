@@ -508,7 +508,7 @@ return (
 
     {/* Right Side - Video Background */}
     <div className="hidden lg:block lg:w-1/2 relative">
-      {/* Empty space holder */}
+      
     </div>
     
     {/* Fixed Video Container - Outside the flex layout */}
