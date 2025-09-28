@@ -15,10 +15,10 @@ interface AuthResponse {
 }
 
 class AuthService {
-  private static API_URL = process.env.BACKEND_API_URL || 'http://localhost:8000';
+  private static API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000';
 
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${this.API_URL}/auth/login`, {
+    const response = await fetch(`${this.API_URL}/auth/supabase/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
