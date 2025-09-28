@@ -501,7 +501,6 @@ return (
         </div>
       </div>
 
-      {/* Form Content */}
       <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative">
         {renderCurrentStep()}
       </div>
