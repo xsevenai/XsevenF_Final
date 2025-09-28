@@ -1,102 +1,71 @@
-import { supabase } from './supabase'
-import { SignUpData, AuthResponse, User, Business } from './types'
+// lib/auth.ts
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-export const authService = {
-  async signUp(data: SignUpData): Promise<AuthResponse> {
-    try {
-      // Step 1: Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            name: data.ownerName,
-          }
-        }
-      })
+interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user_id: string;
+  email: string;
+  role: string;
+  business_id: string;
+  expires_in: number;
+}
 
-      if (authError) throw authError
+class AuthService {
+  private static API_URL = process.env.BACKEND_API_URL || 'http://localhost:8000';
 
-      if (!authData.user) {
-        throw new Error('User creation failed')
-      }
+  static async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const response = await fetch(`${this.API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
 
-      // Step 2: Create business record
-      const { data: business, error: businessError } = await supabase
-        .from('businesses')
-        .insert({
-          name: data.businessData.businessName,
-          description: data.businessData.businessDescription,
-          category: data.selectedCategory.id,
-          owner_name: data.ownerName,
-          phone: data.businessData.phone || null,
-          website_url: data.businessData.websiteUrl || null,
-          subscription_plan: data.selectedPlan.id,
-          subscription_status: data.selectedPlan.id === 'free' ? 'trial' : 'active',
-          is_active: true,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (businessError) throw businessError
-
-      // Step 3: Link user to business
-      const { error: linkError } = await supabase
-        .from('user_businesses')
-        .insert({
-          user_id: authData.user.id,
-          business_id: business.id,
-          role: 'owner'
-        })
-
-      if (linkError) throw linkError
-
-      return {
-        user: authData.user as User,
-        business: business as Business,
-        session: authData.session
-      }
-
-    } catch (error) {
-      console.error('Signup error:', error)
-      throw error
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Login failed');
     }
-  },
 
-  async signIn({ email, password }: { email: string; password: string }) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
+    return response.json();
+  }
+
+  static setAuthData(data: AuthResponse): void {
+    localStorage.setItem('accessToken', data.access_token);
+    localStorage.setItem('user_id', data.user_id);
+    localStorage.setItem('user_email', data.email);
+    localStorage.setItem('business_id', data.business_id);
+    localStorage.setItem('user_role', data.role);
     
-    if (error) throw error
-    return data
-  },
+    const expiresAt = new Date().getTime() + (data.expires_in * 1000);
+    localStorage.setItem('token_expires_at', expiresAt.toString());
+  }
 
-  async signOut(): Promise<void> {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-  },
+  static clearAuthData(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('business_id');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('token_expires_at');
+  }
 
-  async getCurrentUser(): Promise<User | null> {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (error) throw error
-    return user as User | null
-  },
+  static getToken(): string | null {
+    return localStorage.getItem('accessToken');
+  }
 
-  async getUserBusiness(userId: string): Promise<Business | null> {
-    const { data, error } = await supabase
-      .from('user_businesses')
-      .select(`
-        *,
-        businesses (*)
-      `)
-      .eq('user_id', userId)
-      .eq('role', 'owner')
-      .single()
-
-    if (error) throw error
-    return data?.businesses as Business || null
+  static isAuthenticated(): boolean {
+    const token = this.getToken();
+    const expiresAt = localStorage.getItem('token_expires_at');
+    
+    if (!token || !expiresAt) return false;
+    
+    return new Date().getTime() < parseInt(expiresAt);
   }
 }
+
+export default AuthService;

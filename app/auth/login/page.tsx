@@ -79,70 +79,65 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  
+  if (!validateForm()) {
+    return
+  }
 
-    setLoading(true)
-    setSubmitError("")
+  setLoading(true)
+  setSubmitError("")
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+  try {
+    // Call FastAPI backend instead of Next.js API route
+    const response = await fetch(`${process.env.BACKEND_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
       })
+    })
 
-      const result = await response.json()
+    const result = await response.json()
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Login failed')
-      }
-
-      // Store auth data in localStorage
-      localStorage.setItem('auth_token', result.auth.access_token)
-      localStorage.setItem('refresh_token', result.auth.refresh_token)
-      localStorage.setItem('user_info', JSON.stringify(result.user_info))
-      localStorage.setItem('business', JSON.stringify(result.business))
-      
-      if (result.subscription) {
-        localStorage.setItem('subscription', JSON.stringify(result.subscription))
-      }
-      
-      // Set expiry time if available
-      if (result.auth.expires_at) {
-        localStorage.setItem('token_expiry', String(result.auth.expires_at))
-      }
-      
-      console.log('Login successful, redirecting to dashboard')
-
-      // Redirect to dashboard
-      if (typeof window !== 'undefined') {
-        window.location.href = "/dashboard"
-      }
-
-    } catch (error) {
-      console.error('Login error:', error)
-      
-      // Handle specific error messages from the API
-      if (error instanceof Error) {
-        setSubmitError(error.message)
-      } else {
-        setSubmitError('Login failed. Please try again.')
-      }
-    } finally {
-      setLoading(false)
+    if (!response.ok) {
+      throw new Error(result.detail || 'Login failed')
     }
-  }
 
-  if (!mounted) {
-    return null
+    // Store auth data from FastAPI response
+    localStorage.setItem('accessToken', result.access_token)
+    localStorage.setItem('user_id', result.user_id)
+    localStorage.setItem('user_email', result.email)
+    localStorage.setItem('business_id', result.business_id)
+    localStorage.setItem('user_role', result.role || 'owner')
+    
+    // Calculate and store token expiry
+    const expiresAt = new Date().getTime() + (result.expires_in * 1000)
+    localStorage.setItem('token_expires_at', expiresAt.toString())
+    
+    console.log('Login successful, redirecting to dashboard')
+
+    // Redirect to dashboard
+    if (typeof window !== 'undefined') {
+      window.location.href = "/dashboard"
+    }
+
+  } catch (error) {
+    console.error('Login error:', error)
+    
+    if (error instanceof Error) {
+      setSubmitError(error.message)
+    } else {
+      setSubmitError('Login failed. Please try again.')
+    }
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen flex relative overflow-hidden bg-black">
