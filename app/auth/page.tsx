@@ -526,7 +526,6 @@ return (
             Your browser does not support the video tag.
           </video>
           
-          {/* Optional: Dark overlay for better contrast */}
           <div className="absolute inset-0 bg-black/10"></div>
         </div>
       </div>
