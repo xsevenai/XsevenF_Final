@@ -509,20 +509,27 @@ return (
 
     {/* Right Side - Video Background */}
     <div className="hidden lg:block lg:w-1/2 relative">
-      <div className="fixed top-1/2 right-6 -translate-y-1/2 w-[45%] h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/videos/left.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        
-        {/* Optional: Dark overlay for better contrast */}
-        <div className="absolute inset-0 bg-black/10"></div>
+      {/* Empty space holder */}
+    </div>
+    
+    {/* Fixed Video Container - Outside the flex layout */}
+    <div className="hidden lg:block fixed top-1/2 right-0 -translate-y-1/2 w-1/2 pointer-events-none">
+      <div className="flex items-center justify-center px-6">
+        <div className="relative w-[90%] h-[750px] rounded-2xl overflow-hidden shadow-2xl pointer-events-auto">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/left.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
+          {/* Optional: Dark overlay for better contrast */}
+          <div className="absolute inset-0 bg-black/10"></div>
+        </div>
       </div>
     </div>
 
