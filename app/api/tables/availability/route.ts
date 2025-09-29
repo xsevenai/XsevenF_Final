@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://127.0.0.1:8000/api/v1"
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://127.0.0.1:8000/api/v1"
 
 // Helper function to forward headers
 function createBackendHeaders(request: NextRequest): HeadersInit {

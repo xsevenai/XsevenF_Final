@@ -1,6 +1,6 @@
 // app/api/inventory.ts - FIXED VERSION
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000'
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

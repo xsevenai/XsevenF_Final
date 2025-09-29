@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:8000'
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000'
 
 // GET /api/analytics/combined/[id] - Get Combined Analytics
 export async function GET(

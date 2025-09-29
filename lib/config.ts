@@ -2,7 +2,7 @@
 export const config = {
   api: {
     // Backend API URL - fallback to localhost if env var not set
-    backendUrl: process.env.BACKEND_API_URL || 'http://127.0.0.1:8000/api/v1',
+    backendUrl: process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000/api/v1',
   },
   supabase: {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
