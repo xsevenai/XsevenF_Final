@@ -41,6 +41,19 @@ interface FormErrors {
   [key: string]: string
 }
 
+// Interface for API payload
+interface SignupApiData {
+  businessName: string
+  businessDescription: string
+  websiteUrl: string
+  ownerName: string
+  email: string
+  phone: string
+  password: string
+  category: string
+  planId: string
+}
+
 export default function SignupPage() {
   const [step, setStep] = useState(0)
   const [selectedTheme, setSelectedTheme] = useState(null)
@@ -57,6 +70,7 @@ export default function SignupPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState("")
+  const [signupResult, setSignupResult] = useState<any>(null)
   const [formData, setFormData] = useState<FormData>({
     businessName: "",
     businessDescription: "",
@@ -105,13 +119,15 @@ export default function SignupPage() {
       document.documentElement.style.transition = ''
     }, 300)
   }
-const handleBackFromCategorySelection = () => {
-  setIsLoaded(false)
-  setTimeout(() => {
-    setStep(1) // Go back to SignupForm
-    setIsLoaded(true)
-  }, 300)
-}
+
+  const handleBackFromCategorySelection = () => {
+    setIsLoaded(false)
+    setTimeout(() => {
+      setStep(1) // Go back to SignupForm
+      setIsLoaded(true)
+    }, 300)
+  }
+
   const handleThemeSelect = (theme) => {
     setSelectedTheme(theme)
     const isDark = theme === 'dark'
@@ -172,6 +188,13 @@ const handleBackFromCategorySelection = () => {
       return
     }
     
+    // Update formData with email and password from signup form
+    setFormData(prev => ({
+      ...prev,
+      email: email,
+      password: password
+    }))
+    
     setIsLoaded(false)
     setTimeout(() => {
       setStep(2)
@@ -205,14 +228,58 @@ const handleBackFromCategorySelection = () => {
     }, 300)
   }
 
-  const handlePlanSelect = (plan: SubscriptionPlan) => {
+  const handlePlanSelect = async (plan: SubscriptionPlan) => {
     setSelectedPlan(plan)
+    setLoading(true)
+    setSubmitError("")
     
-    setIsLoaded(false)
-    setTimeout(() => {
-      setStep(5)
-      setIsLoaded(true)
-    }, 300)
+    try {
+      // Prepare signup data for API
+      const signupData: SignupApiData = {
+        businessName: formData.businessName,
+        businessDescription: formData.businessDescription,
+        websiteUrl: formData.websiteUrl || "",
+        ownerName: formData.ownerName,
+        email: formData.email || email, // Use formData.email or fallback to email state
+        phone: formData.phone || "",
+        password: formData.password || password, // Use formData.password or fallback to password state
+        category: selectedCategory?.id || "",
+        planId: plan.id
+      }
+
+      console.log('Sending signup data:', signupData)
+
+      // Call the signup API
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(signupData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Signup failed')
+      }
+
+      console.log('Signup successful:', result)
+      setSignupResult(result)
+      
+      // Continue to next step after successful signup
+      setIsLoaded(false)
+      setTimeout(() => {
+        setStep(5)
+        setIsLoaded(true)
+      }, 300)
+
+    } catch (error) {
+      console.error('Signup error:', error)
+      setSubmitError(error instanceof Error ? error.message : 'Signup failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleNumberSelection = (selection: { type: 'virtual' | 'custom', number?: string, customNumber?: string }) => {
@@ -225,20 +292,61 @@ const handleBackFromCategorySelection = () => {
     }, 300)
   }
 
-  const handleDashboardCreation = (dashboardData: any) => {
-    console.log('Complete Signup Data:', {
-      theme: selectedTheme,
-      signupEmail: email,
-      signupPassword: password,
-      category: selectedCategory?.id,
-      categoryName: selectedCategory?.name,
-      ...formData,
-      selectedPlan: selectedPlan,
-      numberSelection: numberSelection,
-      dashboardSetup: dashboardData
-    })
+  const handleDashboardCreation = async (dashboardData: any) => {
+    setLoading(true)
+    setSubmitError("")
     
-    alert(`Setup complete! Dashboard created successfully. All data logged to console.`)
+    try {
+      const completeSignupData = {
+        theme: selectedTheme,
+        signupResult: signupResult, // Include the API response
+        category: selectedCategory?.id,
+        categoryName: selectedCategory?.name,
+        formData: formData,
+        selectedPlan: selectedPlan,
+        numberSelection: numberSelection,
+        dashboardSetup: dashboardData
+      }
+
+      console.log('Complete Signup Data:', completeSignupData)
+
+      // Call dashboard creation API
+      const response = await fetch('/api/dashboard/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessId: signupResult?.businessId,
+          dashboardType: dashboardData.type,
+          businessData: completeSignupData
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Dashboard creation failed')
+      }
+
+      console.log('Dashboard creation successful:', result)
+      
+      // Show success message and redirect
+      if (signupResult?.businessId) {
+        alert(`Setup complete! Business created with ID: ${signupResult.businessId}. Dashboard created successfully.`)
+        
+        // Redirect to dashboard
+        window.location.href = '/dashboard'
+      } else {
+        alert(`Setup complete! Dashboard created successfully.`)
+      }
+
+    } catch (error) {
+      console.error('Dashboard creation error:', error)
+      setSubmitError(error instanceof Error ? error.message : 'Dashboard creation failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Navigation handlers
@@ -276,6 +384,7 @@ const handleBackFromCategorySelection = () => {
 
   const handleGoogleSignup = () => {
     console.log('Google signup clicked')
+    // Implement Google OAuth signup here
   }
 
   if (!mounted) {
@@ -313,17 +422,17 @@ const handleBackFromCategorySelection = () => {
   }
 
   // Step 2: Category Selection
-if (step === 2) {
-  return (
-    <CategorySelection
-      selectedCategory={selectedCategory}
-      onCategorySelect={handleCategorySelect}
-      loading={loading}
-      isLoaded={isLoaded}
-      onBack={handleBackFromCategorySelection}  // Add this line
-    />
-  )
-}
+  if (step === 2) {
+    return (
+      <CategorySelection
+        selectedCategory={selectedCategory}
+        onCategorySelect={handleCategorySelect}
+        loading={loading}
+        isLoaded={isLoaded}
+        onBack={handleBackFromCategorySelection}
+      />
+    )
+  }
 
   // Step 3: Business Details Form
   if (step === 3) {
@@ -354,6 +463,7 @@ if (step === 2) {
         loading={loading}
         isLoaded={isLoaded}
         onBack={handleBackFromPlanSelection}
+        submitError={submitError} // Pass the error to show in the component
       />
     )
   }
@@ -378,7 +488,8 @@ if (step === 2) {
           category: selectedCategory,
           formData: formData,
           plan: selectedPlan,
-          numberSelection: numberSelection
+          numberSelection: numberSelection,
+          signupResult: signupResult // Pass the signup result
         }}
         loading={loading}
         isLoaded={isLoaded}
