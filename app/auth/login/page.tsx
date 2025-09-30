@@ -373,7 +373,7 @@ const handleGoogleSignin = () => {
       {/* Fixed Video Container - Outside the flex layout */}
       <div className="hidden lg:block fixed top-1/2 right-0 -translate-y-1/2 w-1/2 pointer-events-none">
         <div className="flex items-center justify-center px-6">
-          <div className="relative w-[100%] h-[725px] rounded-[4rem] overflow-hidden shadow-2xl pointer-events-auto">
+          <div className="relative w-[100%] h-[675px] rounded-[4rem] overflow-hidden shadow-2xl pointer-events-auto">
             <video
               autoPlay
               loop
@@ -381,7 +381,7 @@ const handleGoogleSignin = () => {
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
             >
-              <source src="/videos/left.mp4" type="video/mp4" />
+              <source src="/videos/X-SevenAi.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             
