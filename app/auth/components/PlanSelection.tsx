@@ -63,7 +63,7 @@ export default function PlanSelection({
   onBack
 }: PlanSelectionProps) {
   return (
-    <div className="h-screen bg-black text-white overflow-hidden flex flex-col">
+    <div className="h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-white transition-colors duration-300 overflow-hidden flex flex-col">
       {/* Header with Logo */}
       <div className="flex items-center p-4 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export default function PlanSelection({
               </g>
             </svg>
           </div>
-          <span className="text-white text-xl font-semibold">XsevenAI</span>
+          <span className="text-gray-900 dark:text-white text-xl font-semibold">XsevenAI</span>
         </div>
       </div>
 
@@ -87,10 +87,10 @@ export default function PlanSelection({
         <div className="w-full max-w-4xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className={`text-3xl font-bold text-white mb-4 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <h1 className={`text-3xl font-bold text-gray-900 dark:text-white mb-4 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               Choose Your Plan
             </h1>
-            <p className={`text-lg text-gray-400 transform transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <p className={`text-lg text-gray-600 dark:text-gray-400 transform transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               Select the perfect plan for your business needs
             </p>
           </div>
@@ -103,8 +103,8 @@ export default function PlanSelection({
                 onClick={() => !loading && onPlanSelect(plan)}
                 className={`relative cursor-pointer border-2 rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] transform ${
                   selectedPlan?.id === plan.id 
-                    ? 'border-white bg-white text-black' 
-                    : 'border-gray-800 hover:border-gray-700 bg-black text-white'
+                    ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black' 
+                    : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white'
                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}
                 style={{
                   transitionDelay: `${400 + index * 100}ms`
@@ -119,23 +119,47 @@ export default function PlanSelection({
                 )}
                 
                 <div className="text-center mb-6">
-                  <div className={`w-12 h-12 rounded-xl ${selectedPlan?.id === plan.id ? 'bg-black' : 'bg-white/10'} flex items-center justify-center mx-auto mb-4`}>
-                    <Star className={`h-6 w-6 ${selectedPlan?.id === plan.id ? 'text-white' : 'text-blue-500'}`} />
+                  <div className={`w-12 h-12 rounded-xl ${
+                    selectedPlan?.id === plan.id 
+                      ? 'bg-white dark:bg-black' 
+                      : 'bg-gray-100 dark:bg-white/10'
+                  } flex items-center justify-center mx-auto mb-4`}>
+                    <Star className={`h-6 w-6 ${
+                      selectedPlan?.id === plan.id 
+                        ? 'text-gray-900 dark:text-white' 
+                        : 'text-blue-500'
+                    }`} />
                   </div>
                   
-                  <h3 className={`text-xl font-bold mb-2 ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
+                  <h3 className={`text-xl font-bold mb-2 ${
+                    selectedPlan?.id === plan.id 
+                      ? 'text-white dark:text-black' 
+                      : 'text-gray-900 dark:text-white'
+                  }`}>
                     {plan.name}
                   </h3>
-                  <p className={`text-sm mb-4 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
+                  <p className={`text-sm mb-4 ${
+                    selectedPlan?.id === plan.id 
+                      ? 'text-gray-300 dark:text-gray-700' 
+                      : 'text-gray-600 dark:text-gray-400'
+                  }`}>
                     {plan.description}
                   </p>
                   
                   <div className="mb-6">
-                    <span className={`text-3xl font-bold ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
+                    <span className={`text-3xl font-bold ${
+                      selectedPlan?.id === plan.id 
+                        ? 'text-white dark:text-black' 
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
                       {plan.price}
                     </span>
                     {plan.period !== "contact us" && (
-                      <span className={`text-sm ml-2 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
+                      <span className={`text-sm ml-2 ${
+                        selectedPlan?.id === plan.id 
+                          ? 'text-gray-300 dark:text-gray-700' 
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}>
                         /{plan.period}
                       </span>
                     )}
@@ -145,8 +169,16 @@ export default function PlanSelection({
                 <div className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <CheckCircle className={`h-5 w-5 flex-shrink-0 ${selectedPlan?.id === plan.id ? 'text-green-600' : 'text-green-500'}`} />
-                      <span className={`text-sm ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-300'}`}>
+                      <CheckCircle className={`h-5 w-5 flex-shrink-0 ${
+                        selectedPlan?.id === plan.id 
+                          ? 'text-green-400 dark:text-green-600' 
+                          : 'text-green-500'
+                      }`} />
+                      <span className={`text-sm ${
+                        selectedPlan?.id === plan.id 
+                          ? 'text-gray-300 dark:text-gray-700' 
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}>
                         {feature}
                       </span>
                     </div>
@@ -155,12 +187,12 @@ export default function PlanSelection({
 
                 <div className="mt-auto">
                   {selectedPlan?.id === plan.id ? (
-                    <div className="flex items-center justify-center gap-2 py-3 bg-green-100 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 py-3 bg-green-100 dark:bg-green-100 rounded-lg">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <span className="text-sm font-medium text-green-700">Selected</span>
                     </div>
                   ) : (
-                    <button className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium">
+                    <button className="w-full py-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg transition-colors text-sm font-medium">
                       Select Plan
                     </button>
                   )}
@@ -174,7 +206,7 @@ export default function PlanSelection({
             <button
               onClick={onBack}
               disabled={loading}
-              className="w-fit h-fit px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-fit h-fit px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               <ChevronLeft className="w-4 h-4" />
               Back
@@ -185,12 +217,14 @@ export default function PlanSelection({
 
       {/* Progress Dots */}
       <div className="flex justify-center gap-2 pb-6 flex-shrink-0">
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-white"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+
       </div>
     </div>
   )

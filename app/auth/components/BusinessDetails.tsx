@@ -55,7 +55,7 @@ export default function BusinessDetailsForm({
   }
 
   return (
-    <div className="h-screen bg-black text-white overflow-hidden flex flex-col">
+    <div className="h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-white transition-colors duration-300 overflow-hidden flex flex-col">
       {/* Header with Logo */}
       <div className="flex items-center p-4 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export default function BusinessDetailsForm({
               </g>
             </svg>
           </div>
-          <span className="text-white text-xl font-semibold">XsevenAI</span>
+          <span className="text-gray-900 dark:text-white text-xl font-semibold">XsevenAI</span>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export default function BusinessDetailsForm({
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-6">
-            <h1 className={`text-2xl font-bold text-white mb-3 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <h1 className={`text-2xl font-bold text-gray-900 dark:text-white mb-3 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               Help us personalize your experience
             </h1>
           </div>
@@ -95,7 +95,7 @@ export default function BusinessDetailsForm({
 
             {/* Owner Name */}
             <div className={`transform transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <label className="block text-sm font-normal text-white mb-1.5">
+              <label className="block text-sm font-normal text-gray-900 dark:text-white mb-1.5">
                 What's your name?
               </label>
               <input
@@ -105,7 +105,7 @@ export default function BusinessDetailsForm({
                 onChange={onInputChange}
                 onFocus={() => onFocus('ownerName')}
                 onBlur={onBlur}
-                className="w-full px-3 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                className="w-full px-3 py-2.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-gray-500 transition-colors text-sm"
                 placeholder="Elizabeth"
               />
               {errors.ownerName && (
@@ -118,7 +118,7 @@ export default function BusinessDetailsForm({
 
             {/* Business Name */}
             <div className={`transform transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <label className="block text-sm font-normal text-white mb-1.5">
+              <label className="block text-sm font-normal text-gray-900 dark:text-white mb-1.5">
                 Business Name *
               </label>
               <input
@@ -128,7 +128,7 @@ export default function BusinessDetailsForm({
                 onChange={onInputChange}
                 onFocus={() => onFocus('businessName')}
                 onBlur={onBlur}
-                className="w-full px-3 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                className="w-full px-3 py-2.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-gray-500 transition-colors text-sm"
                 placeholder="My Business"
               />
               {errors.businessName && (
@@ -141,7 +141,7 @@ export default function BusinessDetailsForm({
 
             {/* Business Description */}
             <div className={`transform transition-all duration-1000 delay-400 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <label className="block text-sm font-normal text-white mb-1.5">
+              <label className="block text-sm font-normal text-gray-900 dark:text-white mb-1.5">
                 Business Description *
               </label>
               <textarea
@@ -151,12 +151,12 @@ export default function BusinessDetailsForm({
                 onFocus={() => onFocus('businessDescription')}
                 onBlur={onBlur}
                 rows={2}
-                className="w-full px-3 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors resize-none text-sm"
+                className="w-full px-3 py-2.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-gray-500 transition-colors resize-none text-sm"
                 placeholder="Describe what your business does..."
               />
               <div className="flex justify-end mt-1">
                 <p className={`text-xs ${
-                  formData.businessDescription.length < 20 ? 'text-red-400' : 'text-gray-500'
+                  formData.businessDescription.length < 20 ? 'text-red-400' : 'text-gray-500 dark:text-gray-500'
                 }`}>
                   {formData.businessDescription.length}/20 min
                 </p>
@@ -165,7 +165,7 @@ export default function BusinessDetailsForm({
 
             {/* Phone Number */}
             <div className={`transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <label className="block text-sm font-normal text-white mb-1.5">
+              <label className="block text-sm font-normal text-gray-900 dark:text-white mb-1.5">
                 Phone Number
               </label>
               <input
@@ -175,14 +175,14 @@ export default function BusinessDetailsForm({
                 onChange={onInputChange}
                 onFocus={() => onFocus('phone')}
                 onBlur={onBlur}
-                className="w-full px-3 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                className="w-full px-3 py-2.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-gray-500 transition-colors text-sm"
                 placeholder="+1 234 567 8900"
               />
             </div>
 
             {/* Website URL */}
             <div className={`transform transition-all duration-1000 delay-600 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <label className="block text-sm font-normal text-white mb-1.5">
+              <label className="block text-sm font-normal text-gray-900 dark:text-white mb-1.5">
                 Website URL
               </label>
               <input
@@ -192,7 +192,7 @@ export default function BusinessDetailsForm({
                 onChange={onInputChange}
                 onFocus={() => onFocus('websiteUrl')}
                 onBlur={onBlur}
-                className="w-full px-3 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                className="w-full px-3 py-2.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-gray-500 transition-colors text-sm"
                 placeholder="https://yourbusiness.com"
               />
             </div>
@@ -203,7 +203,7 @@ export default function BusinessDetailsForm({
               <button
                 onClick={onBack}
                 disabled={loading}
-                className="w-fit h-fit px-3 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="w-fit h-fit px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -213,7 +213,7 @@ export default function BusinessDetailsForm({
               <button
                 onClick={onSubmit}
                 disabled={loading || !isFormValid()}
-                className="px-6 py-2.5 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {loading ? 'Processing...' : 'Next'}
               </button>
@@ -224,13 +224,13 @@ export default function BusinessDetailsForm({
 
       {/* Progress Dots */}
       <div className="flex justify-center gap-2 pb-6 flex-shrink-0">
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-white"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
       </div>
     </div>
   )

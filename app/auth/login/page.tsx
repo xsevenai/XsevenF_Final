@@ -37,6 +37,18 @@ export default function LoginPage() {
   useEffect(() => {
     setMounted(true)
     
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('themePreference')
+      
+      if (savedTheme) {
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      }
+    }
+    
     const timer = setTimeout(() => {
       setIsLoaded(true)
     }, 100)
@@ -139,12 +151,20 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 }
 
+const handleGoogleSignin = () => {
+  console.log('Google signin clicked')
+}
+
+  if (!mounted) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen flex relative overflow-hidden bg-black">
+    <div className="min-h-screen flex relative overflow-hidden bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
       {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 bg-black flex flex-col relative z-10">
+      <div className="w-full lg:w-1/2 bg-gray-50 dark:bg-[#0a0a0a] flex flex-col relative z-10">
         {/* Header with Logo */}
-<div className="p-4 lg:p-6 backdrop-blur-sm bg-black/80">
+<div className="p-4 lg:p-6 backdrop-blur-sm bg-gray-50/80 dark:bg-black/80">
   <div className="flex items-center justify-between">
     <div className="flex items-center gap-3">
       {/* Custom SVG Logo */}
@@ -159,7 +179,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </g>
         </svg>
       </div>
-      <span className="text-white text-2xl font-semibold">XsevenAI</span>
+      <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
     </div>
   </div>
 </div>
@@ -167,15 +187,12 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Login Form */}
         <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative flex items-center justify-center">
           <div className={`w-full max-w-md space-y-8 transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
-            {/* Back to Home Link */}
-            
-            
             {/* Form Header */}
             <div>
-              <h2 className="text-3xl font-bold text-white mb-2">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Welcome Back
               </h2>
-              <p className="text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Sign in to continue to your dashboard
               </p>
             </div>
@@ -188,11 +205,37 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
             )}
 
+            {/* Google Sign In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignin}
+              disabled={loading}
+              className="w-full py-3 px-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.9895 10.1871C19.9895 9.36767 19.9214 8.76973 19.7742 8.14966H10.1992V11.848H15.8195C15.7062 12.7671 15.0943 14.1512 13.7346 15.0813L13.7155 15.2051L16.7429 17.4969L16.9527 17.5174C18.8789 15.7789 19.9895 13.221 19.9895 10.1871Z" fill="#4285F4"/>
+                <path d="M10.1993 19.9313C12.9527 19.9313 15.2643 19.0454 16.9527 17.5174L13.7346 15.0813C12.8734 15.6682 11.7176 16.0779 10.1993 16.0779C7.50243 16.0779 5.21352 14.3395 4.39759 11.9366L4.27799 11.9465L1.13003 14.3273L1.08887 14.4391C2.76588 17.6945 6.21061 19.9313 10.1993 19.9313Z" fill="#34A853"/>
+                <path d="M4.39748 11.9366C4.18219 11.3166 4.05759 10.6521 4.05759 9.96565C4.05759 9.27909 4.18219 8.61473 4.38615 7.99466L4.38045 7.8626L1.19304 5.44366L1.08875 5.49214C0.397576 6.84305 0.000976562 8.36008 0.000976562 9.96565C0.000976562 11.5712 0.397576 13.0882 1.08875 14.4391L4.39748 11.9366Z" fill="#FBBC05"/>
+                <path d="M10.1993 3.85336C12.1142 3.85336 13.406 4.66168 14.1425 5.33717L17.0207 2.59107C15.253 0.985496 12.9527 0 10.1993 0C6.2106 0 2.76588 2.23672 1.08887 5.49214L4.38626 7.99466C5.21352 5.59183 7.50242 3.85336 10.1993 3.85336Z" fill="#EB4335"/>
+              </svg>
+              Continue with Google
+            </button>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-50 dark:bg-[#0a0a0a] text-gray-500 dark:text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Address
                 </label>
                 <div className="relative">
@@ -208,12 +251,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     disabled={loading}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-800 text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.email 
                         ? 'border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'email'
                         ? 'border-blue-600 focus:ring-blue-500/20 focus:border-blue-500'
-                        : 'border-gray-700 hover:border-gray-600'
+                        : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
                     }`}
                     placeholder="Enter your email"
                     required
@@ -229,7 +272,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-300">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </label>
                 <div className="relative">
@@ -245,12 +288,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     disabled={loading}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-800 text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.password 
                         ? 'border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'password'
                         ? 'border-blue-600 focus:ring-blue-500/20 focus:border-blue-500'
-                        : 'border-gray-700 hover:border-gray-600'
+                        : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
                     }`}
                     placeholder="Enter your password"
                     required
@@ -259,7 +302,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loading}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors duration-200 disabled:opacity-50"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 disabled:opacity-50"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -280,7 +323,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="text-right">
                 <Link 
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200"
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
                 >
                   Forgot your password?
                 </Link>
@@ -290,28 +333,29 @@ const handleSubmit = async (e: React.FormEvent) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none active:scale-95 group"
+                className="group relative w-full overflow-hidden rounded-xl bg-gray-900 dark:bg-white px-8 py-3 text-white dark:text-black transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {loading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Signing In...</span>
-                  </div>
-                ) : (
-                  <span className="group-hover:tracking-wide transition-all duration-300">
-                    Sign In
-                  </span>
-                )}
+                <div className="relative flex items-center justify-center">
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Signing In...</span>
+                    </div>
+                  ) : (
+                    <span className="font-semibold">Sign In</span>
+                  )}
+                </div>
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </button>
             </form>
 
             {/* Sign Up Link */}
-            <div className="text-center pt-6 border-t border-gray-800">
-              <p className="text-gray-400">
+            <div className="text-center pt-6 border-t border-gray-300 dark:border-gray-800">
+              <p className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <Link 
                   href="/auth"
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
                 >
                   Sign up here
                 </Link>
@@ -349,13 +393,13 @@ const handleSubmit = async (e: React.FormEvent) => {
       {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
-          <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
             <div className="text-center">
               <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Signing In...
               </h3>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Verifying your credentials
               </p>
             </div>

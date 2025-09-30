@@ -56,7 +56,7 @@ export default function CategorySelection({
   onBack
 }: CategorySelectionProps) {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-white transition-colors duration-300">
       {/* Header with Logo */}
       <div className="flex items-center p-6">
         <div className="flex items-center gap-3">
@@ -71,17 +71,17 @@ export default function CategorySelection({
               </g>
             </svg>
           </div>
-          <span className="text-white text-2xl font-semibold">XsevenAI</span>
+          <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6">
         <div className="text-center mb-12">
-          <h1 className={`text-4xl lg:text-5xl font-bold text-white mb-6 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <h1 className={`text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6 transform transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Choose Your Business Type
           </h1>
-          <p className={`text-lg text-gray-400 transform transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <p className={`text-lg text-gray-600 dark:text-gray-400 transform transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Select the category that best describes your business
           </p>
         </div>
@@ -95,7 +95,10 @@ export default function CategorySelection({
               <button
                 key={category.id}
                 className={`
-                  ${isSelected ? 'bg-white text-black' : 'bg-black text-white hover:bg-gray-950 border border-gray-800 hover:border-gray-700'}
+                  ${isSelected 
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-gray-900 dark:border-white' 
+                    : 'bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-900 border border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700'
+                  }
                   rounded-xl 
                   p-6
                   cursor-pointer 
@@ -116,7 +119,11 @@ export default function CategorySelection({
                 }}
                 onClick={() => !loading && onCategorySelect(category)}
               >
-                <h3 className={`font-medium text-center transition-colors ${isSelected ? 'text-black' : 'text-white'}`}>
+                <h3 className={`font-medium text-center transition-colors ${
+                  isSelected 
+                    ? 'text-white dark:text-black' 
+                    : 'text-gray-900 dark:text-white'
+                }`}>
                   {category.name}
                 </h3>
               </button>
@@ -127,7 +134,7 @@ export default function CategorySelection({
           <div className="md:col-start-1 md:row-start-3 col-span-1">
             <button
               onClick={onBack}
-              className="w-fit h-fit px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700"
+              className="w-fit h-fit px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-transparent"
             >
               <ChevronLeft className="w-4 h-4" />
               Back
@@ -138,13 +145,13 @@ export default function CategorySelection({
 
       {/* Progress Dots */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex justify-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-white"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
       </div>
     </div>
   )

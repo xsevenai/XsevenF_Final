@@ -34,7 +34,7 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
   }
 
   return (
-    <div className="h-screen bg-black text-white overflow-hidden flex flex-col">
+    <div className="h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-white transition-colors duration-300 overflow-hidden flex flex-col">
       {/* Header with Logo and Back Button */}
       <div className="flex items-center justify-between p-4 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -49,16 +49,10 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
               </g>
             </svg>
           </div>
-          <span className="text-white text-xl font-semibold">XsevenAI</span>
+          <span className="text-gray-900 dark:text-white text-xl font-semibold">XsevenAI</span>
         </div>
         
-        <button
-          onClick={onBack}
-          className="w-fit h-fit px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700 text-sm"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back
-        </button>
+       
       </div>
 
       {/* Main Content */}
@@ -68,10 +62,10 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
         }`}>
           {/* Centered Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Choose Your Dashboard
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               Select the dashboard type that fits your business needs
             </p>
           </div>
@@ -83,8 +77,8 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
               className={`group relative w-80 h-96 rounded-2xl border-2 transition-all duration-300 ${
                 selectedDashboardType === 'xsevenai' 
                   ? 'border-blue-500 shadow-xl scale-105' 
-                  : 'border-gray-800 hover:border-gray-700 hover:scale-102'
-              } bg-gray-900 overflow-hidden text-left`}
+                  : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 hover:scale-102'
+              } bg-white dark:bg-gray-900 overflow-hidden text-left`}
             >
               <div className="absolute inset-0 p-6 flex flex-col">
                 {/* Header */}
@@ -93,38 +87,38 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
                     <Zap className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">XSevenAI Dashboard</h3>
-                    <p className="text-sm text-gray-400">AI-powered analytics & insights</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">XSevenAI Dashboard</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered analytics & insights</p>
                   </div>
                 </div>
 
                 {/* Features */}
                 <div className="flex-1">
-                  <p className="text-sm text-gray-400 mb-4">Features</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Features</p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">AI Analytics</span>
+                      <span className="text-sm text-gray-900 dark:text-white">AI Analytics</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Smart Insights</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Smart Insights</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Automation</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Automation</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Real-time Data</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Real-time Data</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Custom Reports</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Custom Reports</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Predictive Analytics</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Predictive Analytics</span>
                     </div>
                   </div>
                 </div>
@@ -136,8 +130,8 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
               className={`group relative w-80 h-96 rounded-2xl border-2 transition-all duration-300 ${
                 selectedDashboardType === 'integration' 
                   ? 'border-blue-500 shadow-xl scale-105' 
-                  : 'border-gray-800 hover:border-gray-700 hover:scale-102'
-              } bg-gray-900 overflow-hidden text-left`}
+                  : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 hover:scale-102'
+              } bg-white dark:bg-gray-900 overflow-hidden text-left`}
             >
               <div className="absolute inset-0 p-6 flex flex-col">
                 {/* Header */}
@@ -146,38 +140,38 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
                     <Settings className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">Dashboard Integration</h3>
-                    <p className="text-sm text-gray-400">Connect with existing tools</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Dashboard Integration</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Connect with existing tools</p>
                   </div>
                 </div>
 
                 {/* Features */}
                 <div className="flex-1">
-                  <p className="text-sm text-gray-400 mb-4">Features</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Features</p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">API Integrations</span>
+                      <span className="text-sm text-gray-900 dark:text-white">API Integrations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Third-party Tools</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Third-party Tools</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Data Sync</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Data Sync</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Custom Webhooks</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Custom Webhooks</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Multi-platform</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Multi-platform</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white">Secure Transfer</span>
+                      <span className="text-sm text-gray-900 dark:text-white">Secure Transfer</span>
                     </div>
                   </div>
                 </div>
@@ -188,7 +182,7 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
             <div className="sm:col-start-1 sm:row-start-2 col-span-1">
               <button
                 onClick={onBack}
-                className="w-fit h-fit px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700 text-sm mt-1"
+                className="w-fit h-fit px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-transparent text-sm mt-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -200,14 +194,13 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
 
       {/* Progress Dots */}
       <div className="flex justify-center gap-2 pb-6 flex-shrink-0">
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-
-        <div className="w-2 h-2 rounded-full bg-white"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
       </div>
     </div>
   )
