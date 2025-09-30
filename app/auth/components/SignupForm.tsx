@@ -152,6 +152,7 @@ export function SignupForm({
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+            <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
           </div>
         </div>
       </div>

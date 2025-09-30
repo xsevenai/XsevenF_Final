@@ -10,18 +10,6 @@ import { SubscriptionPlan } from "@/lib/types"
 
 const subscriptionPlans = [
   {
-    id: "free",
-    name: "Free Trial",
-    price: "Free",
-    period: "14 days",
-    description: "Test our AI capabilities",
-    features: [
-      "100 messages/month",
-      "Basic AI responses"
-    ],
-    popular: false
-  },
-  {
     id: "starter",
     name: "Starter",
     price: "$29",
@@ -31,7 +19,7 @@ const subscriptionPlans = [
       "1,000 messages/month",
       "Advanced AI responses"
     ],
-    popular: true
+    popular: false
   },
   {
     id: "professional",
@@ -43,7 +31,7 @@ const subscriptionPlans = [
       "5,000 messages/month",
       "Premium AI responses"
     ],
-    popular: false
+    popular: true
   },
   {
     id: "enterprise",
@@ -108,7 +96,7 @@ export default function PlanSelection({
           </div>
 
           {/* Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {subscriptionPlans.map((plan, index) => (
               <div
                 key={plan.id}
@@ -130,34 +118,34 @@ export default function PlanSelection({
                   </div>
                 )}
                 
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`w-10 h-10 rounded-xl ${selectedPlan?.id === plan.id ? 'bg-black' : 'bg-white/10'} flex items-center justify-center flex-shrink-0`}>
-                    <Star className={`h-5 w-5 ${selectedPlan?.id === plan.id ? 'text-white' : 'text-blue-500'}`} />
+                <div className="text-center mb-6">
+                  <div className={`w-12 h-12 rounded-xl ${selectedPlan?.id === plan.id ? 'bg-black' : 'bg-white/10'} flex items-center justify-center mx-auto mb-4`}>
+                    <Star className={`h-6 w-6 ${selectedPlan?.id === plan.id ? 'text-white' : 'text-blue-500'}`} />
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`text-lg font-bold mb-1 ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
-                      {plan.name}
-                    </h3>
-                    <p className={`text-sm mb-2 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
-                      {plan.description}
-                    </p>
-                    <div>
-                      <span className={`text-xl font-bold ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
-                        {plan.price}
+                  
+                  <h3 className={`text-xl font-bold mb-2 ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
+                    {plan.name}
+                  </h3>
+                  <p className={`text-sm mb-4 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
+                    {plan.description}
+                  </p>
+                  
+                  <div className="mb-6">
+                    <span className={`text-3xl font-bold ${selectedPlan?.id === plan.id ? 'text-black' : 'text-white'}`}>
+                      {plan.price}
+                    </span>
+                    {plan.period !== "contact us" && (
+                      <span className={`text-sm ml-2 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
+                        /{plan.period}
                       </span>
-                      {plan.period !== "contact us" && (
-                        <span className={`text-sm ml-2 ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-400'}`}>
-                          /{plan.period}
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-4">
+                <div className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <CheckCircle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${selectedPlan?.id === plan.id ? 'text-green-600' : 'text-green-500'}`} />
+                    <div key={index} className="flex items-center gap-3">
+                      <CheckCircle className={`h-5 w-5 flex-shrink-0 ${selectedPlan?.id === plan.id ? 'text-green-600' : 'text-green-500'}`} />
                       <span className={`text-sm ${selectedPlan?.id === plan.id ? 'text-gray-700' : 'text-gray-300'}`}>
                         {feature}
                       </span>
@@ -165,12 +153,18 @@ export default function PlanSelection({
                   ))}
                 </div>
 
-                {selectedPlan?.id === plan.id && (
-                  <div className="flex items-center justify-center gap-2 py-2 bg-green-100 rounded-lg">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">Selected</span>
-                  </div>
-                )}
+                <div className="mt-auto">
+                  {selectedPlan?.id === plan.id ? (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-green-100 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium text-green-700">Selected</span>
+                    </div>
+                  ) : (
+                    <button className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium">
+                      Select Plan
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

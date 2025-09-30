@@ -6,7 +6,8 @@ import {
   CheckCircle,
   ArrowRight,
   Search,
-  Globe
+  Globe,
+  ChevronLeft
 } from "lucide-react"
 
 interface VirtualNumberProps {
@@ -65,179 +66,199 @@ export default function VirtualNumber({
                    (selectionType === 'custom' && customNumber.trim().length >= 10)
 
   return (
-    <div className="h-screen bg-[#0a0a0a] flex items-center justify-center px-6 overflow-hidden">
-      <div className="w-full max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">
-            Choose Your Business Number
-          </h1>
-          <p className="text-sm text-gray-400">
-            Select a virtual number or use your existing one
-          </p>
+    <div className="h-screen bg-black text-white overflow-hidden flex flex-col">
+      {/* Header with Logo */}
+      <div className="flex items-center p-4 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8">
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <mask id="mask0" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                <rect width="100" height="100" fill="#D9D9D9"/>
+              </mask>
+              <g mask="url(#mask0)">
+                <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+                <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+              </g>
+            </svg>
+          </div>
+          <span className="text-white text-xl font-semibold">XsevenAI</span>
         </div>
+      </div>
 
-        {/* Selection Type Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Virtual Number Option */}
-          <div
-            onClick={() => handleCustomNumberSelect()}
-            className={`cursor-pointer border rounded-lg p-5 transition-all duration-300 hover:scale-[1.02] ${
-              selectionType === 'custom'
-                ? 'border-white bg-white/5'
-                : 'border-gray-700 hover:border-gray-500'
-            }`}
-          >
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                <Phone className="h-5 w-5 text-orange-500" />
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-4xl">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Choose Your Business Number
+            </h1>
+            <p className="text-sm text-gray-400">
+              Select a virtual number or use your existing one
+            </p>
+          </div>
+
+          {/* Selection Type Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Custom Number Option */}
+            <div
+              onClick={() => handleCustomNumberSelect()}
+              className={`cursor-pointer border-2 rounded-xl p-5 transition-all duration-300 hover:scale-[1.02] ${
+                selectionType === 'custom'
+                  ? 'border-white bg-white/5'
+                  : 'border-gray-800 hover:border-gray-700'
+              }`}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Phone className="h-5 w-5 text-orange-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-white mb-1">
+                    Use My Number
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Connect your existing business number
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-white mb-1">
-                  Use My Number
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Connect your existing business number
-                </p>
+              {selectionType === 'custom' && (
+                <div className="mt-4">
+                  <input
+                    type="tel"
+                    value={customNumber}
+                    onChange={(e) => setCustomNumber(e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-4 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Virtual Number Option */}
+            <div
+              onClick={() => setSelectionType('virtual')}
+              className={`cursor-pointer border-2 rounded-xl p-5 transition-all duration-300 hover:scale-[1.02] ${
+                selectionType === 'virtual'
+                  ? 'border-white bg-white/5'
+                  : 'border-gray-800 hover:border-gray-700'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Globe className="h-5 w-5 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-white mb-1">
+                    Get Virtual Number
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Choose from available numbers worldwide
+                  </p>
+                </div>
               </div>
             </div>
-            {selectionType === 'custom' && (
-              <div className="mt-4">
+          </div>
+
+          {/* Virtual Numbers List */}
+          {selectionType === 'virtual' && (
+            <div className="mb-6">
+              {/* Search Bar */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <input
-                  type="tel"
-                  value={customNumber}
-                  onChange={(e) => setCustomNumber(e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by country, location, or number..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
                 />
               </div>
-            )}
-          </div>
 
-          {/* Virtual Number Option */}
-          <div
-            onClick={() => setSelectionType('virtual')}
-            className={`cursor-pointer border rounded-lg p-5 transition-all duration-300 hover:scale-[1.02] ${
-              selectionType === 'virtual'
-                ? 'border-white bg-white/5'
-                : 'border-gray-700 hover:border-gray-500'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                <Globe className="h-5 w-5 text-blue-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-white mb-1">
-                  Get Virtual Number
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Choose from available numbers worldwide
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Virtual Numbers List */}
-        {selectionType === 'virtual' && (
-          <div className="mb-6">
-            {/* Search Bar */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by country, location, or number..."
-                className="w-full pl-10 pr-4 py-2.5 bg-transparent border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-sm"
-              />
-            </div>
-
-            {/* Numbers Grid */}
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-              {filteredNumbers.map((num) => (
-                <div
-                  key={num.id}
-                  onClick={() => handleVirtualNumberSelect(num.number)}
-                  className={`cursor-pointer border rounded-lg p-4 transition-all duration-200 ${
-                    selectedNumber === num.number
-                      ? 'border-white bg-white/5'
-                      : 'border-gray-700 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
-                        <Phone className="h-4 w-4 text-white" />
+              {/* Numbers Grid */}
+              <div className="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {filteredNumbers.map((num) => (
+                  <div
+                    key={num.id}
+                    onClick={() => handleVirtualNumberSelect(num.number)}
+                    className={`cursor-pointer border-2 rounded-lg p-4 transition-all duration-200 ${
+                      selectedNumber === num.number
+                        ? 'border-white bg-white/5'
+                        : 'border-gray-800 hover:border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
+                          <Phone className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {num.number}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {num.location}, {num.country}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          {num.number}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {num.location}, {num.country}
-                        </p>
-                      </div>
+                      {selectedNumber === num.number && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      )}
                     </div>
-                    {selectedNumber === num.number && (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Footer Info */}
+          <div className="text-center mb-4">
+            <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>SMS & Voice enabled</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>Instant activation</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                <span>Change anytime</span>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Footer Info */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 text-green-500" />
-              <span>SMS & Voice enabled</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 text-green-500" />
-              <span>Instant activation</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 text-green-500" />
-              <span>Change anytime</span>
-            </div>
+          {/* Buttons */}
+          <div className="flex justify-between items-center gap-3">
+            <button
+              onClick={onBack}
+              disabled={loading}
+              className="w-fit h-fit px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2 rounded-lg border border-gray-800 hover:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </button>
+            <button
+              onClick={handleContinue}
+              disabled={loading || !isValid}
+              className="px-6 py-2.5 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            >
+              {loading ? 'Processing...' : 'Continue'}
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={onBack}
-            disabled={loading}
-            className="px-6 py-2.5 text-white text-sm font-medium rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Back
-          </button>
-          <button
-            onClick={handleContinue}
-            disabled={loading || !isValid}
-            className="flex-1 px-6 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? 'Processing...' : 'Continue'}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Progress Dots */}
-        <div className="flex justify-center gap-2 mt-8">
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-white"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-          <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-        </div>
+      {/* Progress Dots */}
+      <div className="flex justify-center gap-2 pb-6 flex-shrink-0">
+        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-white"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-600"></div>
       </div>
 
       <style jsx>{`

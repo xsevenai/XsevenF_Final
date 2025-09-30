@@ -144,6 +144,7 @@ export default function CategorySelection({
         <div className="w-2 h-2 rounded-full bg-gray-600"></div>
         <div className="w-2 h-2 rounded-full bg-gray-600"></div>
         <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
       </div>
     </div>
   )

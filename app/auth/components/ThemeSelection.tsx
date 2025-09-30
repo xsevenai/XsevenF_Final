@@ -40,12 +40,17 @@ export function ThemeSelection({ selectedTheme, isLoaded, onThemeSelect }: Theme
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 bg-gray-200 rounded"></div>
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 bg-gray-200 rounded w-12"></div>
+                        <div className="h-3 bg-gray-200 rounded w-20"></div>
                         <div className="h-2 bg-gray-100 rounded w-32"></div>
                       </div>
                     </div>
                     <div className="h-2 bg-gray-100 rounded w-full"></div>
                     <div className="h-2 bg-gray-100 rounded w-3/4"></div>
+                  </div>
+                  
+                  {/* XSevenAI text in light theme */}
+                  <div className="mt-6">
+                    <div className="text-sm font-semibold text-gray-800">XSevenAI</div>
                   </div>
                 </div>
                 
@@ -77,12 +82,17 @@ export function ThemeSelection({ selectedTheme, isLoaded, onThemeSelect }: Theme
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 bg-gray-800 rounded"></div>
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 bg-gray-800 rounded w-12"></div>
+                        <div className="h-3 bg-gray-800 rounded w-20"></div>
                         <div className="h-2 bg-gray-700 rounded w-32"></div>
                       </div>
                     </div>
                     <div className="h-2 bg-gray-700 rounded w-full"></div>
                     <div className="h-2 bg-gray-700 rounded w-3/4"></div>
+                  </div>
+                  
+                  {/* XSevenAI text in dark theme */}
+                  <div className="mt-6">
+                    <div className="text-sm font-semibold text-white">XSevenAI</div>
                   </div>
                 </div>
                 
@@ -95,6 +105,7 @@ export function ThemeSelection({ selectedTheme, isLoaded, onThemeSelect }: Theme
 
           <div className="flex justify-center gap-2 mt-12">
             <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+            <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
