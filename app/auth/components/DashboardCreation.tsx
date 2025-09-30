@@ -1,109 +1,154 @@
-"use client"
+import React, { useState } from "react"
+import { ChevronLeft, CheckCircle, Zap, Settings } from "lucide-react"
 
-import React from "react"
-import { 
-  Zap, 
-  CheckCircle,
-  Loader2
-} from "lucide-react"
-
-const dashboardSteps = [
-  { name: "Initializing AI Core", progress: 15 },
-  { name: "Setting up WhatsApp Integration", progress: 30 },
-  { name: "Configuring Business Profile", progress: 50 },
-  { name: "Training AI with Your Data", progress: 70 },
-  { name: "Optimizing Response Templates", progress: 85 },
-  { name: "Finalizing Setup", progress: 100 }
-]
-
-interface DashboardCreationProps {
-  dashboardProgress: number
-  isLoaded: boolean
+interface BusinessData {
+  category: any
+  formData: any
+  plan: any
+  numberSelection: any
 }
 
-export default function DashboardCreation({
-  dashboardProgress,
-  isLoaded
-}: DashboardCreationProps) {
+interface DashboardCreationProps {
+  businessData: BusinessData
+  loading: boolean
+  isLoaded: boolean
+  onBack: () => void
+  onComplete: (dashboardData: any) => void
+}
+
+export default function DashboardCreation({ businessData, loading, isLoaded, onBack, onComplete }: DashboardCreationProps) {
+  const [selectedDashboardType, setSelectedDashboardType] = useState<string | null>(null)
+
+  const handleDashboardSelect = (type: string) => {
+    setSelectedDashboardType(type)
+    
+    setTimeout(() => {
+      const dashboardData = {
+        type: type,
+        businessName: businessData.formData?.businessName || 'My Business',
+        createdAt: new Date().toISOString()
+      }
+      
+      onComplete(dashboardData)
+    }, 500)
+  }
+
   return (
-    <div className="max-w-md mx-auto text-center h-full flex flex-col justify-center">
-      <div className="overflow-hidden mb-8">
-        <div className={`transform transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
-          <div className="w-32 h-32 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full border-8 border-gray-200 dark:border-gray-700"></div>
-            <div 
-              className="absolute inset-0 rounded-full border-8 border-transparent transition-all duration-1000 ease-out"
-              style={{
-                background: `conic-gradient(from 0deg, #3b82f6 ${dashboardProgress}%, transparent ${dashboardProgress}%)`,
-                borderRadius: '50%'
-              }}
-            ></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardProgress}%
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
-                  Complete
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className={`transition-all duration-700 transform ${
+      isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+    }`}>
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={onBack}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          <ChevronLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Choose Your Dashboard
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Select the dashboard type that fits your business needs
+          </p>
         </div>
-      </div>
-      
-      <div className="overflow-hidden mb-4">
-        <div className={`flex items-center justify-center transform transition-all duration-800 delay-400 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <Zap className="h-5 w-5 text-blue-500 mr-2 animate-pulse" />
-          <span className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Step 5 of 6</span>
-        </div>
-      </div>
-      
-      <div className="overflow-hidden mb-4">
-        <h2 className={`text-3xl font-bold text-gray-900 dark:text-white transform transition-all duration-1200 delay-600 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-          Creating Your Dashboard
-        </h2>
-      </div>
-      
-      <div className="overflow-hidden mb-8">
-        <p className={`text-lg text-gray-600 dark:text-gray-300 transform transition-all duration-1000 delay-800 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          Setting up your AI-powered business assistant...
-        </p>
       </div>
 
-      <div className="overflow-hidden mb-8">
-        <div className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-6 transition-all duration-1000 delay-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
-          <div className="space-y-4">
-            {dashboardSteps.map((step, index) => {
-              const isActive = dashboardProgress >= step.progress
-              const isCurrent = dashboardProgress < step.progress && (index === 0 || dashboardProgress >= dashboardSteps[index - 1]?.progress)
-              
-              return (
-                <div 
-                  key={index}
-                  className={`flex items-center space-x-3 transition-all duration-500 ${
-                    isActive ? 'text-green-600 dark:text-green-400' : 
-                    isCurrent ? 'text-blue-600 dark:text-blue-400' : 
-                    'text-gray-400 dark:text-gray-600'
-                  }`}
-                >
-                  <div className="flex-shrink-0">
-                    {isActive ? (
-                      <CheckCircle className="h-5 w-5 animate-pulse" />
-                    ) : isCurrent ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-current"></div>
-                    )}
+      {/* Dashboard Options */}
+      <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+        <button
+          onClick={() => handleDashboardSelect('xsevenai')}
+          className={`group relative w-64 h-72 rounded-3xl border-2 transition-all duration-300 ${
+            selectedDashboardType === 'xsevenai' 
+              ? 'border-blue-500 shadow-xl scale-105' 
+              : 'border-gray-300 hover:border-gray-400 hover:scale-102'
+          } bg-white dark:bg-gray-900 overflow-hidden`}
+        >
+          <div className="absolute inset-0 p-8 flex flex-col">
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <div className="flex gap-2">
+                  <div className="w-16 h-1.5 bg-blue-200 rounded"></div>
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">
-                    {step.name}
-                  </span>
                 </div>
-              )
-            })}
+              </div>
+              
+              <div className="space-y-3 mt-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-blue-100 rounded w-12"></div>
+                    <div className="h-2 bg-blue-50 rounded w-32"></div>
+                  </div>
+                </div>
+                <div className="h-2 bg-blue-50 rounded w-full"></div>
+                <div className="h-2 bg-blue-50 rounded w-3/4"></div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-6">
+              <span className="text-xl font-semibold text-gray-900 dark:text-white">XSevenAI Dashboard</span>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                AI-powered analytics & insights
+              </p>
+            </div>
           </div>
-        </div>
+        </button>
+
+        <button
+          onClick={() => handleDashboardSelect('integration')}
+          className={`group relative w-64 h-72 rounded-3xl border-2 transition-all duration-300 ${
+            selectedDashboardType === 'integration' 
+              ? 'border-blue-500 shadow-xl scale-105' 
+              : 'border-gray-300 hover:border-gray-400 hover:scale-102'
+          } bg-white dark:bg-gray-900 overflow-hidden`}
+        >
+          <div className="absolute inset-0 p-8 flex flex-col">
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="flex gap-2">
+                  <div className="w-16 h-1.5 bg-green-200 rounded"></div>
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <Settings className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3 mt-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-green-100 rounded w-12"></div>
+                    <div className="h-2 bg-green-50 rounded w-32"></div>
+                  </div>
+                </div>
+                <div className="h-2 bg-green-50 rounded w-full"></div>
+                <div className="h-2 bg-green-50 rounded w-3/4"></div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-6">
+              <span className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard Integration</span>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Connect with existing tools
+              </p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div className="flex justify-center gap-2 mt-12">
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+        <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
       </div>
     </div>
   )

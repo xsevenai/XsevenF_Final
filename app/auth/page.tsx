@@ -6,6 +6,7 @@ import CategorySelection from "./components/CategorySelection"
 import BusinessDetailsForm from "./components/BusinessDetails"
 import PlanSelection from "./components/PlanSelection"
 import VirtualNumber from "./components/VirtualNumber"
+import DashboardCreation from "./components/DashboardCreation"
 
 interface BusinessCategory {
   id: string
@@ -227,7 +228,24 @@ export default function SignupPage() {
   const handleNumberSelection = (selection: { type: 'virtual' | 'custom', number?: string, customNumber?: string }) => {
     setNumberSelection(selection)
     
-    // Log all collected data
+    // Move to dashboard creation instead of finishing
+    setIsLoaded(false)
+    setTimeout(() => {
+      setStep(6)
+      setIsLoaded(true)
+    }, 300)
+  }
+
+  const handleBackFromVirtualNumber = () => {
+    setIsLoaded(false)
+    setTimeout(() => {
+      setStep(4)
+      setIsLoaded(true)
+    }, 300)
+  }
+
+  const handleDashboardCreation = (dashboardData: any) => {
+    // Log all collected data including dashboard setup
     console.log('Complete Signup Data:', {
       theme: selectedTheme,
       signupEmail: email,
@@ -236,17 +254,18 @@ export default function SignupPage() {
       categoryName: selectedCategory?.name,
       ...formData,
       selectedPlan: selectedPlan,
-      numberSelection: selection
+      numberSelection: numberSelection,
+      dashboardSetup: dashboardData
     })
     
-    // Here you would proceed to next step (payment, verification, etc.)
-    alert(`Setup complete! Number: ${selection.type === 'virtual' ? selection.number : selection.customNumber}. All data logged to console.`)
+    // Here you would proceed to next step (payment, verification, redirect to dashboard, etc.)
+    alert(`Setup complete! Dashboard created successfully. All data logged to console.`)
   }
 
-  const handleBackFromVirtualNumber = () => {
+  const handleBackFromDashboard = () => {
     setIsLoaded(false)
     setTimeout(() => {
-      setStep(4)
+      setStep(5)
       setIsLoaded(true)
     }, 300)
   }
@@ -349,6 +368,7 @@ export default function SignupPage() {
 
             <div className="flex justify-center gap-2 mt-12">
               <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
@@ -485,6 +505,7 @@ export default function SignupPage() {
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
               <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             </div>
           </div>
         </div>
@@ -561,52 +582,101 @@ export default function SignupPage() {
           <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
           <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
           <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
         </div>
       </div>
     )
   }
 
   // Step 5: Virtual Number Selection
-  // Step 5: Virtual Number Selection
-if (step === 5) {
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
-      <div className="absolute top-6 left-6 flex items-center gap-3">
-        <div className="w-10 h-10">
-          <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <mask id="mask0" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-              <rect width="100" height="100" fill="#D9D9D9"/>
-            </mask>
-            <g mask="url(#mask0)">
-              <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
-              <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
-            </g>
-          </svg>
+  if (step === 5) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
+        <div className="absolute top-6 left-6 flex items-center gap-3">
+          <div className="w-10 h-10">
+            <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <mask id="mask0" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                <rect width="100" height="100" fill="#D9D9D9"/>
+              </mask>
+              <g mask="url(#mask0)">
+                <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+                <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+              </g>
+            </svg>
+          </div>
+          <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
         </div>
-        <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
-      </div>
 
-      <div className="min-h-screen flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-4xl">
-          {/* Render your VirtualNumber component — keep it exactly as the other steps */}
-          <VirtualNumber
-            loading={loading}
-            isLoaded={isLoaded}
-            onBack={handleBackFromVirtualNumber}
-            onContinue={handleNumberSelection}
-          />
+        <div className="min-h-screen flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-4xl">
+            <VirtualNumber
+              loading={loading}
+              isLoaded={isLoaded}
+              onBack={handleBackFromVirtualNumber}
+              onContinue={handleNumberSelection}
+            />
+          </div>
+        </div>
+
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex justify-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
         </div>
       </div>
+    )
+  }
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex justify-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-        <div className="w-2 h-2 rounded-full bg-white dark:bg-black"></div>
+  // Step 6: Dashboard Creation
+  if (step === 6) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
+        <div className="absolute top-6 left-6 flex items-center gap-3">
+          <div className="w-10 h-10">
+            <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <mask id="mask0" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                <rect width="100" height="100" fill="#D9D9D9"/>
+              </mask>
+              <g mask="url(#mask0)">
+                <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+                <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+              </g>
+            </svg>
+          </div>
+          <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
+        </div>
+
+        <div className="min-h-screen flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-5xl">
+            <DashboardCreation
+              businessData={{
+                category: selectedCategory,
+                formData: formData,
+                plan: selectedPlan,
+                numberSelection: numberSelection
+              }}
+              loading={loading}
+              isLoaded={isLoaded}
+              onBack={handleBackFromDashboard}
+              onComplete={handleDashboardCreation}
+            />
+          </div>
+        </div>
+
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex justify-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
+        </div>
       </div>
-    </div>
-  )
-}
-return null
+    )
+  }
+
+  return null
 }
