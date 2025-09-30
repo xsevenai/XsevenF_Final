@@ -105,7 +105,13 @@ export default function SignupPage() {
       document.documentElement.style.transition = ''
     }, 300)
   }
-
+const handleBackFromCategorySelection = () => {
+  setIsLoaded(false)
+  setTimeout(() => {
+    setStep(1) // Go back to SignupForm
+    setIsLoaded(true)
+  }, 300)
+}
   const handleThemeSelect = (theme) => {
     setSelectedTheme(theme)
     const isDark = theme === 'dark'
@@ -307,16 +313,17 @@ export default function SignupPage() {
   }
 
   // Step 2: Category Selection
-  if (step === 2) {
-    return (
-      <CategorySelection
-        selectedCategory={selectedCategory}
-        onCategorySelect={handleCategorySelect}
-        loading={loading}
-        isLoaded={isLoaded}
-      />
-    )
-  }
+if (step === 2) {
+  return (
+    <CategorySelection
+      selectedCategory={selectedCategory}
+      onCategorySelect={handleCategorySelect}
+      loading={loading}
+      isLoaded={isLoaded}
+      onBack={handleBackFromCategorySelection}  // Add this line
+    />
+  )
+}
 
   // Step 3: Business Details Form
   if (step === 3) {
