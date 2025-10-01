@@ -64,6 +64,7 @@ export interface SignupState {
   submitError: string
   signupResult: any
   formData: FormData
+  isGoogleAuth: boolean
 }
 
 export const useSignupState = () => {
@@ -93,7 +94,8 @@ export const useSignupState = () => {
       phone: "",
       password: "",
       confirmPassword: ""
-    }
+    },
+    isGoogleAuth: false
   })
 
   useEffect(() => {
@@ -112,35 +114,19 @@ export const useSignupState = () => {
         }
       }
 
-      // Check for Google user data from callback
-      const googleUserData = sessionStorage.getItem('googleUserData')
-      if (googleUserData) {
-        try {
-          const userData = JSON.parse(googleUserData)
-          setState(prev => ({
-            ...prev,
-            email: userData.email || '',
-            formData: {
-              ...prev.formData,
-              email: userData.email || '',
-              ownerName: userData.name || ''
-            },
-            step: 2 // Skip to category selection for Google users
-          }))
-          // Clear the session storage
-          sessionStorage.removeItem('googleUserData')
-        } catch (error) {
-          console.error('Error parsing Google user data:', error)
+      // Check for pending theme from Google auth flow
+      const pendingTheme = sessionStorage.getItem('pendingTheme')
+      if (pendingTheme) {
+        setState(prev => ({ ...prev, selectedTheme: pendingTheme }))
+        localStorage.setItem('themePreference', pendingTheme)
+        
+        if (pendingTheme === 'dark') {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
         }
-      }
-
-      // Check URL parameters for Google OAuth flow
-      const urlParams = new URLSearchParams(window.location.search)
-      const isGoogleAuth = urlParams.get('google') === 'true'
-      const stepParam = urlParams.get('step')
-      
-      if (isGoogleAuth && stepParam) {
-        setState(prev => ({ ...prev, step: parseInt(stepParam) }))
+        
+        sessionStorage.removeItem('pendingTheme')
       }
     }
 

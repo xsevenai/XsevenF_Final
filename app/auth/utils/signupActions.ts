@@ -1,6 +1,5 @@
 import { SignupState } from '../hooks/useSignupState'
 
-
 interface BusinessCategory {
   id: string
   name: string
@@ -102,6 +101,18 @@ export const createSignupActions = (
 
   const handleCategorySelect = (category: BusinessCategory) => {
     updateState({ selectedCategory: category })
+    
+    // For Google auth users, ensure email is in formData
+    if (state.isGoogleAuth && state.email && !state.formData.email) {
+      updateState({
+        selectedCategory: category,
+        formData: {
+          ...state.formData,
+          email: state.email
+        }
+      })
+    }
+    
     navigateToStep(3)
   }
 
@@ -116,6 +127,16 @@ export const createSignupActions = (
   }
 
   const handleBusinessDetailsSubmit = () => {
+    // Ensure email is properly set in formData before proceeding
+    const finalFormData = {
+      ...state.formData,
+      email: state.formData.email || state.email
+    }
+    
+    updateState({
+      formData: finalFormData
+    })
+    
     navigateToStep(4)
   }
 
@@ -123,14 +144,17 @@ export const createSignupActions = (
     updateState({ selectedPlan: plan, loading: true, submitError: "" })
     
     try {
+      // Ensure we use the correct email - prioritize formData.email, then state.email
+      const emailToUse = state.formData.email || state.email
+      
       const signupData: SignupApiData = {
         businessName: state.formData.businessName,
         businessDescription: state.formData.businessDescription,
         websiteUrl: state.formData.websiteUrl || "",
         ownerName: state.formData.ownerName,
-        email: state.formData.email || state.email,
+        email: emailToUse,
         phone: state.formData.phone || "",
-        password: state.formData.password || state.password,
+        password: state.formData.password || state.password || "",
         category: state.selectedCategory?.id || "",
         planId: plan.id
       }
@@ -142,7 +166,14 @@ export const createSignupActions = (
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(signupData)
+        body: JSON.stringify({
+          ...signupData,
+          isGoogleAuth: state.isGoogleAuth,
+          ...(state.isGoogleAuth && {
+            googleId: sessionStorage.getItem('googleId'),
+            authProvider: 'google'
+          })
+        })
       })
 
       const result = await response.json()
@@ -183,7 +214,8 @@ export const createSignupActions = (
         formData: state.formData,
         selectedPlan: state.selectedPlan,
         numberSelection: state.numberSelection,
-        dashboardSetup: dashboardData
+        dashboardSetup: dashboardData,
+        isGoogleAuth: state.isGoogleAuth
       }
 
       console.log('Complete Signup Data:', completeSignupData)
@@ -227,30 +259,40 @@ export const createSignupActions = (
 
   const handleGoogleSignup = async () => {
     try {
-      // Import signIn from next-auth/react
+      updateState({ loading: true })
+      
+      // Store current theme preference before redirect
+      if (typeof window !== 'undefined' && state.selectedTheme) {
+        sessionStorage.setItem('pendingTheme', state.selectedTheme)
+      }
+      
+      // Dynamic import to avoid SSR issues
       const { signIn } = await import('next-auth/react')
       
-      // Trigger Google OAuth sign-in
-      const result = await signIn('google', {
-        callbackUrl: '/auth/google-callback', // Custom callback to handle post-signin
-        redirect: false
+      // Trigger Google OAuth sign-in with callback to auth page
+      await signIn('google', {
+        redirect: true,
+        callbackUrl: '/auth'
       })
 
-      if (result?.error) {
-        updateState({ 
-          submitError: 'Google sign-in failed. Please try again.' 
-        })
-      }
     } catch (error) {
       console.error('Google signup error:', error)
       updateState({ 
-        submitError: 'Google sign-in failed. Please try again.' 
+        submitError: 'Google sign-in failed. Please try again.',
+        loading: false
       })
     }
   }
 
   // Navigation handlers
-  const handleBackFromCategorySelection = () => navigateToStep(1)
+  const handleBackFromCategorySelection = () => {
+    // If it's Google auth, don't go back to login form
+    if (state.isGoogleAuth) {
+      return // Stay on category selection or handle differently
+    }
+    navigateToStep(1)
+  }
+  
   const handleBackFromBusinessDetails = () => navigateToStep(2)
   const handleBackFromPlanSelection = () => navigateToStep(3)
   const handleBackFromVirtualNumber = () => navigateToStep(4)

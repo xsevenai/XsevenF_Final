@@ -1,4 +1,4 @@
-// app/api/signup/route.ts - Updated with slug generation
+// app/api/signup/route.ts - Complete fixed version with Google Auth support
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -27,9 +27,12 @@ interface SignupData {
   ownerName: string
   email: string
   phone: string
-  password: string
+  password?: string // Make password optional for Google Auth
   category: string
   planId: string
+  isGoogleAuth?: boolean // Add Google Auth flag
+  googleId?: string // Add Google ID
+  authProvider?: string // Add auth provider
 }
 
 class SignupService {
@@ -98,72 +101,80 @@ class SignupService {
     return slug
   }
 
-  // Fix the schema check method
-  static async getBusinessesTableSchema() {
-    try {
-      // Try a direct query to get column info
-      const { data, error } = await supabase.rpc('get_table_columns', {
-        table_name: 'businesses'
-      })
-
-      if (error) {
-        console.log('RPC call failed, trying alternative method...')
-        
-        // Alternative: Try to insert an empty row to see what columns are required
-        try {
-          const { error: testError } = await supabase
-            .from('businesses')
-            .insert([{ id: 'test-id-that-will-fail' }])
-          
-          // Parse the error message to understand the schema
-          if (testError) {
-            console.log('Test insert error (this is expected):', testError.message)
-          }
-        } catch (e) {
-          console.log('Test insert failed:', e)
-        }
-
-        // Return default expected columns including slug
-        return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'slug', 'is_active', 'created_at', 'updated_at']
-      }
-
-      return data?.map((row: any) => row.column_name) || []
-    } catch (error) {
-      console.error('Schema check error:', error)
-      // Return default expected columns if we can't check
-      return ['id', 'name', 'email', 'owner_name', 'description', 'website_url', 'phone', 'category', 'slug', 'is_active', 'created_at', 'updated_at']
-    }
-  }
-
   static async createAccount(signupData: SignupData) {
     try {
       console.log('Starting signup process for:', signupData.email)
+      console.log('Is Google Auth:', signupData.isGoogleAuth)
       
-      // 1. Create the user in auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          data: {
-            full_name: signupData.ownerName,
-            business_name: signupData.businessName
+      let userId: string
+
+      if (signupData.isGoogleAuth) {
+        // For Google Auth users, create a Supabase auth user without password
+        // This will create a proper entry in auth.users table
+        console.log('Creating Google Auth user in Supabase...')
+        
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: signupData.email,
+          password: crypto.randomUUID() + "TempPass123!", // Generate a random password they'll never use
+          options: {
+            data: {
+              full_name: signupData.ownerName,
+              business_name: signupData.businessName,
+              auth_provider: 'google',
+              google_id: signupData.googleId
+            },
+            emailRedirectTo: undefined // Disable email confirmation for Google users
           }
+        })
+
+        console.log('Google Auth response:', { authData: !!authData, authError })
+
+        if (authError) {
+          console.error('Google Auth error details:', authError)
+          throw new Error(`Google authentication error: ${authError.message}`)
         }
-      })
 
-      console.log('Auth response:', { authData: !!authData, authError })
+        if (!authData.user) {
+          throw new Error('Failed to create Google user account')
+        }
 
-      if (authError) {
-        console.error('Auth error details:', authError)
-        throw new Error(`Authentication error: ${authError.message}`)
+        userId = authData.user.id
+        console.log('Google user created with Supabase ID:', userId)
+        
+      } else {
+        // For regular users, create auth user with password
+        console.log('Creating regular auth user...')
+        
+        if (!signupData.password) {
+          throw new Error('Password is required for non-Google authentication')
+        }
+
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: signupData.email,
+          password: signupData.password,
+          options: {
+            data: {
+              full_name: signupData.ownerName,
+              business_name: signupData.businessName,
+              auth_provider: 'email'
+            }
+          }
+        })
+
+        console.log('Auth response:', { authData: !!authData, authError })
+
+        if (authError) {
+          console.error('Auth error details:', authError)
+          throw new Error(`Authentication error: ${authError.message}`)
+        }
+
+        if (!authData.user) {
+          throw new Error('Failed to create user account')
+        }
+
+        userId = authData.user.id
+        console.log('User created with ID:', userId)
       }
-
-      if (!authData.user) {
-        throw new Error('Failed to create user account')
-      }
-
-      const userId = authData.user.id
-      console.log('User created with ID:', userId)
 
       // 2. Create the business record with all expected columns including unique slug
       const businessId = crypto.randomUUID()
@@ -182,9 +193,14 @@ class SignupService {
         email: signupData.email,
         phone: signupData.phone || null,
         category: signupData.category,
-        slug: slug, // Add the unique slug
-        owner_id: userId,
+        slug: slug,
+        owner_id: userId, // This now matches the auth.users.id
         is_active: true,
+        // Add Google Auth specific fields if applicable
+        ...(signupData.isGoogleAuth && {
+          auth_provider: 'google',
+          google_id: signupData.googleId
+        }),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -313,7 +329,10 @@ class SignupService {
         userId,
         businessId,
         slug, // Return the generated slug
-        message: 'Account created successfully'
+        authProvider: signupData.isGoogleAuth ? 'google' : 'email',
+        message: signupData.isGoogleAuth 
+          ? 'Google account linked successfully' 
+          : 'Account created successfully'
       }
 
     } catch (error) {
@@ -399,12 +418,18 @@ export async function POST(request: NextRequest) {
 
     const signupData = await request.json()
     console.log('Received signup request for:', signupData.email)
+    console.log('Is Google Auth:', signupData.isGoogleAuth)
 
     // Validate required fields
     const requiredFields = [
       'businessName', 'businessDescription', 'ownerName', 
-      'email', 'password', 'category', 'planId'
+      'email', 'category', 'planId'
     ]
+    
+    // Add password requirement only for non-Google auth
+    if (!signupData.isGoogleAuth) {
+      requiredFields.push('password')
+    }
     
     for (const field of requiredFields) {
       if (!signupData[field]) {
@@ -412,6 +437,13 @@ export async function POST(request: NextRequest) {
           error: `${field} is required` 
         }, { status: 400 })
       }
+    }
+
+    // For Google Auth, ensure we have Google ID
+    if (signupData.isGoogleAuth && !signupData.googleId) {
+      return NextResponse.json({ 
+        error: 'Google ID is required for Google authentication' 
+      }, { status: 400 })
     }
 
     // Check if email already exists
