@@ -164,7 +164,7 @@ const handleGoogleSignin = () => {
       {/* Left Side - Form */}
       <div className="w-full lg:w-1/2 bg-gray-50 dark:bg-[#0a0a0a] flex flex-col relative z-10">
         {/* Header with Logo */}
-<div className="p-4 lg:p-6 backdrop-blur-sm bg-gray-50/80 dark:bg-black/80">
+<div className="p-4 lg:p-6 backdrop-blur-sm bg-gray-50/80 dark:bg-[#0a0a0a]/80">
   <div className="flex items-center justify-between">
     <div className="flex items-center gap-3">
       {/* Custom SVG Logo */}
@@ -255,7 +255,7 @@ const handleGoogleSignin = () => {
                       errors.email 
                         ? 'border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'email'
-                        ? 'border-blue-600 focus:ring-blue-500/20 focus:border-blue-500'
+                        ? 'border-yellow-600 focus:ring-yellow-500/20 focus:border-yellow-500'
                         : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
                     }`}
                     placeholder="Enter your email"
@@ -292,7 +292,7 @@ const handleGoogleSignin = () => {
                       errors.password 
                         ? 'border-red-600 focus:ring-red-500/20 focus:border-red-500' 
                         : focusedField === 'password'
-                        ? 'border-blue-600 focus:ring-blue-500/20 focus:border-blue-500'
+                        ? 'border-yellow-600 focus:ring-yellow-500/20 focus:border-yellow-500'
                         : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
                     }`}
                     placeholder="Enter your password"
@@ -323,7 +323,7 @@ const handleGoogleSignin = () => {
               <div className="text-right">
                 <Link 
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                  className="text-sm text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors duration-200"
                 >
                   Forgot your password?
                 </Link>
@@ -333,7 +333,7 @@ const handleGoogleSignin = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full overflow-hidden rounded-xl bg-gray-900 dark:bg-white px-8 py-3 text-white dark:text-black transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="group relative w-full overflow-hidden rounded-xl bg-gray-900 dark:bg-white px-8 py-3 text-white dark:text-black transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <div className="relative flex items-center justify-center">
                   {loading ? (
@@ -345,7 +345,6 @@ const handleGoogleSignin = () => {
                     <span className="font-semibold">Sign In</span>
                   )}
                 </div>
-                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </button>
             </form>
 
@@ -355,7 +354,7 @@ const handleGoogleSignin = () => {
                 Don't have an account?{' '}
                 <Link 
                   href="/auth"
-                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
+                  className="text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 font-medium transition-colors duration-200"
                 >
                   Sign up here
                 </Link>
@@ -395,7 +394,7 @@ const handleGoogleSignin = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
             <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+              <Loader2 className="h-12 w-12 animate-spin text-yellow-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Signing In...
               </h3>

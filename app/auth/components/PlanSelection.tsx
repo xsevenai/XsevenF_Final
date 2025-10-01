@@ -103,8 +103,8 @@ export default function PlanSelection({
                 onClick={() => !loading && onPlanSelect(plan)}
                 className={`relative cursor-pointer border-2 rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] transform ${
                   selectedPlan?.id === plan.id 
-                    ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black' 
-                    : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white'
+                    ? 'border-yellow-500 bg-gray-900 dark:bg-white text-white dark:text-black' 
+                    : 'border-gray-300 dark:border-gray-800 hover:border-yellow-400 dark:hover:border-yellow-600 bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white'
                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}
                 style={{
                   transitionDelay: `${400 + index * 100}ms`
@@ -112,7 +112,7 @@ export default function PlanSelection({
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-yellow-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                       Most Popular
                     </div>
                   </div>
@@ -127,7 +127,7 @@ export default function PlanSelection({
                     <Star className={`h-6 w-6 ${
                       selectedPlan?.id === plan.id 
                         ? 'text-gray-900 dark:text-white' 
-                        : 'text-blue-500'
+                        : 'text-yellow-500'
                     }`} />
                   </div>
                   
@@ -223,8 +223,7 @@ export default function PlanSelection({
         <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
         <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-white"></div>
         <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-
+        <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
       </div>
     </div>
   )

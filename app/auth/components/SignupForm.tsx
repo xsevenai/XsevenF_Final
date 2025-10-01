@@ -80,7 +80,7 @@ export function SignupForm({
                 className={`w-full px-4 py-3 rounded-lg border ${
                   errors.email 
                     ? 'border-red-500 focus:ring-red-500' 
-                    : 'border-gray-300 dark:border-gray-700 focus:ring-blue-500'
+                    : 'border-gray-300 dark:border-gray-700 focus:ring-yellow-500'
                 } bg-white dark:bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:border-transparent transition-all duration-200 outline-none`}
               />
               {errors.email && (
@@ -93,7 +93,7 @@ export function SignupForm({
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </label>
-                <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                <a href="/forgot-password" className="text-sm text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300">
                   Forgot your password?
                 </a>
               </div>
@@ -112,7 +112,7 @@ export function SignupForm({
                   className={`w-full px-4 py-3 pr-12 rounded-lg border ${
                     errors.password 
                       ? 'border-red-500 focus:ring-red-500' 
-                      : 'border-gray-300 dark:border-gray-700 focus:ring-blue-500'
+                      : 'border-gray-300 dark:border-gray-700 focus:ring-yellow-500'
                   } bg-white dark:bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:border-transparent transition-all duration-200 outline-none`}
                 />
                 <button
@@ -140,7 +140,7 @@ export function SignupForm({
 
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
-            <a href="/login" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+            <a href="/login" className="font-semibold text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors">
               Sign in
             </a>
           </p>

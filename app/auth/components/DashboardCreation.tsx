@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { ChevronLeft, CheckCircle, Zap, Settings, Loader2 } from "lucide-react"
+import { ChevronLeft, CheckCircle, Loader2 } from "lucide-react"
 
 interface BusinessData {
   category: any
@@ -68,7 +68,7 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
         {/* Loading Content */}
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center">
-            <Loader2 className="h-16 w-16 animate-spin text-blue-500 mx-auto mb-6" />
+            <Loader2 className="h-16 w-16 animate-spin text-yellow-500 mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Creating Your Dashboard
             </h2>
@@ -126,15 +126,15 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
               disabled={isCreating}
               className={`group relative w-80 h-96 rounded-2xl border-2 transition-all duration-300 ${
                 selectedDashboardType === 'xsevenai' 
-                  ? 'border-blue-500 shadow-xl scale-105' 
-                  : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 hover:scale-102'
+                  ? 'border-yellow-500 shadow-xl scale-105' 
+                  : 'border-gray-300 dark:border-gray-800 hover:border-yellow-400 dark:hover:border-yellow-600 hover:scale-102'
               } ${isCreating ? 'opacity-50 cursor-not-allowed' : ''} bg-white dark:bg-gray-900 overflow-hidden text-left`}
             >
               <div className="absolute inset-0 p-6 flex flex-col">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10">
+                    {/* Icon removed - empty space */}
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">XSevenAI Dashboard</h3>
@@ -180,15 +180,15 @@ export default function DashboardCreation({ businessData, loading, isLoaded, onB
               disabled={isCreating}
               className={`group relative w-80 h-96 rounded-2xl border-2 transition-all duration-300 ${
                 selectedDashboardType === 'integration' 
-                  ? 'border-blue-500 shadow-xl scale-105' 
-                  : 'border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700 hover:scale-102'
+                  ? 'border-yellow-500 shadow-xl scale-105' 
+                  : 'border-gray-300 dark:border-gray-800 hover:border-yellow-400 dark:hover:border-yellow-600 hover:scale-102'
               } ${isCreating ? 'opacity-50 cursor-not-allowed' : ''} bg-white dark:bg-gray-900 overflow-hidden text-left`}
             >
               <div className="absolute inset-0 p-6 flex flex-col">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10">
+                    {/* Icon removed - empty space */}
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">Dashboard Integration</h3>
