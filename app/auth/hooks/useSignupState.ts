@@ -111,6 +111,37 @@ export const useSignupState = () => {
           document.documentElement.classList.remove('dark')
         }
       }
+
+      // Check for Google user data from callback
+      const googleUserData = sessionStorage.getItem('googleUserData')
+      if (googleUserData) {
+        try {
+          const userData = JSON.parse(googleUserData)
+          setState(prev => ({
+            ...prev,
+            email: userData.email || '',
+            formData: {
+              ...prev.formData,
+              email: userData.email || '',
+              ownerName: userData.name || ''
+            },
+            step: 2 // Skip to category selection for Google users
+          }))
+          // Clear the session storage
+          sessionStorage.removeItem('googleUserData')
+        } catch (error) {
+          console.error('Error parsing Google user data:', error)
+        }
+      }
+
+      // Check URL parameters for Google OAuth flow
+      const urlParams = new URLSearchParams(window.location.search)
+      const isGoogleAuth = urlParams.get('google') === 'true'
+      const stepParam = urlParams.get('step')
+      
+      if (isGoogleAuth && stepParam) {
+        setState(prev => ({ ...prev, step: parseInt(stepParam) }))
+      }
     }
 
     const timer = setTimeout(() => {

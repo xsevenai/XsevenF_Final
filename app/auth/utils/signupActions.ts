@@ -1,5 +1,6 @@
 import { SignupState } from '../hooks/useSignupState'
 
+
 interface BusinessCategory {
   id: string
   name: string
@@ -224,9 +225,28 @@ export const createSignupActions = (
     }
   }
 
-  const handleGoogleSignup = () => {
-    console.log('Google signup clicked')
-    // Implement Google OAuth signup here
+  const handleGoogleSignup = async () => {
+    try {
+      // Import signIn from next-auth/react
+      const { signIn } = await import('next-auth/react')
+      
+      // Trigger Google OAuth sign-in
+      const result = await signIn('google', {
+        callbackUrl: '/auth/google-callback', // Custom callback to handle post-signin
+        redirect: false
+      })
+
+      if (result?.error) {
+        updateState({ 
+          submitError: 'Google sign-in failed. Please try again.' 
+        })
+      }
+    } catch (error) {
+      console.error('Google signup error:', error)
+      updateState({ 
+        submitError: 'Google sign-in failed. Please try again.' 
+      })
+    }
   }
 
   // Navigation handlers
