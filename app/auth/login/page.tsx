@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
 import { 
   ArrowLeft, 
   Loader2,
@@ -23,7 +22,6 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
-  const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitError, setSubmitError] = useState("")
@@ -56,64 +54,6 @@ export default function LoginPage() {
     }, 100)
     return () => clearTimeout(timer)
   }, [])
-
-  // Handle Google OAuth session data for login
-  useEffect(() => {
-    const handleGoogleLogin = async () => {
-      if (status === 'authenticated' && session?.user) {
-        console.log('Google user authenticated, checking login...')
-        
-        try {
-          setLoading(true)
-          
-          // Call your auth endpoint to check if user exists
-          const response = await fetch('/api/auth/google', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              email: session.user.email,
-              name: session.user.name,
-              googleId: session.user.googleId || session.user.id,
-              image: session.user.image
-            })
-          })
-
-          const result = await response.json()
-
-          if (result.exists) {
-            // User exists, log them in
-            console.log('Google user exists, logging in...')
-            
-            // Store auth data (you might want to get this from your backend)
-            localStorage.setItem('user_email', session.user.email || '')
-            localStorage.setItem('user_name', session.user.name || '')
-            localStorage.setItem('auth_provider', 'google')
-            localStorage.setItem('google_id', result.user.google_id || '')
-            localStorage.setItem('business_id', result.businessId || '')
-            localStorage.setItem('user_id', result.userId || '')
-            localStorage.setItem('user_role', result.role || 'owner')
-            
-            // Redirect to dashboard
-            window.location.href = '/dashboard'
-          } else {
-            // User doesn't exist, redirect to signup
-            console.log('Google user not found, redirecting to signup...')
-            window.location.href = '/auth'
-          }
-        } catch (error) {
-          console.error('Google login error:', error)
-          setSubmitError('Google sign-in failed. Please try again.')
-          setLoading(false)
-        }
-      }
-    }
-
-    if (status !== 'loading') {
-      handleGoogleLogin()
-    }
-  }, [session, status])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -151,110 +91,164 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  
+  if (!validateForm()) {
+    return
+  }
+
+  setLoading(true)
+  setSubmitError("")
+
+  try {
+    // Call FastAPI backend instead of Next.js API route
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/supabase/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.detail || 'Login failed')
+    }
+
+    // Store auth data from FastAPI response
+    localStorage.setItem('accessToken', result.access_token)
+    localStorage.setItem('user_id', result.user_id)
+    localStorage.setItem('user_email', result.email)
+    localStorage.setItem('business_id', result.business_id)
+    localStorage.setItem('user_role', result.role || 'owner')
     
-    if (!validateForm()) {
-      return
+    // Calculate and store token expiry
+    const expiresAt = new Date().getTime() + (result.expires_in * 1000)
+    localStorage.setItem('token_expires_at', expiresAt.toString())
+    
+    console.log('Login successful, redirecting to dashboard')
+
+    // Redirect to dashboard
+    if (typeof window !== 'undefined') {
+      window.location.href = "/dashboard"
     }
 
-    setLoading(true)
-    setSubmitError("")
-
-    try {
-      // Call your login endpoint
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || result.message || 'Login failed')
-      }
-
-      // Store auth data from your API response
-      if (result.accessToken) {
-        localStorage.setItem('accessToken', result.accessToken)
-      }
-      if (result.user_id || result.userId) {
-        localStorage.setItem('user_id', result.user_id || result.userId)
-      }
-      if (result.email) {
-        localStorage.setItem('user_email', result.email)
-      }
-      if (result.business_id || result.businessId) {
-        localStorage.setItem('business_id', result.business_id || result.businessId)
-      }
-      if (result.role) {
-        localStorage.setItem('user_role', result.role)
-      }
-      
-      localStorage.setItem('auth_provider', 'email')
-      
-      // Store token expiry if provided
-      if (result.expires_in) {
-        const expiresAt = new Date().getTime() + (result.expires_in * 1000)
-        localStorage.setItem('token_expires_at', expiresAt.toString())
-      }
-      
-      console.log('Login successful, redirecting to dashboard')
-
-      // Redirect to dashboard
-      if (typeof window !== 'undefined') {
-        window.location.href = "/dashboard"
-      }
-
-    } catch (error) {
-      console.error('Login error:', error)
-      
-      if (error instanceof Error) {
-        setSubmitError(error.message)
-      } else {
-        setSubmitError('Login failed. Please try again.')
-      }
-    } finally {
-      setLoading(false)
+  } catch (error) {
+    console.error('Login error:', error)
+    
+    if (error instanceof Error) {
+      setSubmitError(error.message)
+    } else {
+      setSubmitError('Login failed. Please try again.')
     }
+  } finally {
+    setLoading(false)
   }
+}
 
-  const handleGoogleSignin = async () => {
-    try {
-      setLoading(true)
-      console.log('Starting Google OAuth flow')
-      
-      // Use NextAuth signin - it will go: Google OAuth → NextAuth → back to /login?process=true
-      const { signIn } = await import('next-auth/react')
-      
-      await signIn('google', {
-        callbackUrl: '/login'
-      })
+const handleGoogleSignin = async () => {
+  console.log('Google signin clicked')
+  setLoading(true)
+  setSubmitError("")
 
-    } catch (error) {
-      console.error('Google signin error:', error)
-      setSubmitError('Google sign-in failed. Please try again.')
-      setLoading(false)
+  try {
+    // Use NextAuth to get Google user data
+    const { signIn, getSession } = await import('next-auth/react')
+    
+    // Trigger Google sign-in
+    const result = await signIn('google', { 
+      redirect: false,
+      callbackUrl: '/auth/login'
+    })
+
+    if (result?.error) {
+      throw new Error(result.error)
     }
+
+    // Get the session with Google user data
+    const session = await getSession()
+    
+    if (!session?.user) {
+      throw new Error('Failed to get Google user data')
+    }
+
+    console.log('Google user data:', session.user)
+
+    // Extract Google user data
+    const googleUserData = {
+      email: session.user.email,
+      name: session.user.name || 'Google User',
+      google_id: (session.user as any).googleId || (session.user as any).id || (session.user as any).sub || session.user.email,
+      image: session.user.image
+    }
+
+    console.log('Sending Google user data to FastAPI backend:', googleUserData)
+
+    // CRITICAL: Call your FastAPI backend directly, not Next.js API
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/google/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(googleUserData)
+    })
+
+    console.log('FastAPI response status:', response.status)
+    const result_backend = await response.json()
+    console.log('FastAPI response data:', result_backend)
+
+    if (!response.ok) {
+      throw new Error(result_backend.detail || 'Google login failed')
+    }
+
+    // Store auth data from FastAPI response
+    localStorage.setItem('accessToken', result_backend.access_token)
+    localStorage.setItem('user_id', result_backend.user_id)
+    localStorage.setItem('user_email', result_backend.email)
+    localStorage.setItem('business_id', result_backend.business_id)
+    localStorage.setItem('user_role', result_backend.role || 'owner')
+    
+    // Calculate and store token expiry
+    const expiresAt = new Date().getTime() + (result_backend.expires_in * 1000)
+    localStorage.setItem('token_expires_at', expiresAt.toString())
+
+    // Clear NextAuth session since we're managing our own auth
+    const { signOut } = await import('next-auth/react')
+    await signOut({ redirect: false })
+    
+    console.log('Google login successful, redirecting to dashboard')
+
+    // Redirect to dashboard
+    window.location.href = "/dashboard"
+
+  } catch (error) {
+    console.error('Google login error:', error)
+    
+    // Clear any partial NextAuth session
+    try {
+      const { signOut } = await import('next-auth/react')
+      await signOut({ redirect: false })
+    } catch (signOutError) {
+      console.log('No session to clear')
+    }
+    
+    if (error instanceof Error) {
+      setSubmitError(error.message)
+    } else {
+      setSubmitError('Google login failed. Please try again.')
+    }
+  } finally {
+    setLoading(false)
   }
+}
 
   if (!mounted) {
     return null
-  }
-
-  // Show loading while checking authentication
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
   }
 
   return (
@@ -262,25 +256,25 @@ export default function LoginPage() {
       {/* Left Side - Form */}
       <div className="w-full lg:w-1/2 bg-gray-50 dark:bg-[#0a0a0a] flex flex-col relative z-10">
         {/* Header with Logo */}
-        <div className="p-4 lg:p-6 backdrop-blur-sm bg-gray-50/80 dark:bg-[#0a0a0a]/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Custom SVG Logo */}
-              <div className="w-10 h-10">
-                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <mask id="mask0_7_182" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-                    <rect width="100" height="100" fill="#D9D9D9"/>
-                  </mask>
-                  <g mask="url(#mask0_7_182)">
-                    <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
-                    <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
-                  </g>
-                </svg>
-              </div>
-              <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
-            </div>
-          </div>
-        </div>
+<div className="p-4 lg:p-6 backdrop-blur-sm bg-gray-50/80 dark:bg-[#0a0a0a]/80">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      {/* Custom SVG Logo */}
+      <div className="w-10 h-10">
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="mask0_7_182" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+            <rect width="100" height="100" fill="#D9D9D9"/>
+          </mask>
+          <g mask="url(#mask0_7_182)">
+            <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+            <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+          </g>
+        </svg>
+      </div>
+      <span className="text-gray-900 dark:text-white text-2xl font-semibold">XsevenAI</span>
+    </div>
+  </div>
+</div>
 
         {/* Login Form */}
         <div className="flex-1 p-4 lg:p-8 xl:p-12 overflow-y-auto relative flex items-center justify-center">

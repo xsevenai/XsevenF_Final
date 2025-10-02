@@ -16,66 +16,66 @@ export default function ProcessGoogleLoginPage() {
         console.log('Processing Google login for:', session.user.email)
         
         try {
-          // Call your auth endpoint to check if user exists
-          const response = await fetch('/api/auth/google', {
+          // Prepare Google user data
+          const googleUserData = {
+            email: session.user.email,
+            name: session.user.name || 'Google User',
+            google_id: (session.user as any).googleId || (session.user as any).id || session.user.email,
+            image: session.user.image
+          }
+
+          console.log('Sending Google user data to FastAPI backend:', googleUserData)
+
+          // CRITICAL: Call your FastAPI backend to get the proper session token
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/google/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-              email: session.user.email,
-              name: session.user.name,
-              googleId: (session.user as any).googleId || session.user.id,
-              image: session.user.image
-            })
+            body: JSON.stringify(googleUserData)
           })
 
+          console.log('FastAPI response status:', response.status)
           const result = await response.json()
+          console.log('FastAPI response data:', result)
 
-          if (result.exists) {
-            console.log('Existing user found, logging in...')
-            
-            // Store auth data in localStorage including access token
-            const authData = {
-              user_email: session.user.email || '',
-              user_name: session.user.name || '',
-              auth_provider: 'google',
-              google_id: result.user?.google_id || result.user?.googleId || '',
-              business_id: result.businessId || result.user?.business_id || '',
-              user_id: result.userId || result.user?.user_id || '',
-              user_role: result.role || result.user?.role || 'owner',
-              accessToken: (session.user as any).accessToken || '', // Add access token
-            }
-
-            Object.entries(authData).forEach(([key, value]) => {
-              localStorage.setItem(key, value as string)
-            })
-
-            // Clear NextAuth session since we're managing our own auth
-            const { signOut } = await import('next-auth/react')
-            await signOut({ redirect: false })
-
-            // Redirect to dashboard
-            window.location.href = '/dashboard'
-          } else {
-            console.log('New user, redirecting to signup...')
-            
-            // Clear NextAuth session
-            const { signOut } = await import('next-auth/react')
-            await signOut({ redirect: false })
-            
-            // Store user data for signup
-            sessionStorage.setItem('googleAuthData', JSON.stringify({
-              email: session.user.email,
-              name: session.user.name,
-              googleId: (session.user as any).googleId || session.user.id,
-              image: session.user.image
-            }))
-            
-            window.location.href = '/auth?google=true&step=2'
+          if (!response.ok) {
+            throw new Error(result.detail || 'Google login failed')
           }
+
+          // Store auth data from FastAPI response (including the google_session_ token)
+          localStorage.setItem('accessToken', result.access_token) // This will be google_session_xxxxx
+          localStorage.setItem('user_id', result.user_id)
+          localStorage.setItem('user_email', result.email)
+          localStorage.setItem('business_id', result.business_id)
+          localStorage.setItem('user_role', result.role || 'owner')
+          
+          // Calculate and store token expiry
+          const expiresAt = new Date().getTime() + (result.expires_in * 1000)
+          localStorage.setItem('token_expires_at', expiresAt.toString())
+
+          console.log('FastAPI token stored:', result.access_token)
+
+          // Clear NextAuth session since we're managing our own auth
+          const { signOut } = await import('next-auth/react')
+          await signOut({ redirect: false })
+          
+          console.log('Google login successful, redirecting to dashboard')
+
+          // Redirect to dashboard
+          window.location.href = '/dashboard'
+
         } catch (error) {
           console.error('Google login processing error:', error)
+          
+          // Clear NextAuth session
+          try {
+            const { signOut } = await import('next-auth/react')
+            await signOut({ redirect: false })
+          } catch (signOutError) {
+            console.log('No session to clear')
+          }
+          
           router.push('/auth/login?error=google_auth_failed')
         }
       } else if (status === 'unauthenticated') {
