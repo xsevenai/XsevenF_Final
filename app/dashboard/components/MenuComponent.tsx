@@ -3,10 +3,10 @@
 "use client"
 
 import { useState } from 'react'
-import { Edit, Trash2, Plus } from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import MenuForms from './MenuForms' // Import MenuForms directly
+import { Edit, Trash2, Plus, Loader2 } from 'lucide-react'
+import MenuForms from './MenuForms'
 import { menuAPI, MenuItem, MenuCategory } from '@/lib/menu-api'
+import { useTheme } from '@/hooks/useTheme'
 import type { ExpandedViewType } from './types'
 
 interface MenuComponentProps {
@@ -16,6 +16,7 @@ interface MenuComponentProps {
 }
 
 export default function MenuComponent({ menuItems, categories, onRefresh }: MenuComponentProps) {
+  const { theme, isLoaded: themeLoaded, isDark } = useTheme()
   const [expandedView, setExpandedView] = useState<ExpandedViewType | 'edit-menu-item' | 'edit-category' | null>(null)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
@@ -98,6 +99,22 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     handleCloseEdit()
   }
 
+  // Show loading while theme is being loaded
+  if (!themeLoaded) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    )
+  }
+
+  // Theme-aware colors
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const hoverBg = isDark ? 'hover:bg-[#252525]' : 'hover:bg-gray-100'
+
   // If we have an expanded view, show the appropriate form
   if (expandedView) {
     return (
@@ -116,39 +133,44 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header with Add Actions */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Menu Management</h2>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setExpandedView('add-category')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Category
-          </button>
-          <button
-            onClick={() => setExpandedView('add-menu-item')}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:from-purple-700 hover:to-pink-700 transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            Add Menu Item
-          </button>
+      {/* Page Header Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className={`text-3xl font-semibold ${textPrimary} mb-2`}>Menu Management</h1>
+            <p className={`${textSecondary} text-sm`}>Manage your restaurant menu items and categories</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setExpandedView('add-category')}
+              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#333333] border-[#404040]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors border`}
+            >
+              <Plus className="h-4 w-4" />
+              Add Category
+            </button>
+            <button
+              onClick={() => setExpandedView('add-menu-item')}
+              className={`${isDark ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-all`}
+            >
+              <Plus className="h-4 w-4" />
+              Add Menu Item
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Categories Section */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white">Categories</h3>
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Categories</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map((category) => (
-            <Card key={category.id} className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+            <div key={category.id} className={`${innerCardBg} rounded-lg p-4 ${hoverBg} transition-colors border`}>
               <div className="flex justify-between items-start mb-2">
-                <h4 className="text-white font-medium">{category.name}</h4>
+                <h4 className={`${textPrimary} font-medium`}>{category.name}</h4>
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleEditCategory(category)}
-                    className="text-gray-400 hover:text-white p-1 transition-colors"
+                    className={`${textSecondary} ${isDark ? 'hover:text-white' : 'hover:text-gray-900'} p-1 transition-colors`}
                     title="Edit Category"
                   >
                     <Edit className="h-4 w-4" />
@@ -156,7 +178,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                   <button
                     onClick={() => handleDeleteCategory(category.id)}
                     disabled={isDeleting === category.id}
-                    className="text-gray-400 hover:text-red-400 p-1 transition-colors disabled:opacity-50"
+                    className={`${textSecondary} hover:text-red-400 p-1 transition-colors disabled:opacity-50`}
                     title="Delete Category"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -164,68 +186,26 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                 </div>
               </div>
               {category.description && (
-                <p className="text-gray-400 text-sm">{category.description}</p>
+                <p className={`${textSecondary} text-sm mb-2`}>{category.description}</p>
               )}
-              <div className="mt-2 text-xs text-gray-500">
+              <div className={`mt-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                 {menuItems.filter(item => item.category_id === category.id).length} items
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Menu Items Section */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white">Menu Items</h3>
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Menu Items</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {menuItems.map((item) => {
             const category = categories.find(cat => cat.id === item.category_id)
             return (
-              <Card key={item.id} className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">{item.name}</h4>
-                    <p className="text-purple-400 font-semibold">${item.price.toFixed(2)}</p>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleEditMenuItem(item)}
-                      className="text-gray-400 hover:text-white p-1 transition-colors"
-                      title="Edit Menu Item"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMenuItem(item.id)}
-                      disabled={isDeleting === item.id}
-                      className="text-gray-400 hover:text-red-400 p-1 transition-colors disabled:opacity-50"
-                      title="Delete Menu Item"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                
-                {item.description && (
-                  <p className="text-gray-400 text-sm mb-2">{item.description}</p>
-                )}
-                
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">{category?.name || 'Uncategorized'}</span>
-                  <button
-                    onClick={() => handleToggleAvailability(item.id, item.is_available)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      item.is_available
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                    }`}
-                  >
-                    {item.is_available ? 'Available' : 'Unavailable'}
-                  </button>
-                </div>
-                
+              <div key={item.id} className={`${innerCardBg} rounded-lg p-4 ${hoverBg} transition-colors border`}>
                 {item.image_url && (
-                  <div className="mt-3">
+                  <div className="mb-3">
                     <img 
                       src={item.image_url} 
                       alt={item.name}
@@ -236,7 +216,49 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                     />
                   </div>
                 )}
-              </Card>
+                
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h4 className={`${textPrimary} font-medium`}>{item.name}</h4>
+                    <p className="text-green-400 font-semibold text-lg">${item.price.toFixed(2)}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleEditMenuItem(item)}
+                      className={`${textSecondary} ${isDark ? 'hover:text-white' : 'hover:text-gray-900'} p-1 transition-colors`}
+                      title="Edit Menu Item"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMenuItem(item.id)}
+                      disabled={isDeleting === item.id}
+                      className={`${textSecondary} hover:text-red-400 p-1 transition-colors disabled:opacity-50`}
+                      title="Delete Menu Item"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {item.description && (
+                  <p className={`${textSecondary} text-sm mb-3`}>{item.description}</p>
+                )}
+                
+                <div className={`flex justify-between items-center text-sm pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+                  <span className={`${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{category?.name || 'Uncategorized'}</span>
+                  <button
+                    onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      item.is_available
+                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30'
+                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+                    }`}
+                  >
+                    {item.is_available ? 'Available' : 'Unavailable'}
+                  </button>
+                </div>
+              </div>
             )
           })}
         </div>
