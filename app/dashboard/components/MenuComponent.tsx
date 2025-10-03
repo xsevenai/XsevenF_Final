@@ -21,6 +21,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'items' | 'categories'>('items')
 
   const handleEditMenuItem = (item: MenuItem) => {
     setEditingItem(item)
@@ -113,7 +114,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
-  const hoverBg = isDark ? 'hover:bg-[#252525]' : 'hover:bg-gray-100'
 
   // If we have an expanded view, show the appropriate form
   if (expandedView) {
@@ -134,135 +134,192 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   return (
     <div className="p-6 space-y-6">
       {/* Page Header Card */}
-      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+      <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className={`text-3xl font-semibold ${textPrimary} mb-2`}>Menu Management</h1>
-            <p className={`${textSecondary} text-sm`}>Manage your restaurant menu items and categories</p>
+            <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Menu Management</h1>
+            <p className={`${textSecondary}`}>Manage your restaurant menu items and categories</p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setExpandedView('add-category')}
-              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#333333] border-[#404040]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors border`}
-            >
-              <Plus className="h-4 w-4" />
-              Add Category
-            </button>
-            <button
-              onClick={() => setExpandedView('add-menu-item')}
-              className={`${isDark ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-all`}
-            >
-              <Plus className="h-4 w-4" />
-              Add Menu Item
-            </button>
+{/* Add Category Button */}
+{/* Add Category */}
+<button
+  onClick={() => setExpandedView('add-category')}
+  className={`bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#2a2a2a]
+    hover:from-[#222222] hover:via-[#2a2a2a] hover:to-[#333333]
+    text-white px-4 py-2 rounded-lg flex items-center gap-2
+    shadow-md hover:shadow-xl hover:scale-105 transition-all border border-[#333333]`}
+>
+  <Plus className="h-4 w-4" />
+  Add Category
+</button>
+
+{/* Add Menu Item */}
+<button
+  onClick={() => setExpandedView('add-menu-item')}
+  className={`bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a]
+    hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333]
+    text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2
+    shadow-lg hover:shadow-2xl hover:scale-110 transition-all border border-[#444444]`}
+>
+  <Plus className="h-4 w-4" />
+  Add Menu Item
+</button>
+
+
+
           </div>
         </div>
       </div>
 
-      {/* Categories Section */}
-      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
-        <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Categories</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categories.map((category) => (
-            <div key={category.id} className={`${innerCardBg} rounded-lg p-4 ${hoverBg} transition-colors border`}>
-              <div className="flex justify-between items-start mb-2">
-                <h4 className={`${textPrimary} font-medium`}>{category.name}</h4>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleEditCategory(category)}
-                    className={`${textSecondary} ${isDark ? 'hover:text-white' : 'hover:text-gray-900'} p-1 transition-colors`}
-                    title="Edit Category"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(category.id)}
-                    disabled={isDeleting === category.id}
-                    className={`${textSecondary} hover:text-red-400 p-1 transition-colors disabled:opacity-50`}
-                    title="Delete Category"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              {category.description && (
-                <p className={`${textSecondary} text-sm mb-2`}>{category.description}</p>
-              )}
-              <div className={`mt-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                {menuItems.filter(item => item.category_id === category.id).length} items
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+{/* Tabs Navigation */}
+<div className={`${cardBg} p-3 border shadow-lg flex gap-2`} style={{ borderRadius: '1.5rem' }}>
+  {/* Menu Items Tab */}
+  <button
+    onClick={() => setActiveTab('items')}
+    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
+      ${activeTab === 'items'
+        ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white shadow-md border-[#444444]'
+        : 'bg-gradient-to-r from-[#1a1a1a] via-[#1f1f1f] to-[#2a2a2a] text-gray-300 border-[#333333]'
+      }
+      hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333] hover:shadow-md
+    `}
+  >
+    Menu Items ({menuItems.length})
+  </button>
 
-      {/* Menu Items Section */}
-      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
-        <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Menu Items</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {menuItems.map((item) => {
-            const category = categories.find(cat => cat.id === item.category_id)
-            return (
-              <div key={item.id} className={`${innerCardBg} rounded-lg p-4 ${hoverBg} transition-colors border`}>
-                {item.image_url && (
-                  <div className="mb-3">
-                    <img 
-                      src={item.image_url} 
-                      alt={item.name}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                  </div>
-                )}
-                
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h4 className={`${textPrimary} font-medium`}>{item.name}</h4>
-                    <p className="text-green-400 font-semibold text-lg">${item.price.toFixed(2)}</p>
-                  </div>
+  {/* Categories Tab */}
+  <button
+    onClick={() => setActiveTab('categories')}
+    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
+      ${activeTab === 'categories'
+        ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white shadow-md border-[#444444]'
+        : 'bg-gradient-to-r from-[#1a1a1a] via-[#1f1f1f] to-[#2a2a2a] text-gray-300 border-[#333333]'
+      }
+      hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333] hover:shadow-md
+    `}
+  >
+    Categories ({categories.length})
+  </button>
+</div>
+
+
+
+      {/* Content Based on Active Tab */}
+      {/* Menu items */}
+      {activeTab === 'items' ? (
+<div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+  <h2 className={`text-xl font-bold ${textPrimary} mb-6`}>All Menu Items</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {menuItems.map((item, index) => {
+      const category = categories.find(cat => cat.id === item.category_id)
+      return (
+<div
+  key={item.id}
+  className={`${innerCardBg} p-5 border hover:shadow-xl cursor-pointer`}
+  style={{
+    borderRadius:
+      index % 4 === 0
+        ? '2rem'
+        : index % 4 === 1
+        ? '1rem'
+        : index % 4 === 2
+        ? '1.5rem'
+        : '2.5rem',
+  }}
+>
+  {/* Image placeholder like Categories */}
+  <div className="w-full h-36 mb-4 bg-gray-800 rounded-xl overflow-hidden">
+    {item.image_url && (
+      <img
+        src={item.image_url}
+        alt={item.name}
+        className="w-full h-full object-cover"
+        onError={(e) => { e.currentTarget.style.display = 'none' }}
+      />
+    )}
+  </div>
+
+  {/* Name + price */}
+  <div className="flex justify-between items-start mb-3">
+    <div className="flex-1">
+      <h4 className={`${textPrimary} font-semibold text-base mb-1`}>{item.name}</h4>
+      <p className="text-green-400 font-bold text-xl">${item.price.toFixed(2)}</p>
+    </div>
+    <div className="flex gap-1">
+      <button onClick={() => handleEditMenuItem(item)} className={`${textSecondary} p-1`} title="Edit Menu Item">
+        <Edit className="h-4 w-4" />
+      </button>
+      <button onClick={() => handleDeleteMenuItem(item.id)} disabled={isDeleting === item.id} className={`${textSecondary} p-1`} title="Delete Menu Item">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+
+  {/* Description */}
+  {item.description && (
+    <p className={`${textSecondary} text-sm mb-3`}>{item.description}</p>
+  )}
+
+  {/* Footer like Categories */}
+  <div className={`mt-3 pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+    <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+      {categories.find(cat => cat.id === item.category_id)?.name || 'Uncategorized'}
+    </span>
+  </div>
+</div>
+
+      )
+    })}
+  </div>
+</div>
+
+      ) : (
+        /* Categories Section */
+        <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+          <h2 className={`text-xl font-bold ${textPrimary} mb-6`}>All Categories</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categories.map((category, index) => (
+              <div 
+                key={category.id} 
+                className={`${innerCardBg} p-5 border hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
+                style={{ 
+                  borderRadius: index % 3 === 0 ? '1.5rem' : index % 3 === 1 ? '2rem' : '1rem'
+                }}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className={`${textPrimary} font-semibold text-base`}>{category.name}</h4>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => handleEditMenuItem(item)}
+                      onClick={() => handleEditCategory(category)}
                       className={`${textSecondary} ${isDark ? 'hover:text-white' : 'hover:text-gray-900'} p-1 transition-colors`}
-                      title="Edit Menu Item"
+                      title="Edit Category"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteMenuItem(item.id)}
-                      disabled={isDeleting === item.id}
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={isDeleting === category.id}
                       className={`${textSecondary} hover:text-red-400 p-1 transition-colors disabled:opacity-50`}
-                      title="Delete Menu Item"
+                      title="Delete Category"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
-                
-                {item.description && (
-                  <p className={`${textSecondary} text-sm mb-3`}>{item.description}</p>
+                {category.description && (
+                  <p className={`${textSecondary} text-sm mb-3`}>{category.description}</p>
                 )}
-                
-                <div className={`flex justify-between items-center text-sm pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
-                  <span className={`${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{category?.name || 'Uncategorized'}</span>
-                  <button
-                    onClick={() => handleToggleAvailability(item.id, item.is_available)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      item.is_available
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30'
-                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
-                    }`}
-                  >
-                    {item.is_available ? 'Available' : 'Unavailable'}
-                  </button>
+                <div className={`mt-3 pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+                  <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {menuItems.filter(item => item.category_id === category.id).length} items
+                  </span>
                 </div>
               </div>
-            )
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "@/hooks/useTheme"
-import { Loader2 } from "lucide-react"
+import { Loader2, Bell, User } from "lucide-react"
 
 interface RightSidebarProps {
   // Add any props you need for real-time data
@@ -50,8 +50,30 @@ export default function RightSidebar({}: RightSidebarProps) {
     <div className={`w-80 ${sidebarBg} flex flex-col h-screen border-l ${borderColor} transition-colors duration-300`}>
       {/* Header */}
       <div className={`p-6 border-b ${borderColor}`}>
+        <div className="flex items-center justify-end gap-3 mb-4">
+          {/* Notification Button */}
+          <button 
+            className={`relative ${innerCardBg} p-2 rounded-lg border ${borderColor} hover:scale-110 transition-transform`}
+            aria-label="Notifications"
+          >
+            <Bell className={`h-5 w-5 ${textPrimary}`} />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">
+              3
+            </span>
+          </button>
+          
+          {/* Profile Button - Oval Shape */}
+          <button 
+            className={`${innerCardBg} px-4 py-2 rounded-full border ${borderColor} hover:scale-105 transition-transform flex items-center gap-2`}
+            aria-label="Profile"
+          >
+            <User className={`h-5 w-5 ${textPrimary}`} />
+            <span className={`${textPrimary} text-sm font-medium`}>JD</span>
+          </button>
+        </div>
+        
         <h2 className={`text-xl font-semibold ${textPrimary}`}>
-          Real-time Performance
+          Live Metrics
         </h2>
       </div>
 
