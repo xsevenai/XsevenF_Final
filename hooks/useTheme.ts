@@ -46,12 +46,12 @@ const lightTheme: ThemeColors = {
 }
 
 const darkTheme: ThemeColors = {
-  primaryBg: 'bg-black',
-  secondaryBg: 'bg-gray-900',
-  cardBg: 'bg-gray-900 border-gray-800',
-  headerBg: 'bg-gray-900 border-gray-800',
-  borderPrimary: 'border-gray-800',
-  borderSecondary: 'border-gray-700',
+  primaryBg: 'bg-[#2a2a2a]',
+  secondaryBg: 'bg-[#333333]',
+  cardBg: 'bg-[#333333] border-[#404040]',
+  headerBg: 'bg-[#333333] border-[#404040]',
+  borderPrimary: 'border-[#404040]',
+  borderSecondary: 'border-[#4a4a4a]',
   textPrimary: 'text-white',
   textSecondary: 'text-gray-300',
   textMuted: 'text-gray-400',
@@ -61,7 +61,7 @@ const darkTheme: ThemeColors = {
   warning: 'text-yellow-400',
   error: 'text-red-400',
   info: 'text-blue-400',
-  hover: 'hover:bg-gray-800',
+  hover: 'hover:bg-[#3a3a3a]',
   active: 'bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6] text-white'
 }
 

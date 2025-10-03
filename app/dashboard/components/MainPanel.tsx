@@ -4,6 +4,7 @@
 
 import { ArrowLeft, Users, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useState, useEffect } from "react"
 import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
 import { useTheme } from "@/hooks/useTheme"
 import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, ExpandedViewType } from "./types"
@@ -44,6 +45,13 @@ export default function MainPanel({
   const { categories, loading: categoriesLoading, error: categoriesError, refresh: refreshCategories } = useMenuCategories()
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
+  // Remove the manual localStorage polling - useTheme hook already handles this
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const getTableStatusCounts = () => {
     const occupied = tables.filter((t) => t.status === "occupied").length
     const available = tables.filter((t) => t.status === "available").length
@@ -68,173 +76,228 @@ export default function MainPanel({
   }
 
   // Show loading while theme is being loaded
-  if (!themeLoaded) {
+  if (!themeLoaded || !mounted) {
     return (
-      <div className="flex-1 m-4 ml-0 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 flex items-center justify-center transition-all duration-300">
+      <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-all duration-300">
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
     )
   }
 
+  // Theme-aware background and text colors
+  const mainPanelBg = isDark ? 'bg-[#111111]' : 'bg-gray-50'
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+
   const renderDashboardOverview = () => (
     <div className="p-6 space-y-6">
-      {/* Greeting Section */}
-      <div className="mb-8">
-        <h2 className={`text-3xl font-bold mb-2 ${
-          isDark 
-            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
-            : 'text-gray-900'
-        }`}>
-          Good Evening, DEYBYNAVEEN
-        </h2>
-        <p className={theme.textMuted}>Here's your live business overview for today</p>
-        <div className="flex items-center gap-2 mt-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-          <span className={`${theme.success} text-sm font-medium`}>Live Updates</span>
+      {/* Page Header Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h1 className={`text-3xl font-semibold ${textPrimary} mb-2`}>
+          Dashboard
+        </h1>
+        <p className={`${textSecondary} text-sm`}>Welcome back! Here's your business overview</p>
+      </div>
+
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+          <h3 className={`${textSecondary} text-sm font-medium mb-2`}>Total Revenue</h3>
+          <div className={`${textPrimary} text-2xl font-semibold`}>$12,345</div>
+        </div>
+        <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+          <h3 className={`${textSecondary} text-sm font-medium mb-2`}>New Customers</h3>
+          <div className={`${textPrimary} text-2xl font-semibold`}>1,234</div>
+        </div>
+        <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+          <h3 className={`${textSecondary} text-sm font-medium mb-2`}>Menu Items</h3>
+          <div className={`${textPrimary} text-2xl font-semibold`}>{menuLoading ? '...' : menuItems.length || '56'}</div>
+        </div>
+        <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+          <h3 className={`${textSecondary} text-sm font-medium mb-2`}>Categories</h3>
+          <div className={`${textPrimary} text-2xl font-semibold`}>{categoriesLoading ? '...' : categories.length || '12'}</div>
         </div>
       </div>
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className={`${theme.cardBg} p-4`}>
-          <h3 className={`${theme.info} font-semibold mb-2`}>Total Revenue</h3>
-          <div className={`text-2xl font-bold ${theme.textPrimary}`}>$0.00</div>
-        </Card>
-        <Card className={`${theme.cardBg} p-4`}>
-          <h3 className={`${theme.success} font-semibold mb-2`}>New Customers</h3>
-          <div className={`text-2xl font-bold ${theme.textPrimary}`}>0</div>
-        </Card>
-        <Card className={`${theme.cardBg} p-4`}>
-          <h3 className={`${theme.warning} font-semibold mb-2`}>Menu Items</h3>
-          <div className={`text-2xl font-bold ${theme.textPrimary}`}>{menuLoading ? '...' : menuItems.length}</div>
-        </Card>
-        <Card className={`${theme.cardBg} p-4`}>
-          <h3 className="text-purple-400 font-semibold mb-2">Categories</h3>
-          <div className={`text-2xl font-bold ${theme.textPrimary}`}>{categoriesLoading ? '...' : categories.length}</div>
-        </Card>
-      </div>
-
-      {/* Live Activity Feed */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Live Activity Feed</h2>
+      {/* Quick Actions Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h2 className={`text-lg font-semibold ${textPrimary} mb-4`}>Quick Actions</h2>
+        <div className="space-y-3">
           <button
-            onClick={() => setExpandedView("live-feed")}
-            className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
+            onClick={() => setExpandedView("add-menu-item")}
+            className={`w-full flex items-center space-x-3 ${innerCardBg} rounded-lg p-4 hover:bg-opacity-80 transition-colors text-left border`}
           >
-            View All
+            <div className={`w-6 h-6 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded flex items-center justify-center`}>
+              <span className={`${textPrimary} text-sm`}>+</span>
+            </div>
+            <span className={`${textPrimary} text-sm font-medium`}>Add New Menu Item</span>
+          </button>
+          <button
+            onClick={() => setExpandedView("add-category")}
+            className={`w-full flex items-center space-x-3 ${innerCardBg} rounded-lg p-4 hover:bg-opacity-80 transition-colors text-left border`}
+          >
+            <div className={`w-6 h-6 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded flex items-center justify-center`}>
+              <span className={`${textPrimary} text-sm`}>⊞</span>
+            </div>
+            <span className={`${textPrimary} text-sm font-medium`}>Add New Category</span>
+          </button>
+          <button
+            onClick={() => setExpandedView("add-inventory-item")}
+            className={`w-full flex items-center space-x-3 ${innerCardBg} rounded-lg p-4 hover:bg-opacity-80 transition-colors text-left border`}
+          >
+            <div className={`w-6 h-6 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded flex items-center justify-center`}>
+              <span className={`${textPrimary} text-sm`}>📦</span>
+            </div>
+            <span className={`${textPrimary} text-sm font-medium`}>Add Inventory Item</span>
           </button>
         </div>
+      </div>
+
+      {/* Recent Activity Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h2 className={`text-lg font-semibold ${textPrimary} mb-4`}>Recent Activity</h2>
         <div className="space-y-3">
-          {activityFeed.map((activity) => (
-            <Card
+          {activityFeed.slice(0, 3).map((activity) => (
+            <div
               key={activity.id}
-              className={`${theme.cardBg} p-4 hover:border-purple-500/30 transition-all duration-300`}
+              className={`${innerCardBg} rounded-lg p-4 border`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <activity.icon className={`h-5 w-5 ${activity.color}`} />
                   <div>
-                    <h4 className={`${theme.textPrimary} font-medium`}>{activity.message}</h4>
-                    {activity.subtext && <p className={`${theme.textMuted} text-sm`}>{activity.subtext}</p>}
+                    <h4 className={`${textPrimary} font-medium text-sm`}>{activity.message}</h4>
+                    {activity.subtext && <p className={`${textSecondary} text-xs mt-1`}>{activity.subtext}</p>}
                   </div>
                 </div>
-                <span className={`${theme.textMuted} text-xs`}>{activity.time}</span>
+                <span className={`${textSecondary} text-xs`}>{activity.time}</span>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Table Status Overview */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Table Status Overview</h2>
-          <button
-            onClick={() => setExpandedView("tables")}
-            className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
-          >
-            Manage Tables
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className={`${theme.cardBg} p-4`}>
-            <h3 className={`${theme.success} font-semibold mb-2`}>Available Tables</h3>
-            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.available}</div>
-          </Card>
-          <Card className={`${theme.cardBg} p-4`}>
-            <h3 className={`${theme.error} font-semibold mb-2`}>Occupied Tables</h3>
-            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.occupied}</div>
-          </Card>
-          <Card className={`${theme.cardBg} p-4`}>
-            <h3 className={`${theme.warning} font-semibold mb-2`}>Cleaning Tables</h3>
-            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.cleaning}</div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Live Reservations */}
-      <div className="grid grid-cols-1 gap-6">
-        <Card className={`${theme.cardBg} p-6 space-y-4`}>
-          <div className="flex items-center justify-between">
-            <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Live Reservations</h2>
-            <button
-              onClick={() => setExpandedView("live-reservations")}
-              className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
-            >
-              View All
-            </button>
+      {/* Table Status Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h2 className={`text-lg font-semibold ${textPrimary} mb-4`}>Table Status</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${innerCardBg} rounded-lg p-4 border`}>
+            <h3 className="text-green-400 text-xs font-medium mb-2">Available</h3>
+            <div className={`${textPrimary} text-xl font-semibold`}>{tableStats.available}</div>
           </div>
-          <div className="text-center py-6">
-            <div className={`${theme.textMuted} text-sm`}>No upcoming reservations</div>
+          <div className={`${innerCardBg} rounded-lg p-4 border`}>
+            <h3 className="text-red-400 text-xs font-medium mb-2">Occupied</h3>
+            <div className={`${textPrimary} text-xl font-semibold`}>{tableStats.occupied}</div>
           </div>
-        </Card>
+          <div className={`${innerCardBg} rounded-lg p-4 border`}>
+            <h3 className="text-yellow-400 text-xs font-medium mb-2">Cleaning</h3>
+            <div className={`${textPrimary} text-xl font-semibold`}>{tableStats.cleaning}</div>
+          </div>
+        </div>
       </div>
     </div>
   )
 
   const renderAIChat = () => (
     <div className="p-6 space-y-6">
-      <div className="mb-8">
-        <h2 className={`text-3xl font-bold mb-2 ${
-          isDark 
-            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
-            : 'text-gray-900'
-        }`}>
+      {/* Page Header Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h1 className={`text-3xl font-semibold ${textPrimary} mb-2`}>
           AI Chat Support
-        </h2>
-        <p className={theme.textMuted}>Manage customer conversations and AI responses</p>
+        </h1>
+        <p className={`${textSecondary} text-sm`}>Manage customer conversations and AI responses</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Chat Cards */}
+      <div className="space-y-4">
         {liveChats.map((chat) => (
-          <Card
+          <div
             key={chat.id}
-            className={`${theme.cardBg} p-6 hover:border-purple-500/30 transition-all duration-300 cursor-pointer`}
+            className={`${cardBg} rounded-xl p-6 border shadow-lg transition-colors cursor-pointer hover:bg-opacity-80`}
             onClick={() => setExpandedView(`chat-${chat.id}`)}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">{chat.customer.charAt(0)}</span>
+                  <span className="text-white font-semibold text-sm">{chat.customer.charAt(0)}</span>
                 </div>
                 <div>
-                  <h3 className={`${theme.textPrimary} font-semibold`}>{chat.customer}</h3>
-                  <p className={`${theme.textMuted} text-sm`}>{chat.lastMessage}</p>
+                  <h3 className={`${textPrimary} font-semibold text-sm`}>{chat.customer}</h3>
+                  <p className={`${textSecondary} text-xs mt-1`}>{chat.lastMessage}</p>
                 </div>
               </div>
               <div className="text-right">
-                <div
-                  className={`w-2 h-2 rounded-full ${chat.status === "online" ? "bg-green-500" : "bg-gray-500"}`}
-                ></div>
-                <span className={`${theme.textMuted} text-xs`}>{chat.time}</span>
+                <div className={`w-2 h-2 rounded-full ${chat.status === "online" ? "bg-green-500" : "bg-gray-500"} mb-2`}></div>
+                <span className={`${textSecondary} text-xs`}>{chat.time}</span>
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>
   )
+
+  const renderWorkingHours = () => (
+    <div className="p-6 space-y-6">
+      {/* Page Header Card */}
+      <div className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+        <h1 className={`text-3xl font-semibold ${textPrimary} mb-2`}>
+          Working Hours
+        </h1>
+        <p className={`${textSecondary} text-sm`}>Manage restaurant operating hours and schedules</p>
+      </div>
+
+      {/* Working Hours Cards */}
+      <div className="space-y-4">
+        {workingHours.map((day) => (
+          <div key={day.day} className={`${cardBg} rounded-xl p-6 border shadow-lg`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h3 className={`${textPrimary} font-semibold text-base w-24`}>{day.day}</h3>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={day.isOpen}
+                    onChange={() => onToggleDayStatus(day.day)}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className={`${textSecondary} text-sm`}>Open</span>
+                </label>
+              </div>
+              {day.isOpen && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`${textSecondary} text-sm`}>Open:</span>
+                    <input
+                      type="time"
+                      value={day.openTime}
+                      onChange={(e) => onUpdateWorkingHours(day.day, "openTime", e.target.value)}
+                      className={`${innerCardBg} ${textPrimary} px-3 py-2 rounded-lg text-sm border`}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`${textSecondary} text-sm`}>Close:</span>
+                    <input
+                      type="time"
+                      value={day.closeTime}
+                      onChange={(e) => onUpdateWorkingHours(day.day, "closeTime", e.target.value)}
+                      className={`${innerCardBg} ${textPrimary} px-3 py-2 rounded-lg text-sm border`}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const renderExpandedView = () => {
+    return null
+  }
 
   const renderAnalytics = () => (
     <AnalyticsComponent />
@@ -265,76 +328,6 @@ export default function MainPanel({
   const renderTables = () => (
     <TableComponent />
   )
-
-  const renderWorkingHours = () => (
-    <div className="p-6 space-y-6">
-      <div className="mb-8">
-        <h2 className={`text-3xl font-bold mb-2 ${
-          isDark 
-            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
-            : 'text-gray-900'
-        }`}>
-          Working Hours
-        </h2>
-        <p className={theme.textMuted}>Manage restaurant operating hours and schedules</p>
-      </div>
-
-      <div className="space-y-4">
-        {workingHours.map((day) => (
-          <Card key={day.day} className={`${theme.cardBg} p-6`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h3 className={`${theme.textPrimary} font-semibold w-24`}>{day.day}</h3>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={day.isOpen}
-                    onChange={() => onToggleDayStatus(day.day)}
-                    className={`rounded ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
-                  />
-                  <span className={theme.textMuted}>Open</span>
-                </label>
-              </div>
-              {day.isOpen && (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className={theme.textMuted}>Open:</span>
-                    <input
-                      type="time"
-                      value={day.openTime}
-                      onChange={(e) => onUpdateWorkingHours(day.day, "openTime", e.target.value)}
-                      className={`px-3 py-2 rounded-lg text-sm border ${
-                        isDark 
-                          ? 'bg-gray-700 text-white border-gray-600' 
-                          : 'bg-white text-gray-900 border-gray-300'
-                      }`}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={theme.textMuted}>Close:</span>
-                    <input
-                      type="time"
-                      value={day.closeTime}
-                      onChange={(e) => onUpdateWorkingHours(day.day, "closeTime", e.target.value)}
-                      className={`px-3 py-2 rounded-lg text-sm border ${
-                        isDark 
-                          ? 'bg-gray-700 text-white border-gray-600' 
-                          : 'bg-white text-gray-900 border-gray-300'
-                      }`}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  )
-
-  const renderExpandedView = () => {
-    return null
-  }
 
   const renderContent = () => {
     if (expandedView) {
@@ -369,132 +362,14 @@ export default function MainPanel({
     }
   }
 
-  const getPageTitle = () => {
-    if (expandedView) {
-      switch (expandedView) {
-        case "live-reservations":
-          return "Live Reservations Management"
-        case "live-chat":
-          return "Live Chat Support"
-        case "live-feed":
-          return "Live Activity Feed"
-        case "add-menu-item":
-          return "Add New Menu Item"
-        case "add-category":
-          return "Add New Category"
-        case "add-inventory-item":
-          return "Add New Inventory Item"
-        case "generate-qr":
-          return "Generate QR Codes"
-        case "import-data":
-          return "Import Customer Data"
-        case "staff-schedule":
-          return "Create Staff Schedule"
-        default:
-          return "Detailed View"
-      }
-    }
-
-    switch (activeSection) {
-      case "dashboard":
-        return "Dashboard Overview"
-      case "analytics":
-        return "Analytics Dashboard"
-      case "ai-chat":
-        return "AI Chat Support"
-      case "menu":
-        return "Menu Management"
-      case "orders":
-        return "Order Management"
-      case "inventory":
-        return "Inventory Management"
-      case "food-qr":
-        return "Food QR Management"
-      case "tables":
-        return "Table Management"
-      case "working-hours":
-        return "Working Hours"
-      case "profile":
-        return "Profile Settings"
-      default:
-        return "Overview"
-    }
-  }
-
-  const getPageDescription = () => {
-    if (expandedView) {
-      return "Detailed view and management"
-    }
-
-    switch (activeSection) {
-      case "dashboard":
-        return "Welcome back! Here's your business overview"
-      case "analytics":
-        return "Comprehensive business analytics and insights"
-      case "ai-chat":
-        return "Manage customer conversations and AI responses"
-      case "menu":
-        return "Manage your restaurant menu items and categories"
-      case "orders":
-        return "Track and manage all customer orders"
-      case "inventory":
-        return "Monitor stock levels, track usage, and manage reorders"
-      case "food-qr":
-        return "Generate and manage QR codes for digital menu access"
-      case "tables":
-        return "Monitor and manage restaurant table status"
-      case "working-hours":
-        return "Manage restaurant operating hours and schedules"
-      case "profile":
-        return "Manage your personal and restaurant information"
-      default:
-        return "Welcome back! Here's your business overview"
-    }
-  }
-
   return (
-    <div className={`flex-1 m-4 ml-0 ${theme.primaryBg} rounded-2xl ${theme.borderPrimary} backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 ${
-      isDark ? 'hover:shadow-purple-500/10' : 'hover:shadow-blue-500/10'
-    }`}>
-      <div className={`${theme.headerBg} border-b px-6 py-4 shadow-sm flex-shrink-0`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`text-2xl font-bold ${theme.textPrimary}`}>
-              {getPageTitle()}
-            </h1>
-            <p className={`${theme.textMuted} text-sm`}>
-              {getPageDescription()}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {expandedView && (
-              <button
-                onClick={() => setExpandedView(null)}
-                className={`flex items-center gap-2 px-3 py-1.5 ${theme.hover} rounded-lg ${theme.textSecondary} transition-all duration-200`}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Overview
-              </button>
-            )}
-            {activeSection !== "profile" && !expandedView && (
-              <div className={`flex items-center gap-2 ${theme.success}`}>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-                <span className="text-sm font-medium">Live</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className={`flex-1 overflow-y-auto ${
-        activeSection === "profile" 
-          ? "" 
-          : isDark 
-            ? "scrollbar-thin scrollbar-thumb-gray-600/50 scrollbar-track-transparent hover:scrollbar-thumb-gray-500/70 transition-colors"
-            : "scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent hover:scrollbar-thumb-gray-400/70 transition-colors"
-      }`}>
-        {renderContent()}
-      </div>
+    <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      {renderContent()}
     </div>
   )
 }

@@ -3,8 +3,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTheme } from "@/hooks/useTheme"
 import Sidebar from "./components/Sidebar"
 import MainPanel from "./components/MainPanel"
+import RightSidebar from "./components/RightSidebar"
 import ExpandedViews from "./components/ExpandedViews"
 import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
 import type { 
@@ -21,10 +23,12 @@ import {
   MessageSquare,
   Clock,
   TrendingUp,
-  Bell
+  Bell,
+  Loader2
 } from "lucide-react"
 
 export default function Dashboard() {
+  const { theme, isLoaded: themeLoaded, isDark } = useTheme()
   const [activeSection, setActiveSection] = useState<SectionType>("dashboard")
   const [expandedView, setExpandedView] = useState<ExpandedViewType>(null)
   
@@ -188,14 +192,28 @@ export default function Dashboard() {
     return stored ? JSON.parse(stored) : null
   }
 
+  // Show loading screen while theme is loading
+  if (!themeLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-colors duration-300">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-gray-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] flex">
+    <div className={`min-h-screen ${theme.primaryBg} flex transition-colors duration-300`}>
+      {/* Left Sidebar - Navigation */}
       <Sidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         setExpandedView={setExpandedView}
       />
       
+      {/* Main Content Area */}
       {expandedView ? (
         <ExpandedViews
           expandedView={expandedView}
@@ -207,18 +225,24 @@ export default function Dashboard() {
           onItemUpdated={handleItemUpdated}
         />
       ) : (
-        <MainPanel
-          activeSection={activeSection}
-          expandedView={expandedView}
-          setExpandedView={setExpandedView}
-          tables={tables}
-          workingHours={workingHours}
-          activityFeed={activityFeed}
-          liveChats={liveChats}
-          onUpdateTableStatus={handleUpdateTableStatus}
-          onToggleDayStatus={handleToggleDayStatus}
-          onUpdateWorkingHours={handleUpdateWorkingHours}
-        />
+        <>
+          {/* Center Main Panel */}
+          <MainPanel
+            activeSection={activeSection}
+            expandedView={expandedView}
+            setExpandedView={setExpandedView}
+            tables={tables}
+            workingHours={workingHours}
+            activityFeed={activityFeed}
+            liveChats={liveChats}
+            onUpdateTableStatus={handleUpdateTableStatus}
+            onToggleDayStatus={handleToggleDayStatus}
+            onUpdateWorkingHours={handleUpdateWorkingHours}
+          />
+          
+          {/* Right Sidebar - Real-time Performance */}
+          <RightSidebar />
+        </>
       )}
     </div>
   )
