@@ -5,6 +5,7 @@
 import { ArrowLeft, Users, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
+import { useTheme } from "@/hooks/useTheme"
 import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, ExpandedViewType } from "./types"
 import Profile from "../profile/page"
 import MenuComponent from "./MenuComponent"
@@ -12,7 +13,7 @@ import OrderComponent from "../order-component/OrderComponent"
 import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
 import FoodQRComponent from "../food-qr-component/FoodQRComponent"
-import AnalyticsComponent from "../analytics-component/AnalyticsComponent" // New analytics component
+import AnalyticsComponent from "../analytics-component/AnalyticsComponent"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -41,6 +42,7 @@ export default function MainPanel({
 }: MainPanelProps) {
   const { items: menuItems, loading: menuLoading, error: menuError, refresh: refreshMenu } = useMenuItems()
   const { categories, loading: categoriesLoading, error: categoriesError, refresh: refreshCategories } = useMenuCategories()
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
   const getTableStatusCounts = () => {
     const occupied = tables.filter((t) => t.status === "occupied").length
@@ -52,64 +54,73 @@ export default function MainPanel({
   const tableStats = getTableStatusCounts()
 
   const onToggleMenuItemAvailability = async (id: string) => {
-    // TODO: Implement API call to update menu item availability
     console.log('Toggle availability for item:', id)
     refreshMenu()
   }
 
-  // Handler for when menu items are created/updated
   const handleMenuRefresh = () => {
     refreshMenu()
     refreshCategories()
   }
 
-  // Handler for order creation
   const handleCreateOrder = () => {
     console.log('Create order button clicked')
-    // OrderComponent now handles this internally, no need to set expandedView
+  }
+
+  // Show loading while theme is being loaded
+  if (!themeLoaded) {
+    return (
+      <div className="flex-1 m-4 ml-0 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 flex items-center justify-center transition-all duration-300">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    )
   }
 
   const renderDashboardOverview = () => (
     <div className="p-6 space-y-6">
       {/* Greeting Section */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+        <h2 className={`text-3xl font-bold mb-2 ${
+          isDark 
+            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
+            : 'text-gray-900'
+        }`}>
           Good Evening, DEYBYNAVEEN
         </h2>
-        <p className="text-gray-400">Here's your live business overview for today</p>
+        <p className={theme.textMuted}>Here's your live business overview for today</p>
         <div className="flex items-center gap-2 mt-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-          <span className="text-green-400 text-sm font-medium">Live Updates</span>
+          <span className={`${theme.success} text-sm font-medium`}>Live Updates</span>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-          <h3 className="text-blue-400 font-semibold mb-2">Total Revenue</h3>
-          <div className="text-2xl font-bold text-white">$0.00</div>
+        <Card className={`${theme.cardBg} p-4`}>
+          <h3 className={`${theme.info} font-semibold mb-2`}>Total Revenue</h3>
+          <div className={`text-2xl font-bold ${theme.textPrimary}`}>$0.00</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-          <h3 className="text-green-400 font-semibold mb-2">New Customers</h3>
-          <div className="text-2xl font-bold text-white">0</div>
+        <Card className={`${theme.cardBg} p-4`}>
+          <h3 className={`${theme.success} font-semibold mb-2`}>New Customers</h3>
+          <div className={`text-2xl font-bold ${theme.textPrimary}`}>0</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-          <h3 className="text-yellow-400 font-semibold mb-2">Menu Items</h3>
-          <div className="text-2xl font-bold text-white">{menuLoading ? '...' : menuItems.length}</div>
+        <Card className={`${theme.cardBg} p-4`}>
+          <h3 className={`${theme.warning} font-semibold mb-2`}>Menu Items</h3>
+          <div className={`text-2xl font-bold ${theme.textPrimary}`}>{menuLoading ? '...' : menuItems.length}</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+        <Card className={`${theme.cardBg} p-4`}>
           <h3 className="text-purple-400 font-semibold mb-2">Categories</h3>
-          <div className="text-2xl font-bold text-white">{categoriesLoading ? '...' : categories.length}</div>
+          <div className={`text-2xl font-bold ${theme.textPrimary}`}>{categoriesLoading ? '...' : categories.length}</div>
         </Card>
       </div>
 
       {/* Live Activity Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Live Activity Feed</h2>
+          <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Live Activity Feed</h2>
           <button
             onClick={() => setExpandedView("live-feed")}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
           >
             View All
           </button>
@@ -118,17 +129,17 @@ export default function MainPanel({
           {activityFeed.map((activity) => (
             <Card
               key={activity.id}
-              className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4 hover:border-purple-500/30 transition-all duration-300"
+              className={`${theme.cardBg} p-4 hover:border-purple-500/30 transition-all duration-300`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <activity.icon className={`h-5 w-5 ${activity.color}`} />
                   <div>
-                    <h4 className="text-white font-medium">{activity.message}</h4>
-                    {activity.subtext && <p className="text-gray-400 text-sm">{activity.subtext}</p>}
+                    <h4 className={`${theme.textPrimary} font-medium`}>{activity.message}</h4>
+                    {activity.subtext && <p className={`${theme.textMuted} text-sm`}>{activity.subtext}</p>}
                   </div>
                 </div>
-                <span className="text-gray-500 text-xs">{activity.time}</span>
+                <span className={`${theme.textMuted} text-xs`}>{activity.time}</span>
               </div>
             </Card>
           ))}
@@ -138,44 +149,44 @@ export default function MainPanel({
       {/* Table Status Overview */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Table Status Overview</h2>
+          <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Table Status Overview</h2>
           <button
             onClick={() => setExpandedView("tables")}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
           >
             Manage Tables
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-            <h3 className="text-green-400 font-semibold mb-2">Available Tables</h3>
-            <div className="text-2xl font-bold text-white">{tableStats.available}</div>
+          <Card className={`${theme.cardBg} p-4`}>
+            <h3 className={`${theme.success} font-semibold mb-2`}>Available Tables</h3>
+            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.available}</div>
           </Card>
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-            <h3 className="text-red-400 font-semibold mb-2">Occupied Tables</h3>
-            <div className="text-2xl font-bold text-white">{tableStats.occupied}</div>
+          <Card className={`${theme.cardBg} p-4`}>
+            <h3 className={`${theme.error} font-semibold mb-2`}>Occupied Tables</h3>
+            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.occupied}</div>
           </Card>
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-            <h3 className="text-yellow-400 font-semibold mb-2">Cleaning Tables</h3>
-            <div className="text-2xl font-bold text-white">{tableStats.cleaning}</div>
+          <Card className={`${theme.cardBg} p-4`}>
+            <h3 className={`${theme.warning} font-semibold mb-2`}>Cleaning Tables</h3>
+            <div className={`text-2xl font-bold ${theme.textPrimary}`}>{tableStats.cleaning}</div>
           </Card>
         </div>
       </div>
 
       {/* Live Reservations */}
       <div className="grid grid-cols-1 gap-6">
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 space-y-4">
+        <Card className={`${theme.cardBg} p-6 space-y-4`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Live Reservations</h2>
+            <h2 className={`text-xl font-semibold ${theme.textPrimary}`}>Live Reservations</h2>
             <button
               onClick={() => setExpandedView("live-reservations")}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className={`text-sm ${theme.textMuted} ${theme.hover} transition-colors px-3 py-1 rounded`}
             >
               View All
             </button>
           </div>
           <div className="text-center py-6">
-            <div className="text-gray-400 text-sm">No upcoming reservations</div>
+            <div className={`${theme.textMuted} text-sm`}>No upcoming reservations</div>
           </div>
         </Card>
       </div>
@@ -185,17 +196,21 @@ export default function MainPanel({
   const renderAIChat = () => (
     <div className="p-6 space-y-6">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+        <h2 className={`text-3xl font-bold mb-2 ${
+          isDark 
+            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
+            : 'text-gray-900'
+        }`}>
           AI Chat Support
         </h2>
-        <p className="text-gray-400">Manage customer conversations and AI responses</p>
+        <p className={theme.textMuted}>Manage customer conversations and AI responses</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {liveChats.map((chat) => (
           <Card
             key={chat.id}
-            className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300 cursor-pointer"
+            className={`${theme.cardBg} p-6 hover:border-purple-500/30 transition-all duration-300 cursor-pointer`}
             onClick={() => setExpandedView(`chat-${chat.id}`)}
           >
             <div className="flex items-center justify-between mb-4">
@@ -204,15 +219,15 @@ export default function MainPanel({
                   <span className="text-white font-semibold">{chat.customer.charAt(0)}</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">{chat.customer}</h3>
-                  <p className="text-gray-400 text-sm">{chat.lastMessage}</p>
+                  <h3 className={`${theme.textPrimary} font-semibold`}>{chat.customer}</h3>
+                  <p className={`${theme.textMuted} text-sm`}>{chat.lastMessage}</p>
                 </div>
               </div>
               <div className="text-right">
                 <div
                   className={`w-2 h-2 rounded-full ${chat.status === "online" ? "bg-green-500" : "bg-gray-500"}`}
                 ></div>
-                <span className="text-gray-500 text-xs">{chat.time}</span>
+                <span className={`${theme.textMuted} text-xs`}>{chat.time}</span>
               </div>
             </div>
           </Card>
@@ -221,12 +236,10 @@ export default function MainPanel({
     </div>
   )
 
-  // New analytics render function
   const renderAnalytics = () => (
     <AnalyticsComponent />
   )
 
-  // Use the MenuComponent instead of the original renderMenu function
   const renderMenu = () => (
     <MenuComponent 
       menuItems={menuItems}
@@ -235,24 +248,20 @@ export default function MainPanel({
     />
   )
 
-  // Render the OrderComponent
   const renderOrders = () => (
     <OrderComponent 
       onCreateOrder={handleCreateOrder}
     />
   )
 
-  // Render the InventoryComponent (it handles its own navigation internally)
   const renderInventory = () => (
     <InventoryComponent />
   )
 
-  // Render the FoodQRComponent
   const renderFoodQR = () => (
     <FoodQRComponent />
   )
 
-  // Updated renderTables to use the new TableComponent
   const renderTables = () => (
     <TableComponent />
   )
@@ -260,46 +269,58 @@ export default function MainPanel({
   const renderWorkingHours = () => (
     <div className="p-6 space-y-6">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+        <h2 className={`text-3xl font-bold mb-2 ${
+          isDark 
+            ? 'bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent'
+            : 'text-gray-900'
+        }`}>
           Working Hours
         </h2>
-        <p className="text-gray-400">Manage restaurant operating hours and schedules</p>
+        <p className={theme.textMuted}>Manage restaurant operating hours and schedules</p>
       </div>
 
       <div className="space-y-4">
         {workingHours.map((day) => (
-          <Card key={day.day} className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
+          <Card key={day.day} className={`${theme.cardBg} p-6`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <h3 className="text-white font-semibold w-24">{day.day}</h3>
+                <h3 className={`${theme.textPrimary} font-semibold w-24`}>{day.day}</h3>
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={day.isOpen}
                     onChange={() => onToggleDayStatus(day.day)}
-                    className="rounded"
+                    className={`rounded ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
                   />
-                  <span className="text-gray-400">Open</span>
+                  <span className={theme.textMuted}>Open</span>
                 </label>
               </div>
               {day.isOpen && (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">Open:</span>
+                    <span className={theme.textMuted}>Open:</span>
                     <input
                       type="time"
                       value={day.openTime}
                       onChange={(e) => onUpdateWorkingHours(day.day, "openTime", e.target.value)}
-                      className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm"
+                      className={`px-3 py-2 rounded-lg text-sm border ${
+                        isDark 
+                          ? 'bg-gray-700 text-white border-gray-600' 
+                          : 'bg-white text-gray-900 border-gray-300'
+                      }`}
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">Close:</span>
+                    <span className={theme.textMuted}>Close:</span>
                     <input
                       type="time"
                       value={day.closeTime}
                       onChange={(e) => onUpdateWorkingHours(day.day, "closeTime", e.target.value)}
-                      className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm"
+                      className={`px-3 py-2 rounded-lg text-sm border ${
+                        isDark 
+                          ? 'bg-gray-700 text-white border-gray-600' 
+                          : 'bg-white text-gray-900 border-gray-300'
+                      }`}
                     />
                   </div>
                 </div>
@@ -311,14 +332,11 @@ export default function MainPanel({
     </div>
   )
 
-  // Handle expanded views
   const renderExpandedView = () => {
-    // OrderComponent now handles its own expanded views internally
     return null
   }
 
   const renderContent = () => {
-    // Handle expanded views first
     if (expandedView) {
       const expandedViewContent = renderExpandedView()
       if (expandedViewContent) return expandedViewContent
@@ -328,7 +346,7 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return renderDashboardOverview()
-      case "analytics": // New analytics case
+      case "analytics":
         return renderAnalytics()
       case "ai-chat":
         return renderAIChat()
@@ -380,7 +398,7 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return "Dashboard Overview"
-      case "analytics": // New analytics case
+      case "analytics":
         return "Analytics Dashboard"
       case "ai-chat":
         return "AI Chat Support"
@@ -411,7 +429,7 @@ export default function MainPanel({
     switch (activeSection) {
       case "dashboard":
         return "Welcome back! Here's your business overview"
-      case "analytics": // New analytics case
+      case "analytics":
         return "Comprehensive business analytics and insights"
       case "ai-chat":
         return "Manage customer conversations and AI responses"
@@ -435,14 +453,16 @@ export default function MainPanel({
   }
 
   return (
-    <div className="flex-1 m-4 ml-0 bg-gradient-to-b from-[#16213e] to-[#0f172a] rounded-2xl border border-gray-700/50 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 hover:shadow-purple-500/10">
-      <div className="bg-gradient-to-r from-[#16213e] to-[#1a1b2e] border-b border-gray-700/50 px-6 py-4 shadow-sm flex-shrink-0">
+    <div className={`flex-1 m-4 ml-0 ${theme.primaryBg} rounded-2xl ${theme.borderPrimary} backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 ${
+      isDark ? 'hover:shadow-purple-500/10' : 'hover:shadow-blue-500/10'
+    }`}>
+      <div className={`${theme.headerBg} border-b px-6 py-4 shadow-sm flex-shrink-0`}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className={`text-2xl font-bold ${theme.textPrimary}`}>
               {getPageTitle()}
             </h1>
-            <p className="text-gray-400 text-sm">
+            <p className={`${theme.textMuted} text-sm`}>
               {getPageDescription()}
             </p>
           </div>
@@ -450,14 +470,14 @@ export default function MainPanel({
             {expandedView && (
               <button
                 onClick={() => setExpandedView(null)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-gray-300 hover:text-white transition-all duration-200"
+                className={`flex items-center gap-2 px-3 py-1.5 ${theme.hover} rounded-lg ${theme.textSecondary} transition-all duration-200`}
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Overview
               </button>
             )}
             {activeSection !== "profile" && !expandedView && (
-              <div className="flex items-center gap-2 text-green-400">
+              <div className={`flex items-center gap-2 ${theme.success}`}>
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
                 <span className="text-sm font-medium">Live</span>
               </div>
@@ -469,7 +489,9 @@ export default function MainPanel({
       <div className={`flex-1 overflow-y-auto ${
         activeSection === "profile" 
           ? "" 
-          : "scrollbar-thin scrollbar-thumb-gray-600/50 scrollbar-track-transparent hover:scrollbar-thumb-gray-500/70 transition-colors"
+          : isDark 
+            ? "scrollbar-thin scrollbar-thumb-gray-600/50 scrollbar-track-transparent hover:scrollbar-thumb-gray-500/70 transition-colors"
+            : "scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent hover:scrollbar-thumb-gray-400/70 transition-colors"
       }`}>
         {renderContent()}
       </div>
