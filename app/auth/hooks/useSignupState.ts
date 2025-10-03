@@ -158,7 +158,7 @@ export const useSignupState = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
-
+//
   const validatePassword = (password: string) => {
     return password.length >= 8
   }

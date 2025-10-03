@@ -103,7 +103,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     // Call FastAPI backend instead of Next.js API route
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/supabase/login`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/supabase/supabase/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
