@@ -2,9 +2,10 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { QrCode, Download, Loader2, X, Palette, Move, AlertCircle, CheckCircle, Copy } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useTheme } from "@/hooks/useTheme"
 import { tablesApi } from "@/lib/tables-api"
 
 interface TableQRCodeProps {
@@ -29,6 +30,8 @@ interface QRCodeData {
 }
 
 export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: TableQRCodeProps) {
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [qrData, setQrData] = useState<QRCodeData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,6 +43,24 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
     color: '#000000',
     background_color: '#FFFFFF'
   })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !themeLoaded || !mounted) return null
+
+  // Theme variables matching MainPanel
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textTertiary = isDark ? 'text-gray-500' : 'text-gray-500'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-white border-gray-300'
+  const hoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const borderColor = isDark ? 'border-gray-700/50' : 'border-gray-200'
+  const infoCardBg = isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'
+  const urlDisplayBg = isDark ? 'bg-[#0f0f0f]' : 'bg-gray-200'
 
   // Generate QR Code
   const generateQRCode = async () => {
@@ -91,27 +112,27 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
     generateQRCode()
   }
 
-  if (!isOpen) return null
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className={`${cardBg} border shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto transition-colors duration-300`}
+        style={{ borderRadius: '1.5rem' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
+        <div className={`flex items-center justify-between p-6 border-b ${borderColor}`}>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/20 rounded-lg">
               <QrCode className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Table {tableNumber} QR Code</h2>
-              <p className="text-gray-400 text-sm">Generate and customize QR code for this table</p>
+              <h2 className={`text-xl font-bold ${textPrimary}`}>Table {tableNumber} QR Code</h2>
+              <p className={`${textSecondary} text-sm`}>Generate and customize QR code for this table</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+            className={`p-2 ${hoverBg} transition-colors`}
+            style={{ borderRadius: '0.5rem' }}
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className={`h-5 w-5 ${textSecondary}`} />
           </button>
         </div>
 
@@ -120,7 +141,7 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Size */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                 <Move className="h-4 w-4 inline mr-2" />
                 Size (px)
               </label>
@@ -130,13 +151,14 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
                 max="2048"
                 value={options.size}
                 onChange={(e) => updateOption('size', parseInt(e.target.value) || 256)}
-                className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-purple-500/50"
+                className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} focus:ring-2 focus:ring-purple-500/50`}
+                style={{ borderRadius: '0.5rem' }}
               />
             </div>
 
             {/* Color */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                 <Palette className="h-4 w-4 inline mr-2" />
                 QR Color
               </label>
@@ -145,13 +167,15 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
                   type="color"
                   value={options.color}
                   onChange={(e) => updateOption('color', e.target.value)}
-                  className="w-12 h-10 rounded border border-gray-600/50 bg-gray-700/50"
+                  className={`w-12 h-10 border ${inputBg}`}
+                  style={{ borderRadius: '0.25rem' }}
                 />
                 <input
                   type="text"
                   value={options.color}
                   onChange={(e) => updateOption('color', e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-purple-500/50"
+                  className={`flex-1 px-3 py-2 ${inputBg} border ${textPrimary} focus:ring-2 focus:ring-purple-500/50`}
+                  style={{ borderRadius: '0.5rem' }}
                   placeholder="#000000"
                 />
               </div>
@@ -159,7 +183,7 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
 
             {/* Background Color */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                 <Palette className="h-4 w-4 inline mr-2" />
                 Background
               </label>
@@ -168,13 +192,15 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
                   type="color"
                   value={options.background_color}
                   onChange={(e) => updateOption('background_color', e.target.value)}
-                  className="w-12 h-10 rounded border border-gray-600/50 bg-gray-700/50"
+                  className={`w-12 h-10 border ${inputBg}`}
+                  style={{ borderRadius: '0.25rem' }}
                 />
                 <input
                   type="text"
                   value={options.background_color}
                   onChange={(e) => updateOption('background_color', e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-purple-500/50"
+                  className={`flex-1 px-3 py-2 ${inputBg} border ${textPrimary} focus:ring-2 focus:ring-purple-500/50`}
+                  style={{ borderRadius: '0.5rem' }}
                   placeholder="#FFFFFF"
                 />
               </div>
@@ -186,7 +212,8 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
             <button
               onClick={generateQRCode}
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 text-white transition-colors"
+              style={{ borderRadius: '0.5rem' }}
             >
               {loading ? (
                 <>
@@ -204,7 +231,8 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
 
           {/* Error Display */}
           {error && (
-            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20"
+              style={{ borderRadius: '0.5rem' }}>
               <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
               <p className="text-red-400">{error}</p>
             </div>
@@ -214,7 +242,8 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
           {qrData && (
             <div className="space-y-4">
               <div className="text-center">
-                <div className="inline-block p-4 bg-white rounded-xl shadow-lg">
+                <div className="inline-block p-4 bg-white shadow-lg"
+                  style={{ borderRadius: '0.75rem' }}>
                   <img
                     src={`data:image/png;base64,${qrData.qr_code.image_base64}`}
                     alt={`QR Code for Table ${tableNumber}`}
@@ -228,12 +257,14 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
               </div>
 
               {/* QR Code Info */}
-              <div className="bg-gray-700/30 rounded-lg p-4 space-y-3">
+              <div className={`${infoCardBg} p-4 space-y-3`}
+                style={{ borderRadius: '0.5rem' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Table URL:</span>
+                  <span className={`${textSecondary} text-sm`}>Table URL:</span>
                   <button
                     onClick={copyTableURL}
-                    className="flex items-center gap-2 px-3 py-1 bg-gray-600/50 hover:bg-gray-500/50 text-white rounded text-sm transition-colors"
+                    className={`flex items-center gap-2 px-3 py-1 ${innerCardBg} ${hoverBg} ${textPrimary} text-sm transition-colors`}
+                    style={{ borderRadius: '0.25rem' }}
                   >
                     {copied ? (
                       <>
@@ -249,33 +280,40 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
                   </button>
                 </div>
                 
-                <div className="text-white text-sm break-all bg-gray-800/50 p-3 rounded">
+                <div className={`${textPrimary} text-sm break-all ${urlDisplayBg} p-3`}
+                  style={{ borderRadius: '0.25rem' }}>
                   {qrData.qr_code.url}
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-400">Size:</span>
-                    <div className="text-white">{qrData.qr_code.size}px</div>
+                    <span className={`${textSecondary}`}>Size:</span>
+                    <div className={`${textPrimary}`}>{qrData.qr_code.size}px</div>
                   </div>
                   <div>
-                    <span className="text-gray-400">Color:</span>
+                    <span className={`${textSecondary}`}>Color:</span>
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-4 h-4 rounded border border-gray-600"
-                        style={{ backgroundColor: qrData.qr_code.color }}
+                        className={`w-4 h-4 border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}
+                        style={{ 
+                          backgroundColor: qrData.qr_code.color,
+                          borderRadius: '0.125rem'
+                        }}
                       />
-                      <span className="text-white">{qrData.qr_code.color}</span>
+                      <span className={`${textPrimary}`}>{qrData.qr_code.color}</span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-400">Background:</span>
+                    <span className={`${textSecondary}`}>Background:</span>
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-4 h-4 rounded border border-gray-600"
-                        style={{ backgroundColor: qrData.qr_code.background_color }}
+                        className={`w-4 h-4 border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}
+                        style={{ 
+                          backgroundColor: qrData.qr_code.background_color,
+                          borderRadius: '0.125rem'
+                        }}
                       />
-                      <span className="text-white">{qrData.qr_code.background_color}</span>
+                      <span className={`${textPrimary}`}>{qrData.qr_code.background_color}</span>
                     </div>
                   </div>
                 </div>
@@ -285,7 +323,8 @@ export default function TableQRCode({ tableId, tableNumber, isOpen, onClose }: T
               <div className="flex justify-center">
                 <button
                   onClick={downloadQRCode}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white transition-colors"
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   <Download className="h-4 w-4" />
                   Download QR Code

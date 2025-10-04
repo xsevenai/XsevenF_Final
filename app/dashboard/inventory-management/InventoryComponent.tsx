@@ -2,9 +2,10 @@
 
 "use client"
 
-import React, { useState } from 'react'
-import { Package, AlertTriangle, RefreshCw, TrendingDown, Scale, ArrowLeft, BarChart3 } from "lucide-react"
+import React, { useState, useEffect } from 'react'
+import { Package, AlertTriangle, RefreshCw, TrendingDown, Scale, ArrowLeft, BarChart3, Loader2 } from "lucide-react"
 import { useInventoryManagement } from '@/hooks/use-inventory'
+import { useTheme } from "@/hooks/useTheme"
 import InventoryOverview from './components/InventoryOverview'
 import InventoryItemsList from './components/InventoryItemList'
 import LowStockAlerts from './components/LowStockAlerts'
@@ -15,6 +16,8 @@ type InventoryView = 'overview' | 'items' | 'low-stock' | 'reorder' | 'usage' | 
 
 export default function InventoryComponent() {
   const [activeView, setActiveView] = useState<InventoryView>('overview')
+  const [mounted, setMounted] = useState(false)
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const {
     inventoryItems,
     lowStockItems,
@@ -23,6 +26,27 @@ export default function InventoryComponent() {
     stats,
     refreshAll
   } = useInventoryManagement()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!themeLoaded || !mounted) {
+    return (
+      <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-all duration-300">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    )
+  }
+
+  // Theme-based styling variables
+  const mainPanelBg = isDark ? 'bg-[#111111]' : 'bg-gray-50'
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const buttonHoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const tabActiveBg = isDark ? 'bg-[#2a2a2a] border-[#3a3a3a]' : 'bg-gray-100 border-gray-300'
+  const tabInactiveBg = isDark ? 'bg-[#1f1f1f] hover:bg-[#2a2a2a]' : 'bg-gray-50 hover:bg-gray-100'
 
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Package },
@@ -65,7 +89,7 @@ export default function InventoryComponent() {
             loading={inventoryItems.loading}
             error={inventoryItems.error}
             onRefresh={inventoryItems.refresh}
-            onUpdateItem={inventoryItems.updateItem}  // Already fixed - now uses string IDs
+            onUpdateItem={inventoryItems.updateItem}
             onBack={handleBackToOverview}
           />
         )
@@ -86,7 +110,7 @@ export default function InventoryComponent() {
             reorders={reorders.reorderHistory}
             loading={reorders.loading}
             error={reorders.error}
-            onRefresh={() => {}} // No specific refresh for reorder history
+            onRefresh={() => {}}
             onCreateReorder={reorders.createReorder}
             onBack={handleBackToOverview}
             inventoryItems={inventoryItems.items}
@@ -108,18 +132,19 @@ export default function InventoryComponent() {
       case 'stats':
         return (
           <div className="space-y-6">
-            <div className="flex items-center gap-4 p-6 pb-0">
-              <button
-                onClick={handleBackToOverview}
-                className="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white rounded-lg transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 inline mr-2" />
-                Back to Overview
-              </button>
-            </div>
-            <div className="p-6 pt-0">
-              <h2 className="text-2xl font-bold text-white mb-4">Inventory Analytics</h2>
-              <p className="text-gray-400">Detailed analytics and reporting coming soon...</p>
+            <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleBackToOverview}
+                  className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </button>
+                <div>
+                  <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Inventory Analytics</h1>
+                  <p className={`${textSecondary}`}>Detailed analytics and reporting coming soon...</p>
+                </div>
+              </div>
             </div>
           </div>
         )
@@ -169,65 +194,82 @@ export default function InventoryComponent() {
   // If we're in a detailed view, render the specific component
   if (activeView !== 'overview') {
     return (
-      <div className="space-y-6">
-        {renderContent()}
+      <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="p-6">
+          {renderContent()}
+        </div>
       </div>
     )
   }
 
   // Main overview page with tab navigation
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              {getPageTitle()}
-            </h2>
-            <p className="text-gray-400">{getPageDescription()}</p>
+    <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>{getPageTitle()}</h1>
+              <p className={`${textSecondary}`}>{getPageDescription()}</p>
+            </div>
+            <button
+              onClick={refreshAll}
+              className={`flex items-center gap-2 px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh All
+            </button>
           </div>
-          <button
-            onClick={refreshAll}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh All
-          </button>
         </div>
-      </div>
 
-      {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabClick(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeView === tab.id
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
-            }`}
-          >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
-            {tab.id === 'low-stock' && lowStockItems.lowStockItems.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                {lowStockItems.lowStockItems.length}
-              </span>
-            )}
-            {tab.id === 'reorder' && reorders.reorderHistory.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
-                {reorders.reorderHistory.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+        {/* Tab Navigation */}
+        <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+          <div className="p-6">
+            <div className="flex flex-wrap gap-3">
+              {tabs.map((tab, index) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabClick(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    activeView === tab.id
+                      ? `${tabActiveBg} ${textPrimary} shadow-lg border scale-105`
+                      : `${tabInactiveBg} ${textSecondary} border hover:shadow-md hover:scale-105`
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                  {tab.id === 'low-stock' && lowStockItems.lowStockItems.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-medium">
+                      {lowStockItems.lowStockItems.length}
+                    </span>
+                  )}
+                  {tab.id === 'reorder' && reorders.reorderHistory.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full font-medium">
+                      {reorders.reorderHistory.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-      {/* Content */}
-      <div className="min-h-[400px]">
-        {renderContent()}
+        {/* Content */}
+        <div className="min-h-[400px]">
+          {renderContent()}
+        </div>
       </div>
     </div>
   )

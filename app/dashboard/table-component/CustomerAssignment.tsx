@@ -2,9 +2,10 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Users, Phone, Mail, User, MessageSquare, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useTheme } from "@/hooks/useTheme"
 import { tablesApi, CustomerAssignmentData } from "@/lib/tables-api"
 
 interface CustomerAssignmentProps {
@@ -40,11 +41,31 @@ export default function CustomerAssignment({
   onClose,
   onSuccess
 }: CustomerAssignmentProps) {
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<FormData>>({})
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !themeLoaded || !mounted) return null
+
+  // Theme variables matching MainPanel
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textTertiary = isDark ? 'text-gray-500' : 'text-gray-500'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-white border-gray-300'
+  const hoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const iconBg = isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'
+  const borderColor = isDark ? 'border-gray-700/50' : 'border-gray-200'
+  const buttonPrimary = isDark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'
 
   // Handle form field changes
   const handleChange = (field: keyof FormData, value: string | number) => {
@@ -191,28 +212,28 @@ export default function CustomerAssignment({
     resetForm()
   }
 
-  if (!isOpen) return null
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <Card className={`${cardBg} border shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors duration-300`}
+        style={{ borderRadius: '1.5rem' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
+        <div className={`flex items-center justify-between p-6 border-b ${borderColor}`}>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-500/20 rounded-lg">
               <Users className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Assign Table {tableNumber}</h2>
-              <p className="text-gray-400 text-sm">Capacity: {tableCapacity} guests</p>
+              <h2 className={`text-xl font-bold ${textPrimary}`}>Assign Table {tableNumber}</h2>
+              <p className={`${textSecondary} text-sm`}>Capacity: {tableCapacity} guests</p>
             </div>
           </div>
           <button
             onClick={handleClose}
             disabled={loading}
-            className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`p-2 ${hoverBg} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            style={{ borderRadius: '0.5rem' }}
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className={`h-5 w-5 ${textSecondary}`} />
           </button>
         </div>
 
@@ -220,7 +241,8 @@ export default function CustomerAssignment({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Success Message */}
           {success && (
-            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20"
+              style={{ borderRadius: '0.5rem' }}>
               <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
               <p className="text-green-400">{success}</p>
             </div>
@@ -228,7 +250,8 @@ export default function CustomerAssignment({
 
           {/* Error Message */}
           {error && (
-            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20"
+              style={{ borderRadius: '0.5rem' }}>
               <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
               <p className="text-red-400">{error}</p>
             </div>
@@ -236,7 +259,7 @@ export default function CustomerAssignment({
 
           {/* Party Size */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
               <Users className="h-4 w-4 inline mr-2" />
               Party Size *
             </label>
@@ -246,9 +269,10 @@ export default function CustomerAssignment({
               max={tableCapacity}
               value={formData.party_size}
               onChange={(e) => handleChange("party_size", parseInt(e.target.value) || 0)}
-              className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
-                errors.party_size !== undefined ? "border-red-500/50" : "border-gray-600/50"
+              className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
+                errors.party_size !== undefined ? "border-red-500/50" : ""
               }`}
+              style={{ borderRadius: '0.5rem' }}
               placeholder="Number of guests"
               disabled={loading}
               required
@@ -260,7 +284,7 @@ export default function CustomerAssignment({
 
           {/* Customer Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
               <User className="h-4 w-4 inline mr-2" />
               Customer Name
             </label>
@@ -268,9 +292,10 @@ export default function CustomerAssignment({
               type="text"
               value={formData.customer_name}
               onChange={(e) => handleChange("customer_name", e.target.value)}
-              className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
-                errors.customer_name !== undefined ? "border-red-500/50" : "border-gray-600/50"
+              className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
+                errors.customer_name !== undefined ? "border-red-500/50" : ""
               }`}
+              style={{ borderRadius: '0.5rem' }}
               placeholder="Enter customer name"
               disabled={loading}
               maxLength={100}
@@ -282,7 +307,7 @@ export default function CustomerAssignment({
 
           {/* Customer Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
               <Phone className="h-4 w-4 inline mr-2" />
               Phone Number
             </label>
@@ -290,9 +315,10 @@ export default function CustomerAssignment({
               type="tel"
               value={formData.customer_phone}
               onChange={(e) => handleChange("customer_phone", e.target.value)}
-              className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
-                errors.customer_phone !== undefined ? "border-red-500/50" : "border-gray-600/50"
+              className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
+                errors.customer_phone !== undefined ? "border-red-500/50" : ""
               }`}
+              style={{ borderRadius: '0.5rem' }}
               placeholder="Enter phone number"
               disabled={loading}
               maxLength={20}
@@ -304,17 +330,18 @@ export default function CustomerAssignment({
 
           {/* Customer Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
               <Mail className="h-4 w-4 inline mr-2" />
-              Email Address <span className="text-gray-500">(Optional)</span>
+              Email Address <span className={`${textTertiary}`}>(Optional)</span>
             </label>
             <input
               type="email"
               value={formData.customer_email}
               onChange={(e) => handleChange("customer_email", e.target.value)}
-              className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
-                errors.customer_email !== undefined ? "border-red-500/50" : "border-gray-600/50"
+              className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors ${
+                errors.customer_email !== undefined ? "border-red-500/50" : ""
               }`}
+              style={{ borderRadius: '0.5rem' }}
               placeholder="Enter email address"
               disabled={loading}
               maxLength={100}
@@ -326,26 +353,28 @@ export default function CustomerAssignment({
 
           {/* Special Requests */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
               <MessageSquare className="h-4 w-4 inline mr-2" />
-              Special Requests <span className="text-gray-500">(Optional)</span>
+              Special Requests <span className={`${textTertiary}`}>(Optional)</span>
             </label>
             <textarea
               value={formData.special_requests}
               onChange={(e) => handleChange("special_requests", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors resize-none"
+              className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 transition-colors resize-none`}
+              style={{ borderRadius: '0.5rem' }}
               placeholder="Any special requests or notes..."
               disabled={loading}
               rows={3}
               maxLength={500}
             />
-            <div className="text-right text-xs text-gray-500 mt-1">
+            <div className={`text-right text-xs ${textTertiary} mt-1`}>
               {formData.special_requests.length}/500
             </div>
           </div>
 
           {/* Info Note */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+          <div className="bg-blue-500/10 border border-blue-500/20 p-3"
+            style={{ borderRadius: '0.5rem' }}>
             <p className="text-blue-400 text-sm">
               <strong>Note:</strong> Either customer name or phone number must be provided. 
               An initial order will be created and the table status will be updated to "occupied".
@@ -358,14 +387,16 @@ export default function CustomerAssignment({
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-4 py-2 ${innerCardBg} ${hoverBg} ${textSecondary} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              style={{ borderRadius: '0.5rem' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !!success}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{ borderRadius: '0.5rem' }}
             >
               {loading ? (
                 <>

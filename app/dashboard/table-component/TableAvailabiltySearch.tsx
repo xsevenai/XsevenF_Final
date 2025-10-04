@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react"
 import { Search, MapPin, Users, TrendingUp, Loader2, AlertCircle, CheckCircle, Clock } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useTheme } from "@/hooks/useTheme"
 import { tablesApi } from "@/lib/tables-api"
 
 interface TableAvailabilitySearchProps {
@@ -27,6 +28,8 @@ interface AvailabilityData {
 }
 
 export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpanded = false }: TableAvailabilitySearchProps) {
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [filters, setFilters] = useState({
     section: '',
     capacity: ''
@@ -73,13 +76,35 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
     setAvailability(null)
   }
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Auto-check availability when component mounts
   useEffect(() => {
     checkAvailability()
   }, [])
 
+  if (!themeLoaded || !mounted) {
+    return null
+  }
+
+  // Theme variables matching MainPanel
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textTertiary = isDark ? 'text-gray-500' : 'text-gray-500'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-white border-gray-300'
+  const hoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const iconBg = isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'
+  const borderColor = isDark ? 'border-gray-700/50' : 'border-gray-200'
+  const statCardBg = isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'
+  const tableCardBg = isDark ? 'bg-[#1a1a1a] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+
   return (
-    <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
+    <Card className={`${cardBg} border shadow-lg p-6 transition-colors duration-300`}
+      style={{ borderRadius: '1.5rem' }}>
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -88,14 +113,15 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
               <TrendingUp className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Table Availability</h3>
-              <p className="text-gray-400 text-sm">Check current table status and availability</p>
+              <h3 className={`text-lg font-semibold ${textPrimary}`}>Table Availability</h3>
+              <p className={`${textSecondary} text-sm`}>Check current table status and availability</p>
             </div>
           </div>
           {!autoExpanded && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="px-3 py-1 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-lg text-sm transition-colors"
+              className={`px-3 py-1 ${innerCardBg} ${hoverBg} ${textSecondary} text-sm transition-colors`}
+              style={{ borderRadius: '0.5rem' }}
             >
               {isExpanded ? 'Collapse' : 'Expand'}
             </button>
@@ -105,39 +131,44 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
         {/* Quick Stats */}
         {availability && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="text-center p-3 bg-gray-700/30 rounded-lg">
+            <div className={`text-center p-3 ${statCardBg}`}
+              style={{ borderRadius: '0.5rem' }}>
               <div className="text-xl font-bold text-green-400">{availability.available_count}</div>
-              <div className="text-xs text-gray-400">Available</div>
+              <div className={`text-xs ${textSecondary}`}>Available</div>
             </div>
-            <div className="text-center p-3 bg-gray-700/30 rounded-lg">
+            <div className={`text-center p-3 ${statCardBg}`}
+              style={{ borderRadius: '0.5rem' }}>
               <div className="text-xl font-bold text-red-400">{availability.occupied_count}</div>
-              <div className="text-xs text-gray-400">Occupied</div>
+              <div className={`text-xs ${textSecondary}`}>Occupied</div>
             </div>
-            <div className="text-center p-3 bg-gray-700/30 rounded-lg">
+            <div className={`text-center p-3 ${statCardBg}`}
+              style={{ borderRadius: '0.5rem' }}>
               <div className="text-xl font-bold text-blue-400">{availability.reserved_count}</div>
-              <div className="text-xs text-gray-400">Reserved</div>
+              <div className={`text-xs ${textSecondary}`}>Reserved</div>
             </div>
-            <div className="text-center p-3 bg-gray-700/30 rounded-lg">
+            <div className={`text-center p-3 ${statCardBg}`}
+              style={{ borderRadius: '0.5rem' }}>
               <div className="text-xl font-bold text-yellow-400">{availability.maintenance_count}</div>
-              <div className="text-xs text-gray-400">Maintenance</div>
+              <div className={`text-xs ${textSecondary}`}>Maintenance</div>
             </div>
           </div>
         )}
 
         {/* Expanded Search Filters */}
         {isExpanded && (
-          <div className="space-y-4 pt-4 border-t border-gray-700/50">
+          <div className={`space-y-4 pt-4 border-t ${borderColor}`}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Section Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                   <MapPin className="h-4 w-4 inline mr-2" />
                   Section
                 </label>
                 <select
                   value={filters.section}
                   onChange={(e) => setFilters(prev => ({ ...prev, section: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
+                  className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors`}
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   <option value="">All Sections</option>
                   {sections.map(section => (
@@ -148,7 +179,7 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
 
               {/* Capacity Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                   <Users className="h-4 w-4 inline mr-2" />
                   Minimum Capacity
                 </label>
@@ -158,7 +189,8 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                   max="20"
                   value={filters.capacity}
                   onChange={(e) => setFilters(prev => ({ ...prev, capacity: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
+                  className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors`}
+                  style={{ borderRadius: '0.5rem' }}
                   placeholder="Any capacity"
                 />
               </div>
@@ -168,7 +200,8 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                 <button
                   onClick={checkAvailability}
                   disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white transition-colors"
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   {loading ? (
                     <>
@@ -184,7 +217,8 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                 </button>
                 <button
                   onClick={clearFilters}
-                  className="px-3 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-lg transition-colors text-sm"
+                  className={`px-3 py-2 ${innerCardBg} ${hoverBg} ${textSecondary} transition-colors text-sm`}
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   Clear
                 </button>
@@ -193,7 +227,8 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
 
             {/* Error Display */}
             {error && (
-              <div className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20"
+                style={{ borderRadius: '0.5rem' }}>
                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
                 <p className="text-red-400 text-sm">{error}</p>
               </div>
@@ -202,20 +237,22 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
             {/* Available Tables List */}
             {availability && availability.available_tables.length > 0 && (
               <div>
-                <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                <h4 className={`${textPrimary} font-medium mb-3 flex items-center gap-2`}>
                   <CheckCircle className="h-4 w-4 text-green-400" />
                   Available Tables ({availability.available_tables.length})
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
                   {availability.available_tables.map(table => (
-                    <div key={table.id} className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                    <div key={table.id} className={`p-3 ${tableCardBg} border`}
+                      style={{ borderRadius: '0.5rem' }}>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-green-500/20 flex items-center justify-center"
+                          style={{ borderRadius: '0.5rem' }}>
                           <Users className="h-4 w-4 text-green-400" />
                         </div>
                         <div>
-                          <div className="text-white font-medium text-sm">Table {table.table_number}</div>
-                          <div className="text-gray-400 text-xs">{table.capacity} seats • {table.section}</div>
+                          <div className={`${textPrimary} font-medium text-sm`}>Table {table.table_number}</div>
+                          <div className={`${textSecondary} text-xs`}>{table.capacity} seats • {table.section}</div>
                         </div>
                       </div>
                     </div>
@@ -227,9 +264,9 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
             {/* No Available Tables */}
             {availability && availability.available_tables.length === 0 && (
               <div className="text-center py-6">
-                <Clock className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-400">No available tables match your criteria</p>
-                <p className="text-gray-500 text-sm">Try adjusting your filters or check back later</p>
+                <Clock className={`h-8 w-8 ${textSecondary} mx-auto mb-3`} />
+                <p className={`${textSecondary}`}>No available tables match your criteria</p>
+                <p className={`${textTertiary} text-sm`}>Try adjusting your filters or check back later</p>
               </div>
             )}
           </div>

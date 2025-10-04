@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, QrCode, Loader2, Save } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { useTheme } from "@/hooks/useTheme"
 import type { QRCode } from '@/lib/food-qr'
 
 interface EditQRModalProps {
@@ -27,6 +28,12 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
     template_id: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [mounted, setMounted] = useState(false)
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (qrCode) {
@@ -40,7 +47,15 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
     }
   }, [qrCode])
 
-  if (!isOpen || !qrCode) return null
+  if (!isOpen || !qrCode || !themeLoaded || !mounted) return null
+
+  // Theme-based styling variables
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const buttonHoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const overlayBg = isDark ? 'bg-[#0f0f0f]/80' : 'bg-black/50'
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -88,31 +103,38 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className={`fixed inset-0 ${overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}>
+      <div className={`${cardBg} border shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}
+        style={{ borderRadius: '1.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
+        <div className="p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <QrCode className="w-5 h-5 text-white" />
+              <div className={`w-12 h-12 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
+                <QrCode className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Edit QR Code</h2>
-                <p className="text-gray-400 text-sm">Update settings for {getTypeName()}</p>
+                <h2 className={`text-2xl font-bold ${textPrimary}`}>Edit QR Code</h2>
+                <p className={`${textSecondary} text-sm`}>Update settings for {getTypeName()}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+              className={`p-3 ${textSecondary} ${buttonHoverBg} rounded-xl transition-all duration-200 hover:scale-110`}
               disabled={loading}
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Current QR Code</label>
-            <div className="bg-white p-4 rounded-lg flex items-center justify-center">
+            <label className={`block text-sm font-medium ${textPrimary} mb-3`}>Current QR Code</label>
+            <div className="bg-white p-4 rounded-xl flex items-center justify-center border">
               <img 
                 src={`data:image/png;base64,${qrCode.image_base64}`}
                 alt={`QR Code for ${getTypeName()}`}
@@ -121,9 +143,9 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="size" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="size" className={`block text-sm font-medium ${textPrimary} mb-3`}>
                 Size (pixels)
               </label>
               <input
@@ -133,19 +155,19 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
                 onChange={(e) => handleInputChange('size', parseInt(e.target.value))}
                 min="64"
                 max="512"
-                className={`w-full px-3 py-2 bg-gray-700/50 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 ${
-                  errors.size ? 'border-red-500' : 'border-gray-600'
+                className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:outline-none focus:border-blue-500 transition-all duration-200 ${
+                  errors.size ? 'border-red-500' : ''
                 }`}
                 disabled={loading}
               />
               {errors.size && (
-                <p className="text-red-400 text-xs mt-1">{errors.size}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.size}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="color" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="color" className={`block text-sm font-medium ${textPrimary} mb-3`}>
                   Foreground Color
                 </label>
                 <input
@@ -153,13 +175,13 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
                   id="color"
                   value={formData.color}
                   onChange={(e) => handleInputChange('color', e.target.value)}
-                  className="w-full h-10 bg-gray-700/50 border border-gray-600 rounded-lg cursor-pointer"
+                  className={`w-full h-12 ${inputBg} border rounded-xl cursor-pointer`}
                   disabled={loading}
                 />
               </div>
               
               <div>
-                <label htmlFor="background_color" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="background_color" className={`block text-sm font-medium ${textPrimary} mb-3`}>
                   Background Color
                 </label>
                 <input
@@ -167,14 +189,14 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
                   id="background_color"
                   value={formData.background_color}
                   onChange={(e) => handleInputChange('background_color', e.target.value)}
-                  className="w-full h-10 bg-gray-700/50 border border-gray-600 rounded-lg cursor-pointer"
+                  className={`w-full h-12 ${inputBg} border rounded-xl cursor-pointer`}
                   disabled={loading}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="logo_url" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="logo_url" className={`block text-sm font-medium ${textPrimary} mb-3`}>
                 Logo URL (optional)
               </label>
               <input
@@ -183,16 +205,16 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
                 value={formData.logo_url}
                 onChange={(e) => handleInputChange('logo_url', e.target.value)}
                 placeholder="https://example.com/logo.png"
-                className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all duration-200`}
                 disabled={loading}
               />
-              <p className="text-gray-500 text-xs mt-1">
+              <p className={`${textSecondary} text-xs mt-2`}>
                 Add your restaurant logo to the center of the QR code
               </p>
             </div>
 
             <div>
-              <label htmlFor="template_id" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="template_id" className={`block text-sm font-medium ${textPrimary} mb-3`}>
                 Template ID (optional)
               </label>
               <input
@@ -201,13 +223,13 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
                 value={formData.template_id}
                 onChange={(e) => handleInputChange('template_id', e.target.value)}
                 placeholder="food_standard"
-                className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all duration-200`}
                 disabled={loading}
               />
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <p className="text-blue-400 text-sm">
+            <div className={`${isDark ? 'bg-blue-900/20 border-blue-500/30' : 'bg-blue-50 border-blue-300'} border rounded-xl p-4`}>
+              <p className="text-blue-500 text-sm">
                 <strong>Note:</strong> Updating this QR code will generate a new version with your changes. 
                 The QR data and functionality will remain the same.
               </p>
@@ -217,7 +239,7 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 hover:text-white transition-all duration-200"
+                className={`flex-1 px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
                 disabled={loading}
               >
                 Cancel
@@ -225,7 +247,7 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className={`flex-1 px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
               >
                 {loading ? (
                   <>
@@ -242,7 +264,7 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
             </div>
           </form>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

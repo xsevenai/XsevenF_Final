@@ -1,7 +1,8 @@
 // components/QRViewModal.tsx
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { X, Download, QrCode, Calendar, BarChart3, Eye, Link, Monitor, Menu, Settings } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { useTheme } from '@/hooks/useTheme'
 import type { QRCode } from '@/lib/food-qr'
 
 interface QRViewModalProps {
@@ -12,7 +13,25 @@ interface QRViewModalProps {
 }
 
 export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRViewModalProps) {
-  if (!isOpen || !qrCode) return null
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !qrCode || !themeLoaded || !mounted) return null
+
+  // Theme variables matching MainPanel
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textTertiary = isDark ? 'text-gray-500' : 'text-gray-500'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const hoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const iconBg = isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'
+  const borderColor = isDark ? 'border-gray-700/50' : 'border-gray-200'
+  const codeBlockBg = isDark ? 'bg-[#0f0f0f]' : 'bg-gray-100'
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -72,17 +91,20 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Card className={`${cardBg} border shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto transition-colors duration-300`}
+        style={{ borderRadius: '1.5rem' }}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r ${getTypeColor()}`}>
+              <div className={`w-10 h-10 flex items-center justify-center bg-gradient-to-r ${getTypeColor()} group-hover:scale-110 transition-transform`}
+                style={{ borderRadius: '0.75rem' }}>
                 <TypeIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">{getTypeName()}</h2>
+                <h2 className={`text-xl font-bold ${textPrimary}`}>{getTypeName()}</h2>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  <span className="text-xs px-2 py-1 font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                    style={{ borderRadius: '9999px' }}>
                     {qrCode.type}
                   </span>
                 </div>
@@ -90,7 +112,8 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+              className={`p-2 ${textSecondary} ${hoverBg} ${textPrimary} transition-all duration-200`}
+              style={{ borderRadius: '0.5rem' }}
             >
               <X className="w-5 h-5" />
             </button>
@@ -98,8 +121,9 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">QR Code Preview</h3>
-              <div className="bg-white p-6 rounded-lg flex items-center justify-center">
+              <h3 className={`text-lg font-semibold ${textPrimary}`}>QR Code Preview</h3>
+              <div className="bg-white p-6 flex items-center justify-center"
+                style={{ borderRadius: '1rem' }}>
                 <img 
                   src={`data:image/png;base64,${qrCode.image_base64}`}
                   alt={`QR Code for ${getTypeName()}`}
@@ -108,7 +132,8 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
               </div>
               <button
                 onClick={handleDownload}
-                className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                style={{ borderRadius: '0.75rem' }}
               >
                 <Download className="w-4 h-4" />
                 <span>Download QR Code</span>
@@ -117,71 +142,72 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
 
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
+                <h3 className={`text-lg font-semibold ${textPrimary} mb-4`}>Details</h3>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                    <div className="flex items-center space-x-2 text-gray-400">
+                  <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                    <div className={`flex items-center space-x-2 ${textSecondary}`}>
                       <Calendar className="w-4 h-4" />
                       <span className="text-sm">Created</span>
                     </div>
-                    <span className="text-gray-300 text-sm">{formatDate(qrCode.created_at)}</span>
+                    <span className={`${textPrimary} text-sm`}>{formatDate(qrCode.created_at)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                    <div className="flex items-center space-x-2 text-gray-400">
+                  <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                    <div className={`flex items-center space-x-2 ${textSecondary}`}>
                       <QrCode className="w-4 h-4" />
                       <span className="text-sm">Size</span>
                     </div>
-                    <span className="text-gray-300 text-sm">{qrCode.size} x {qrCode.size} pixels</span>
+                    <span className={`${textPrimary} text-sm`}>{qrCode.size} x {qrCode.size} pixels</span>
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                    <div className="flex items-center space-x-2 text-gray-400">
-                      <div className="w-4 h-4 rounded border border-gray-400" style={{ backgroundColor: qrCode.color }}></div>
+                  <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                    <div className={`flex items-center space-x-2 ${textSecondary}`}>
+                      <div className={`w-4 h-4 rounded border ${isDark ? 'border-gray-400' : 'border-gray-300'}`} style={{ backgroundColor: qrCode.color }}></div>
                       <span className="text-sm">Foreground</span>
                     </div>
-                    <span className="text-gray-300 text-sm font-mono">{qrCode.color}</span>
+                    <span className={`${textPrimary} text-sm font-mono`}>{qrCode.color}</span>
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                    <div className="flex items-center space-x-2 text-gray-400">
-                      <div className="w-4 h-4 rounded border border-gray-400" style={{ backgroundColor: qrCode.background_color }}></div>
+                  <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                    <div className={`flex items-center space-x-2 ${textSecondary}`}>
+                      <div className={`w-4 h-4 rounded border ${isDark ? 'border-gray-400' : 'border-gray-300'}`} style={{ backgroundColor: qrCode.background_color }}></div>
                       <span className="text-sm">Background</span>
                     </div>
-                    <span className="text-gray-300 text-sm font-mono">{qrCode.background_color}</span>
+                    <span className={`${textPrimary} text-sm font-mono`}>{qrCode.background_color}</span>
                   </div>
 
                   {qrCode.scan_count !== undefined && (
-                    <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                      <div className="flex items-center space-x-2 text-gray-400">
+                    <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                      <div className={`flex items-center space-x-2 ${textSecondary}`}>
                         <BarChart3 className="w-4 h-4" />
                         <span className="text-sm">Total Scans</span>
                       </div>
-                      <span className="text-gray-300 text-sm">{qrCode.scan_count}</span>
+                      <span className={`${textPrimary} text-sm`}>{qrCode.scan_count}</span>
                     </div>
                   )}
 
                   {qrCode.last_scanned_at && (
-                    <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                      <div className="flex items-center space-x-2 text-gray-400">
+                    <div className={`flex items-center justify-between py-2 border-b ${borderColor}`}>
+                      <div className={`flex items-center space-x-2 ${textSecondary}`}>
                         <Eye className="w-4 h-4" />
                         <span className="text-sm">Last Scan</span>
                       </div>
-                      <span className="text-gray-300 text-sm">{formatDate(qrCode.last_scanned_at)}</span>
+                      <span className={`${textPrimary} text-sm`}>{formatDate(qrCode.last_scanned_at)}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="text-sm text-gray-400 block mb-2">QR Code Content</label>
-                <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
+                <label className={`text-sm ${textSecondary} block mb-2`}>QR Code Content</label>
+                <div className={`${innerCardBg} p-4 space-y-2`}
+                  style={{ borderRadius: '0.75rem' }}>
                   {qrData.url && (
                     <div className="flex items-start space-x-2">
-                      <Link className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <Link className={`w-4 h-4 ${textSecondary} mt-0.5 flex-shrink-0`} />
                       <div>
-                        <div className="text-xs text-gray-400">URL:</div>
+                        <div className={`text-xs ${textSecondary}`}>URL:</div>
                         <a 
                           href={qrData.url}
                           target="_blank"
@@ -196,29 +222,30 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
                   
                   {qrData.business_name && (
                     <div className="text-sm">
-                      <span className="text-gray-400">Business:</span>
-                      <span className="text-gray-300 ml-2">{qrData.business_name}</span>
+                      <span className={`${textSecondary}`}>Business:</span>
+                      <span className={`${textPrimary} ml-2`}>{qrData.business_name}</span>
                     </div>
                   )}
                   
                   {qrData.table_number && (
                     <div className="text-sm">
-                      <span className="text-gray-400">Table:</span>
-                      <span className="text-gray-300 ml-2">{qrData.table_number}</span>
+                      <span className={`${textSecondary}`}>Table:</span>
+                      <span className={`${textPrimary} ml-2`}>{qrData.table_number}</span>
                     </div>
                   )}
                   
                   {qrData.timestamp && (
                     <div className="text-sm">
-                      <span className="text-gray-400">Generated:</span>
-                      <span className="text-gray-300 ml-2">{formatDate(qrData.timestamp)}</span>
+                      <span className={`${textSecondary}`}>Generated:</span>
+                      <span className={`${textPrimary} ml-2`}>{formatDate(qrData.timestamp)}</span>
                     </div>
                   )}
 
                   {qrData.raw_data && (
                     <div className="mt-3">
-                      <div className="text-xs text-gray-400 mb-1">Raw Data:</div>
-                      <code className="text-xs text-gray-300 break-all block font-mono bg-gray-800/50 p-2 rounded">
+                      <div className={`text-xs ${textSecondary} mb-1`}>Raw Data:</div>
+                      <code className={`text-xs ${textPrimary} break-all block font-mono ${codeBlockBg} p-2`}
+                        style={{ borderRadius: '0.375rem' }}>
                         {qrData.raw_data}
                       </code>
                     </div>
@@ -227,9 +254,10 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
               </div>
 
               <div>
-                <label className="text-sm text-gray-400 block mb-2">Business ID</label>
-                <div className="bg-gray-700/50 p-3 rounded-lg">
-                  <code className="text-sm text-gray-300 font-mono">
+                <label className={`text-sm ${textSecondary} block mb-2`}>Business ID</label>
+                <div className={`${innerCardBg} p-3`}
+                  style={{ borderRadius: '0.75rem' }}>
+                  <code className={`text-sm ${textPrimary} font-mono`}>
                     {qrCode.business_id}
                   </code>
                 </div>
@@ -237,16 +265,18 @@ export default function QRViewModal({ isOpen, onClose, qrCode, onDownload }: QRV
             </div>
           </div>
 
-          <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-700/50">
+          <div className={`flex items-center justify-end space-x-3 mt-6 pt-6 border-t ${borderColor}`}>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 hover:text-white transition-all duration-200"
+              className={`px-4 py-2 ${innerCardBg} ${textSecondary} ${hoverBg} ${textPrimary} transition-all duration-200`}
+              style={{ borderRadius: '0.75rem' }}
             >
               Close
             </button>
             <button
               onClick={handleDownload}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 flex items-center space-x-2"
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 flex items-center space-x-2"
+              style={{ borderRadius: '0.75rem' }}
             >
               <Download className="w-4 h-4" />
               <span>Download</span>

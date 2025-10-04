@@ -1,14 +1,17 @@
 "use client"
 
 import { useTheme } from "@/hooks/useTheme"
-import { Loader2, Bell, User } from "lucide-react"
+import { Loader2, Bell, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
 
 interface RightSidebarProps {
-  // Add any props you need for real-time data
+  setActiveSection?: (section: any) => void
 }
 
-export default function RightSidebar({}: RightSidebarProps) {
+export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
   const { theme, isLoaded: themeLoaded, isDark } = useTheme()
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
 
   // Mock real-time data - replace with actual API calls
   const kitchenData = {
@@ -35,7 +38,35 @@ export default function RightSidebar({}: RightSidebarProps) {
   const innerCardBg = isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
-  const headerBg = isDark ? 'bg-[#171717]' : 'bg-white'
+  const dropdownBg = isDark ? 'bg-[#1f1f1f]' : 'bg-white'
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false)
+      }
+    }
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showProfileMenu])
+
+  const handleSignOut = () => {
+    window.location.href = "/"
+  }
+
+  const handleProfileSettings = () => {
+    setShowProfileMenu(false)
+    if (setActiveSection) {
+      setActiveSection("profile")
+    }
+  }
 
   // Show loading while theme is being loaded
   if (!themeLoaded) {
@@ -62,14 +93,49 @@ export default function RightSidebar({}: RightSidebarProps) {
             </span>
           </button>
           
-          {/* Profile Button - Oval Shape */}
-          <button 
-            className={`${innerCardBg} px-4 py-2 rounded-full border ${borderColor} hover:scale-105 transition-transform flex items-center gap-2`}
-            aria-label="Profile"
-          >
-            <User className={`h-5 w-5 ${textPrimary}`} />
-            <span className={`${textPrimary} text-sm font-medium`}>JD</span>
-          </button>
+          {/* Profile Button with Dropdown */}
+          <div className="relative" ref={profileMenuRef}>
+            <button 
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className={`${innerCardBg} px-4 py-2 rounded-full border ${borderColor} hover:scale-105 transition-transform flex items-center gap-2`}
+              aria-label="Profile"
+            >
+              <User className={`h-5 w-5 ${textPrimary}`} />
+              <span className={`${textPrimary} text-sm font-medium`}>JD</span>
+              <ChevronDown className={`h-4 w-4 ${textPrimary} transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showProfileMenu && (
+              <div className={`absolute right-0 mt-2 w-56 ${dropdownBg} rounded-lg border ${borderColor} shadow-lg z-50 overflow-hidden`}>
+                <button
+                  onClick={handleProfileSettings}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                    isDark 
+                      ? 'hover:bg-[#2a2a2a] text-gray-300 hover:text-white'
+                      : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  <Settings className="h-5 w-5" />
+                  <span className="font-medium text-sm">Profile Settings</span>
+                </button>
+                
+                <div className={`border-t ${borderColor}`}></div>
+                
+                <button
+                  onClick={handleSignOut}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                    isDark 
+                      ? 'hover:bg-red-600/10 text-gray-300 hover:text-red-400'
+                      : 'hover:bg-red-50 text-gray-700 hover:text-red-600'
+                  }`}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium text-sm">Log Out</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         
         <h2 className={`text-xl font-semibold ${textPrimary}`}>

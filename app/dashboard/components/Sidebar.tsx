@@ -1,5 +1,3 @@
-// app/dashboard/components/Sidebar.tsx
-
 "use client"
 
 import {
@@ -9,15 +7,11 @@ import {
   Clock,
   Plus,
   Users,
-  UserPlus,
-  LogOut,
-  User,
   ShoppingCart,
   Package,
   QrCode,
   BarChart3,
   Loader2,
-  Settings,
 } from "lucide-react"
 import Link from "next/link"
 import { useTheme } from "@/hooks/useTheme"
@@ -31,10 +25,6 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection, setActiveSection, setExpandedView }: SidebarProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
-
-  const handleSignOut = () => {
-    window.location.href = "/"
-  }
 
   const mainNavItems = [
     { id: "dashboard" as const, label: "Dashboard", icon: Home },
@@ -120,39 +110,6 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
                 <span className="font-medium text-sm">{item.label}</span>
               </button>
             ))}
-          </nav>
-        </div>
-
-        {/* Account Section */}
-        <div className="mt-8">
-          <nav className="space-y-1">
-            <button 
-              onClick={() => setActiveSection("profile")}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-all duration-200 rounded-lg ${
-                activeSection === "profile"
-                  ? isDark 
-                    ? 'bg-[#2a2a2a] text-white'
-                    : 'bg-gray-100 text-gray-900'
-                  : isDark
-                    ? 'text-gray-400 hover:text-white hover:bg-[#222222]'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="font-medium text-sm">Profile Settings</span>
-            </button>
-            
-            <button
-              onClick={handleSignOut}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-all duration-200 rounded-lg ${
-                isDark 
-                  ? 'text-gray-400 hover:text-red-400 hover:bg-red-600/10'
-                  : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-              }`}
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium text-sm">Log Out</span>
-            </button>
           </nav>
         </div>
       </div>

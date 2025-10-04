@@ -2,9 +2,10 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, QrCode, UserPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useTheme } from "@/hooks/useTheme"
 import { useTables, useTableStats } from "@/hooks/use-tables"
 import TableQRCode from "./TableQRCode"
 import CustomerAssignment from "./CustomerAssignment"
@@ -14,6 +15,8 @@ interface TableListProps {
 }
 
 export default function TableList({ onTableUpdate }: TableListProps) {
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const {
     tables,
     loading,
@@ -42,6 +45,25 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
   const tableStats = useTableStats(tables)
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!themeLoaded || !mounted) {
+    return null
+  }
+
+  // Theme variables matching MainPanel
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textTertiary = isDark ? 'text-gray-500' : 'text-gray-500'
+  const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-white border-gray-300'
+  const hoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
+  const hoverBorder = isDark ? 'hover:border-purple-500/30' : 'hover:border-purple-400/50'
+  const modalBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+
   // Handle table status update
   const handleUpdateTableStatus = async (tableId: string, newStatus: string) => {
     try {
@@ -50,7 +72,6 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       onTableUpdate?.()
     } catch (err) {
       console.error('Failed to update table status:', err)
-      // Error is already handled in the hook
     } finally {
       setUpdating(null)
     }
@@ -65,7 +86,6 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       onTableUpdate?.()
     } catch (err) {
       console.error('Failed to delete table:', err)
-      // Error is already handled in the hook
     } finally {
       setDeleting(null)
     }
@@ -91,7 +111,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
   const handleAssignmentSuccess = (orderId: string) => {
     console.log('Customer assigned successfully, order ID:', orderId)
-    onTableUpdate?.() // Refresh table data
+    onTableUpdate?.()
   }
 
   // Confirm delete dialog
@@ -144,7 +164,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   const renderTableCard = (table: any) => (
     <Card
       key={table.id}
-      className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6 hover:border-purple-500/30 transition-all duration-300 group relative"
+      className={`${cardBg} border shadow-lg p-6 ${hoverBorder} transition-all duration-300 group relative`}
+      style={{ borderRadius: '1.5rem' }}
     >
       {/* Action Buttons */}
       <div className="absolute top-4 right-4 flex gap-1 z-10">
@@ -152,7 +173,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         {table.status === 'available' && (
           <button
             onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
-            className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+            className={`p-2 ${textTertiary} hover:text-blue-400 hover:bg-blue-500/10 transition-colors`}
+            style={{ borderRadius: '0.5rem' }}
             title="Assign Customer"
           >
             <UserPlus className="h-4 w-4" />
@@ -162,7 +184,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         {/* QR Code Button */}
         <button
           onClick={() => openQRModal(table.id, table.number)}
-          className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
+          className={`p-2 ${textTertiary} hover:text-purple-400 hover:bg-purple-500/10 transition-colors`}
+          style={{ borderRadius: '0.5rem' }}
           title="Generate QR Code"
         >
           <QrCode className="h-4 w-4" />
@@ -172,7 +195,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         <button
           onClick={() => confirmDelete(table.id, table.number)}
           disabled={deleting === table.id || table.status === 'occupied'}
-          className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`p-2 ${textTertiary} hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+          style={{ borderRadius: '0.5rem' }}
           title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
         >
           {deleting === table.id ? (
@@ -186,20 +210,22 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       <div className="text-center space-y-4">
         {/* Table Number */}
         <div className="flex items-center justify-between pr-20">
-          <h3 className="text-white font-bold text-lg">Table {table.number}</h3>
-          <span className="text-gray-400 text-sm">{table.seats} seats</span>
+          <h3 className={`${textPrimary} font-bold text-lg`}>Table {table.number}</h3>
+          <span className={`${textSecondary} text-sm`}>{table.seats} seats</span>
         </div>
 
         {/* Table Visual */}
-        <div className={`w-20 h-20 mx-auto rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${getStatusColor(table.status)}`}>
+        <div className={`w-20 h-20 mx-auto flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${getStatusColor(table.status)}`}
+          style={{ borderRadius: '0.75rem' }}>
           {getStatusIcon(table.status)}
         </div>
 
         {/* Location */}
-        <p className="text-gray-400 text-sm">{table.location}</p>
+        <p className={`${textSecondary} text-sm`}>{table.location}</p>
 
         {/* Status Badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(table.status)}`}>
+        <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
+          style={{ borderRadius: '9999px' }}>
           {getStatusIcon(table.status)}
           <span className="capitalize">{table.status}</span>
         </div>
@@ -210,7 +236,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             value={table.status}
             onChange={(e) => handleUpdateTableStatus(table.id, e.target.value)}
             disabled={updating === table.id}
-            className="w-full bg-gray-700/50 border border-gray-600/50 text-white px-3 py-2 rounded-lg text-sm hover:bg-gray-600/50 transition-colors focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full ${inputBg} border ${textPrimary} px-3 py-2 text-sm ${hoverBg} transition-colors focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed`}
+            style={{ borderRadius: '0.5rem' }}
           >
             <option value="available">Available</option>
             <option value="occupied">Occupied</option>
@@ -230,20 +257,23 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   const renderTableList = (table: any) => (
     <Card
       key={table.id}
-      className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4 hover:border-purple-500/30 transition-all duration-300"
+      className={`${cardBg} border shadow-lg p-4 ${hoverBorder} transition-all duration-300`}
+      style={{ borderRadius: '1rem' }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getStatusColor(table.status)}`}>
+          <div className={`w-12 h-12 flex items-center justify-center ${getStatusColor(table.status)}`}
+            style={{ borderRadius: '0.5rem' }}>
             {getStatusIcon(table.status)}
           </div>
           <div>
-            <h3 className="text-white font-semibold">Table {table.number}</h3>
-            <p className="text-gray-400 text-sm">{table.location} • {table.seats} seats</p>
+            <h3 className={`${textPrimary} font-semibold`}>Table {table.number}</h3>
+            <p className={`${textSecondary} text-sm`}>{table.location} • {table.seats} seats</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(table.status)}`}>
+          <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
+            style={{ borderRadius: '9999px' }}>
             <span className="capitalize">{table.status}</span>
           </div>
           <div className="relative">
@@ -251,7 +281,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
               value={table.status}
               onChange={(e) => handleUpdateTableStatus(table.id, e.target.value)}
               disabled={updating === table.id}
-              className="bg-gray-700/50 border border-gray-600/50 text-white px-3 py-2 rounded-lg text-sm hover:bg-gray-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${inputBg} border ${textPrimary} px-3 py-2 text-sm ${hoverBg} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              style={{ borderRadius: '0.5rem' }}
             >
               <option value="available">Available</option>
               <option value="occupied">Occupied</option>
@@ -271,7 +302,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             {table.status === 'available' && (
               <button
                 onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
-                className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                className={`p-2 ${textTertiary} hover:text-blue-400 hover:bg-blue-500/10 transition-colors`}
+                style={{ borderRadius: '0.5rem' }}
                 title="Assign Customer"
               >
                 <UserPlus className="h-4 w-4" />
@@ -281,7 +313,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             {/* QR Code Button for List View */}
             <button
               onClick={() => openQRModal(table.id, table.number)}
-              className="p-2 text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
+              className={`p-2 ${textTertiary} hover:text-purple-400 hover:bg-purple-500/10 transition-colors`}
+              style={{ borderRadius: '0.5rem' }}
               title="Generate QR Code"
             >
               <QrCode className="h-4 w-4" />
@@ -291,7 +324,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             <button
               onClick={() => confirmDelete(table.id, table.number)}
               disabled={deleting === table.id || table.status === 'occupied'}
-              className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`p-2 ${textTertiary} hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              style={{ borderRadius: '0.5rem' }}
               title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
             >
               {deleting === table.id ? (
@@ -311,7 +345,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto mb-4" />
-          <p className="text-gray-400">Loading tables...</p>
+          <p className={`${textSecondary}`}>Loading tables...</p>
         </div>
       </div>
     )
@@ -320,13 +354,15 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6 max-w-md mx-auto">
+        <div className="bg-red-500/10 border border-red-500/20 p-6 max-w-md mx-auto"
+          style={{ borderRadius: '0.5rem' }}>
           <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
           <h3 className="text-red-400 font-semibold mb-2">Error Loading Tables</h3>
-          <p className="text-gray-400 text-sm mb-4">{error}</p>
+          <p className={`${textSecondary} text-sm mb-4`}>{error}</p>
           <button
             onClick={refresh}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors"
+            style={{ borderRadius: '0.5rem' }}
           >
             <RefreshCw className="h-4 w-4" />
             Retry
@@ -341,27 +377,31 @@ export default function TableList({ onTableUpdate }: TableListProps) {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border border-gray-700/50 rounded-lg p-6 max-w-md w-full mx-4">
+          <div className={`${modalBg} border shadow-lg p-6 max-w-md w-full mx-4`}
+            style={{ borderRadius: '1rem' }}>
             <div className="text-center">
-              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 bg-red-500/20 flex items-center justify-center mx-auto mb-4"
+                style={{ borderRadius: '50%' }}>
                 <Trash2 className="h-6 w-6 text-red-400" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-2">Delete Table</h3>
-              <p className="text-gray-400 mb-6">
+              <h3 className={`${textPrimary} font-semibold text-lg mb-2`}>Delete Table</h3>
+              <p className={`${textSecondary} mb-6`}>
                 Are you sure you want to delete Table {tables.find(t => t.id === deleteConfirm)?.number}? 
                 This action cannot be undone.
               </p>
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className={`px-4 py-2 ${innerCardBg} ${hoverBg} ${textPrimary} transition-colors`}
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleDeleteTable(deleteConfirm)}
                   disabled={deleting === deleteConfirm}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  style={{ borderRadius: '0.5rem' }}
                 >
                   {deleting === deleteConfirm ? (
                     <>
@@ -405,25 +445,30 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
-          <h3 className="text-gray-400 font-medium mb-2">Total Tables</h3>
-          <div className="text-2xl font-bold text-white">{tableStats.total}</div>
+        <Card className={`${cardBg} border shadow-lg p-4 hover:shadow-xl transition-all duration-300`}
+          style={{ borderRadius: '1rem' }}>
+          <h3 className={`${textSecondary} font-medium mb-2`}>Total Tables</h3>
+          <div className={`text-2xl font-bold ${textPrimary}`}>{tableStats.total}</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+        <Card className={`${cardBg} border shadow-lg p-4 hover:shadow-xl transition-all duration-300`}
+          style={{ borderRadius: '1rem' }}>
           <h3 className="text-green-400 font-medium mb-2">Available</h3>
-          <div className="text-2xl font-bold text-white">{tableStats.available}</div>
+          <div className={`text-2xl font-bold ${textPrimary}`}>{tableStats.available}</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+        <Card className={`${cardBg} border shadow-lg p-4 hover:shadow-xl transition-all duration-300`}
+          style={{ borderRadius: '1rem' }}>
           <h3 className="text-red-400 font-medium mb-2">Occupied</h3>
-          <div className="text-2xl font-bold text-white">{tableStats.occupied}</div>
+          <div className={`text-2xl font-bold ${textPrimary}`}>{tableStats.occupied}</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+        <Card className={`${cardBg} border shadow-lg p-4 hover:shadow-xl transition-all duration-300`}
+          style={{ borderRadius: '1rem' }}>
           <h3 className="text-yellow-400 font-medium mb-2">Maintenance</h3>
-          <div className="text-2xl font-bold text-white">{tableStats.maintenance}</div>
+          <div className={`text-2xl font-bold ${textPrimary}`}>{tableStats.maintenance}</div>
         </Card>
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-4">
+        <Card className={`${cardBg} border shadow-lg p-4 hover:shadow-xl transition-all duration-300`}
+          style={{ borderRadius: '1rem' }}>
           <h3 className="text-blue-400 font-medium mb-2">Reserved</h3>
-          <div className="text-2xl font-bold text-white">{tableStats.reserved}</div>
+          <div className={`text-2xl font-bold ${textPrimary}`}>{tableStats.reserved}</div>
         </Card>
       </div>
 
@@ -432,23 +477,25 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${textSecondary} h-4 w-4`} />
             <input
               type="text"
               placeholder="Search tables..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors w-full sm:w-64"
+              className={`pl-10 pr-4 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors w-full sm:w-64`}
+              style={{ borderRadius: '0.5rem' }}
             />
           </div>
 
           {/* Status Filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Filter className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${textSecondary} h-4 w-4`} />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="pl-10 pr-8 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors appearance-none cursor-pointer"
+              className={`pl-10 pr-8 py-2 ${inputBg} border ${textPrimary} focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors appearance-none cursor-pointer`}
+              style={{ borderRadius: '0.5rem' }}
             >
               <option value="all">All Status</option>
               <option value="available">Available</option>
@@ -464,30 +511,34 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           <button
             onClick={refresh}
             disabled={loading}
-            className="p-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-400 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`p-2 ${innerCardBg} ${hoverBg} ${textSecondary} hover:${textPrimary} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            style={{ borderRadius: '0.5rem' }}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-700/50 rounded-lg p-1">
+          <div className={`flex items-center ${innerCardBg} p-1`}
+            style={{ borderRadius: '0.5rem' }}>
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-md transition-colors ${
+              className={`p-2 transition-colors ${
                 viewMode === "grid"
                   ? "bg-purple-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  : `${textSecondary} hover:${textPrimary}`
               }`}
+              style={{ borderRadius: '0.25rem' }}
             >
               <Grid3X3 className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2 rounded-md transition-colors ${
+              className={`p-2 transition-colors ${
                 viewMode === "list"
                   ? "bg-purple-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  : `${textSecondary} hover:${textPrimary}`
               }`}
+              style={{ borderRadius: '0.25rem' }}
             >
               <List className="h-4 w-4" />
             </button>
@@ -507,10 +558,11 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           )
         ) : (
           <div className="col-span-full">
-            <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-12 text-center">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Tables Found</h3>
-              <p className="text-gray-400 mb-6">
+            <Card className={`${cardBg} border shadow-lg p-12 text-center`}
+              style={{ borderRadius: '1.5rem' }}>
+              <Users className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
+              <h3 className={`text-xl font-semibold ${textPrimary} mb-2`}>No Tables Found</h3>
+              <p className={`${textSecondary} mb-6`}>
                 {searchTerm || filterStatus !== "all"
                   ? "No tables match your current filters."
                   : "No tables available."}

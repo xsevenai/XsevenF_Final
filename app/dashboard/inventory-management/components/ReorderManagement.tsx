@@ -2,8 +2,9 @@
 
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card } from "@/components/ui/card"
+import { useTheme } from "@/hooks/useTheme"
 import { 
   ArrowLeft,
   Plus, 
@@ -12,7 +13,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react"
 import type { ReorderResponse, ExtendedInventoryItem, ReorderRequest } from '@/app/api/inventory/route'
 
@@ -36,11 +38,32 @@ export default function ReorderManagement({
   inventoryItems
 }: ReorderManagementProps) {
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [selectedItem, setSelectedItem] = useState('')  // FIXED: Keep as string
+  const [selectedItem, setSelectedItem] = useState('')
   const [quantity, setQuantity] = useState(0)
   const [supplier, setSupplier] = useState('')
   const [notes, setNotes] = useState('')
   const [creating, setCreating] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!themeLoaded || !mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    )
+  }
+
+  // Theme-based styling variables
+  const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const buttonHoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
 
   const handleCreateReorder = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +72,6 @@ export default function ReorderManagement({
 
     try {
       setCreating(true)
-      // FIXED: Use selectedItem directly as string (no parseInt)
       await onCreateReorder({
         item_id: selectedItem,
         quantity,
@@ -73,7 +95,10 @@ export default function ReorderManagement({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+        <div className={`flex items-center gap-3 ${textSecondary}`}>
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading reorder data...</span>
+        </div>
       </div>
     )
   }
@@ -81,12 +106,12 @@ export default function ReorderManagement({
   if (error) {
     return (
       <div className="text-center py-12">
-        <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-white mb-2">Error Loading Reorders</h3>
-        <p className="text-gray-400 mb-4">{error}</p>
+        <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>Error Loading Reorders</h3>
+        <p className={`${textSecondary} mb-4`}>{error}</p>
         <button
           onClick={onRefresh}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
         >
           Try Again
         </button>
@@ -97,55 +122,52 @@ export default function ReorderManagement({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="p-6">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-gray-300 hover:text-white transition-all duration-200 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Overview
-        </button>
-        
-        <div className="flex items-center justify-between">
+      <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={onBack}
+            className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </button>
           <div>
-            <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              Reorder Management
-            </h2>
-            <p className="text-gray-400">Manage purchase orders and supplier requests</p>
+            <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Reorder Management</h1>
+            <p className={`${textSecondary}`}>Manage purchase orders and supplier requests</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              New Reorder
-            </button>
-            <button
-              onClick={onRefresh}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
-          </div>
+        </div>
+        
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2`}
+          >
+            <Plus className="h-4 w-4" />
+            New Reorder
+          </button>
+          <button
+            onClick={onRefresh}
+            className={`p-3 ${textSecondary} ${buttonHoverBg} rounded-xl transition-all duration-200 hover:scale-110`}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
       {/* Create Reorder Form */}
       {showCreateForm && (
-        <div className="p-6 pt-0">
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Create New Reorder Request</h3>
+        <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+          <div className="p-6">
+            <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Create New Reorder Request</h3>
             <form onSubmit={handleCreateReorder} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Item *
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
+                  Item <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={selectedItem}
                   onChange={(e) => setSelectedItem(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200`}
                 >
                   <option value="">Select an item</option>
                   {inventoryItems.map(item => (
@@ -157,8 +179,8 @@ export default function ReorderManagement({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Quantity *
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
+                  Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -167,46 +189,46 @@ export default function ReorderManagement({
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
                   required
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200`}
                   placeholder="Enter quantity"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                   Supplier
                 </label>
                 <input
                   type="text"
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200`}
                   placeholder="Supplier name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                   Notes
                 </label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  className={`w-full px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200`}
                   placeholder="Additional notes"
                 />
               </div>
 
-              <div className="md:col-span-2 flex gap-2">
+              <div className="md:col-span-2 flex gap-3">
                 <button
                   type="submit"
                   disabled={!selectedItem || quantity <= 0 || creating}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                  className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
                 >
                   {creating ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Creating...
                     </>
                   ) : (
@@ -219,54 +241,61 @@ export default function ReorderManagement({
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                  className={`px-6 py-3 ${textSecondary} ${buttonHoverBg} rounded-xl transition-all duration-300 hover:scale-105`}
                 >
                   Cancel
                 </button>
               </div>
             </form>
-          </Card>
+          </div>
         </div>
       )}
 
       {/* Reorder History */}
-      <div className="p-6 pt-0 space-y-4">
-        <h3 className="text-xl font-semibold text-white">Recent Reorder Requests</h3>
-        
-        {reorders.length === 0 ? (
-          <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-8 text-center">
-            <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Reorder Requests</h3>
-            <p className="text-gray-400">Create your first reorder request to get started.</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {reorders.map((reorder, index) => (
-              <Card key={index} className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h4 className="text-white font-semibold">{reorder.item_name}</h4>
-                    <p className="text-gray-400 text-sm">Requested: {reorder.requested_quantity} units</p>
+      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <div className="p-6">
+          <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Recent Reorder Requests</h3>
+          
+          {reorders.length === 0 ? (
+            <div className="text-center py-12">
+              <Truck className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
+              <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Reorder Requests</h3>
+              <p className={`${textSecondary}`}>Create your first reorder request to get started.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {reorders.map((reorder, index) => (
+                <div key={index} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
+                  style={{ 
+                    borderRadius: index % 2 === 0 ? '1.5rem' : '2rem'
+                  }}>
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h4 className={`${textPrimary} font-semibold`}>{reorder.item_name}</h4>
+                        <p className={`${textSecondary} text-sm`}>Requested: {reorder.requested_quantity} units</p>
+                      </div>
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className={`${textSecondary}`}>Status:</span>
+                        <span className="text-green-500 font-medium">Requested</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={`${textSecondary}`}>Item ID:</span>
+                        <span className={`${textPrimary}`}>#{reorder.item_id}</span>
+                      </div>
+                    </div>
+                    
+                    <p className={`${textPrimary} text-sm mt-3`}>{reorder.message}</p>
                   </div>
-                  <CheckCircle className="h-6 w-6 text-green-400" />
                 </div>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Status:</span>
-                    <span className="text-green-400">Requested</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Item ID:</span>
-                    <span className="text-white">#{reorder.item_id}</span>
-                  </div>
-                </div>
-                
-                <p className="text-gray-300 text-sm mt-3">{reorder.message}</p>
-              </Card>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -241,7 +241,7 @@ export default function Dashboard() {
           />
           
           {/* Right Sidebar - Real-time Performance */}
-          <RightSidebar />
+          <RightSidebar setActiveSection={setActiveSection} />
         </>
       )}
     </div>
