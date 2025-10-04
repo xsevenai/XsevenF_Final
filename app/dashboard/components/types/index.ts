@@ -95,17 +95,31 @@ export interface LiveChat {
 }
 
 // Updated to include food-qr
+// In your types.ts file, update SectionType to include:
 export type SectionType = 
-  | "dashboard" 
-  | "ai-chat" 
-  | "menu" 
-  | "orders" 
-  | "inventory" 
-  | "food-qr"
-  | "tables" 
-  | "working-hours" 
-  | "profile"
+  | "dashboard"
   | "analytics" 
+  | "ai-chat"
+  | "catalog"
+  | "menu-management"
+  | "categories"
+  | "listings"
+  | "services"
+  | "modifiers"
+  | "discounts"
+  | "attributes"
+  | "orders"
+  | "inventory"
+  | "food-qr"
+  | "tables"
+  | "working-hours"
+  | "floorplans"
+  | "kitchen"
+  | "customers"
+  | "directory"
+  | "feedback"
+  | "payments"
+  | "profile"
 
 export type ExpandedViewType = 
   | "add-menu-item" 

@@ -8,6 +8,8 @@ import { useState, useEffect } from "react"
 import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
 import { useTheme } from "@/hooks/useTheme"
 import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, ExpandedViewType } from "./types"
+
+// Import existing components
 import Profile from "../profile/page"
 import MenuComponent from "./MenuComponent"
 import OrderComponent from "../order-component/OrderComponent"
@@ -15,6 +17,17 @@ import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
 import FoodQRComponent from "../food-qr-component/FoodQRComponent"
 import AnalyticsComponent from "../analytics-component/AnalyticsComponent"
+
+// Import new menu components (using default imports)
+import MenuAttributesComponent from "./MenuAttributesComponent"
+import MenuDiscountsComponent from "./MenuDiscountsComponent"
+import MenuListingsComponent from "./MenuListingsComponent"
+import MenuModifiersComponent from "./MenuModifiersComponent"
+import MenuServicesComponent from "./MenuServicesComponent"
+
+// Import customer components (using default imports)
+import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
+import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -59,11 +72,6 @@ export default function MainPanel({
   }
 
   const tableStats = getTableStatusCounts()
-
-  const onToggleMenuItemAvailability = async (id: string) => {
-    console.log('Toggle availability for item:', id)
-    refreshMenu()
-  }
 
   const handleMenuRefresh = () => {
     refreshMenu()
@@ -294,20 +302,17 @@ export default function MainPanel({
     </div>
   )
 
-  const renderExpandedView = () => {
-    return null
-  }
-
-  const renderAnalytics = () => (
-    <AnalyticsComponent />
-  )
-
+  // Menu-related render functions
   const renderMenu = () => (
     <MenuComponent 
       menuItems={menuItems}
       categories={categories}
       onRefresh={handleMenuRefresh}
     />
+  )
+
+  const renderAnalytics = () => (
+    <AnalyticsComponent />
   )
 
   const renderOrders = () => (
@@ -328,6 +333,48 @@ export default function MainPanel({
     <TableComponent />
   )
 
+  // Simple placeholder components for other sections
+  const renderFloorplans = () => (
+    <div className="p-6 space-y-6">
+      <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Floor Plans</h1>
+        <p className={`${textSecondary}`}>Design and manage restaurant floor layouts</p>
+      </div>
+      <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <p className={`${textPrimary}`}>Floor plans management coming soon...</p>
+      </div>
+    </div>
+  )
+
+  const renderKitchen = () => (
+    <div className="p-6 space-y-6">
+      <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Kitchen Display</h1>
+        <p className={`${textSecondary}`}>Monitor kitchen operations and order status</p>
+      </div>
+      <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <p className={`${textPrimary}`}>Kitchen display system coming soon...</p>
+      </div>
+    </div>
+  )
+
+  const renderPayments = () => (
+    <div className="p-6 space-y-6">
+      <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Payment Management</h1>
+        <p className={`${textSecondary}`}>Process and track payments and transactions</p>
+      </div>
+      <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <p className={`${textPrimary}`}>Payment management coming soon...</p>
+      </div>
+    </div>
+  )
+
+  const renderExpandedView = () => {
+    return null
+  }
+
+  // Main render function
   const renderContent = () => {
     if (expandedView) {
       const expandedViewContent = renderExpandedView()
@@ -342,8 +389,39 @@ export default function MainPanel({
         return renderAnalytics()
       case "ai-chat":
         return renderAIChat()
-      case "menu":
-        return renderMenu()
+      
+      // Main catalog section - shows placeholder
+      case "catalog":
+        return (
+          <div className="p-6 space-y-6">
+            <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Menu Catalog</h1>
+              <p className={`${textSecondary}`}>Select an option from the sidebar to manage your menu catalog</p>
+            </div>
+          </div>
+        )
+      
+      // Catalog sub-sections
+      case "menu-management":
+        return renderMenu() // Opens your current MenuComponent
+      case "listings":
+        return <MenuListingsComponent />
+      case "services":
+        return <MenuServicesComponent />
+      case "modifiers":
+        return <MenuModifiersComponent />
+      case "discounts":
+        return <MenuDiscountsComponent />
+      case "attributes":
+        return <MenuAttributesComponent />
+      
+      // Customer sub-sections
+      case "directory":
+        return <CustomerDirectoryComponent />
+      case "feedback":
+        return <CustomerFeedbackComponent />
+      
+      // Other sections
       case "orders":
         return renderOrders()
       case "inventory":
@@ -354,8 +432,15 @@ export default function MainPanel({
         return renderTables()
       case "working-hours":
         return renderWorkingHours()
+      case "floorplans":
+        return renderFloorplans()
+      case "kitchen":
+        return renderKitchen()
+      case "payments":
+        return renderPayments()
       case "profile":
         return <Profile />
+      
       default:
         return renderDashboardOverview()
     }
