@@ -87,9 +87,9 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
   ]
 
   const quickActions = [
-    { label: "Add New Menu Item", icon: Plus, action: () => setActiveSection("menu-management") },
-    { label: "Add New Category", icon: Plus, action: () => setActiveSection("menu-management") },
-    { label: "Add Inventory Item", icon: Package, action: () => setActiveSection("inventory") },
+    { label: "Add New Menu Item", icon: Plus, action: () => setActiveSection("menu-upload-qr") },
+    { label: "Add New Category", icon: Plus, action: () => setActiveSection("category-upload-qr") },
+    { label: "Add Inventory Item", icon: Package, action: () => setActiveSection("inventory-upload-qr") },
   ]
 
   // Show loading while theme is being loaded
