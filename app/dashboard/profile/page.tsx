@@ -16,8 +16,6 @@ import {
   Save,
   X,
   Check,
-  Moon,
-  Sun,
 } from "lucide-react"
 
 interface ProfileData {
@@ -31,7 +29,7 @@ interface ProfileData {
 }
 
 export default function Profile() {
-  const { theme, isLoaded: themeLoaded, isDark, currentTheme, toggleTheme } = useTheme()
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [showSaveIndicator, setShowSaveIndicator] = useState(false)
@@ -259,17 +257,17 @@ export default function Profile() {
         </Card>
       </div>
 
-      {/* Quick Settings */}
+      {/* App Settings */}
       <Card className={`${cardBg} border shadow-lg p-6 hover:shadow-xl transition-all duration-300`}
         style={{ borderRadius: '1.5rem' }}>
         <div className="flex items-center gap-3 mb-6">
           <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} p-3 rounded-2xl`}>
             <Settings className={`h-6 w-6 ${textPrimary}`} />
           </div>
-          <h2 className={`text-xl font-bold ${textPrimary}`}>Quick Settings</h2>
+          <h2 className={`text-xl font-bold ${textPrimary}`}>Notification Settings</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-center justify-between">
             <div>
               <h4 className={`${textPrimary} font-medium`}>Email Notifications</h4>
@@ -290,22 +288,6 @@ export default function Profile() {
               <input type="checkbox" defaultChecked className="sr-only peer" />
               <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className={`${textPrimary} font-medium`}>Theme Mode</h4>
-              <p className={`${textSecondary} text-sm`}>
-                {isDark ? 'Dark mode enabled' : 'Light mode enabled'}
-              </p>
-            </div>
-            <button
-              onClick={toggleTheme}
-              className={`p-2 ${isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-600/20 text-gray-600'} transition-colors`}
-              style={{ borderRadius: '0.5rem' }}
-            >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
           </div>
         </div>
       </Card>

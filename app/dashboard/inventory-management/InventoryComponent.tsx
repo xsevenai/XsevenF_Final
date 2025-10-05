@@ -33,7 +33,7 @@ export default function InventoryComponent() {
 
   if (!themeLoaded || !mounted) {
     return (
-      <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-all duration-300">
+      <div className={`flex-1 ${isDark ? 'bg-[#111111]' : 'bg-gray-50'} flex items-center justify-center transition-all duration-300`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
     )

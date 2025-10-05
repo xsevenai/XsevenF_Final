@@ -11,6 +11,8 @@ import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, Expanded
 
 // Import existing components
 import Profile from "../profile/page"
+import NotificationComponent from "../notifcation/NotificationComponent"
+import BillComponent from "./BillComponent"
 import MenuComponent from "./MenuComponent"
 import OrderComponent from "../order-component/OrderComponent"
 import TableComponent from "../table-component/TableComponent"
@@ -25,10 +27,12 @@ import MenuListingsComponent from "./MenuListingsComponent"
 import MenuModifiersComponent from "./MenuModifiersComponent"
 import MenuServicesComponent from "./MenuServicesComponent"
 
-// Import customer components (using default imports)
+// Import upload components
+import MenuUploadQRComponent from "./MenuUploadQRComponent"
+import CategoryUploadQRComponent from "./CategoryUploadQRComponent"
+import InventoryUploadQRComponent from "./InventoryUploadQRComponent"
 import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
 import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
-
 interface MainPanelProps {
   activeSection: SectionType
   expandedView: ExpandedViewType
@@ -84,7 +88,7 @@ export default function MainPanel({
 
   if (!themeLoaded || !mounted) {
     return (
-      <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-all duration-300">
+      <div className={`flex-1 ${isDark ? 'bg-[#111111]' : 'bg-gray-50'} flex items-center justify-center transition-all duration-300`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
     )
@@ -415,6 +419,14 @@ export default function MainPanel({
       case "attributes":
         return <MenuAttributesComponent />
       
+      // Upload QR sections
+      case "menu-upload-qr":
+        return <MenuUploadQRComponent />
+      case "category-upload-qr":
+        return <CategoryUploadQRComponent />
+      case "inventory-upload-qr":
+        return <InventoryUploadQRComponent />
+      
       // Customer sub-sections
       case "directory":
         return <CustomerDirectoryComponent />
@@ -440,6 +452,10 @@ export default function MainPanel({
         return renderPayments()
       case "profile":
         return <Profile />
+      case "notifications":
+        return <NotificationComponent />  
+      case "bill-printing":
+        return <BillComponent />
       
       default:
         return renderDashboardOverview()

@@ -51,7 +51,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
   const mainNavItems = [
     { id: "dashboard" as const, label: "Dashboard", icon: Home },
     { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
-    { id: "ai-chat" as const, label: "AI Chat", icon: MessageSquare },
+    { id: "ai-chat" as const, label: "Assistant", icon: MessageSquare },
     { 
       id: "catalog" as const, 
       label: "Catalog", 
@@ -88,7 +88,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
 
   const quickActions = [
     { label: "Add New Menu Item", icon: Plus, action: () => setActiveSection("menu-management") },
-    { label: "Add New Table", icon: Plus, action: () => setActiveSection("tables") },
+    { label: "Add New Category", icon: Plus, action: () => setActiveSection("menu-management") },
     { label: "Add Inventory Item", icon: Package, action: () => setActiveSection("inventory") },
   ]
 
@@ -116,8 +116,13 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 px-4 overflow-y-auto">
-        <nav className="space-y-1">
+      <div className="flex-1 px-4 overflow-hidden flex flex-col">
+        <nav className="space-y-1 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style jsx>{`
+            nav::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           {mainNavItems.map((item) => (
             <div key={item.id}>
               <button
@@ -178,9 +183,9 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
           ))}
         </nav>
 
-        {/* Quick Actions Section */}
-        <div className="mt-8">
-          <h3 className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} mb-4 px-4 uppercase tracking-wider`}>
+        {/* Quick Actions Section - Fixed at bottom */}
+        <div className="mt-4 pb-4 border-t border-opacity-20 pt-4" style={{ borderColor: isDark ? '#2a2a2a' : '#e5e7eb' }}>
+          <h3 className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} mb-3 px-4 uppercase tracking-wider`}>
             Quick Actions
           </h3>
           <nav className="space-y-1">
@@ -188,14 +193,14 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
               <button
                 key={index}
                 onClick={item.action}
-                className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-all duration-200 rounded-lg group ${
+                className={`w-full flex items-center space-x-3 px-4 py-2 text-left transition-all duration-200 rounded-lg group ${
                   isDark 
                     ? 'text-gray-400 hover:text-white hover:bg-[#222222]'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <item.icon className="h-5 w-5" />
-                <span className="font-medium text-sm">{item.label}</span>
+                <item.icon className="h-4 w-4" />
+                <span className="font-medium text-xs">{item.label}</span>
               </button>
             ))}
           </nav>

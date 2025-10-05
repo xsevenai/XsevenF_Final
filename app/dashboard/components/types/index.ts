@@ -120,6 +120,11 @@ export type SectionType =
   | "feedback"
   | "payments"
   | "profile"
+  | "menu-upload-qr"
+  | "category-upload-qr"
+  | "inventory-upload-qr"
+  | "notifications"
+  | "bill-printing"
 
 export type ExpandedViewType = 
   | "add-menu-item" 

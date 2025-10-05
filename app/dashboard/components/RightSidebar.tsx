@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "@/hooks/useTheme"
-import { Loader2, Bell, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { Loader2, Bell, User, Settings, LogOut, ChevronDown, Moon, Sun, Printer } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface RightSidebarProps {
@@ -9,11 +9,17 @@ interface RightSidebarProps {
 }
 
 export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
-  const { theme, isLoaded: themeLoaded, isDark } = useTheme()
+  const { theme, isLoaded: themeLoaded, isDark, toggleTheme } = useTheme()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
   // Mock real-time data - replace with actual API calls
+  const billPrintingData = {
+    pendingBills: 3,
+    todayPrinted: 47,
+    printerStatus: "online"
+  }
+
   const kitchenData = {
     ordersInQueue: 7,
     avgPrepTime: "12 min",
@@ -68,6 +74,17 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
     }
   }
 
+  const handleThemeToggle = () => {
+    toggleTheme()
+    // Keep menu open after theme toggle
+  }
+
+  const handleBillPrintingClick = () => {
+    if (setActiveSection) {
+      setActiveSection("bill-printing")
+    }
+  }
+
   // Show loading while theme is being loaded
   if (!themeLoaded) {
     return (
@@ -84,12 +101,18 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
         <div className="flex items-center justify-end gap-3 mb-4">
           {/* Notification Button */}
           <button 
+            onClick={() => {
+              if (setActiveSection) {
+                setActiveSection("notifications")
+              }
+              setShowProfileMenu(false)
+            }}
             className={`relative ${innerCardBg} p-2 rounded-lg border ${borderColor} hover:scale-110 transition-transform`}
             aria-label="Notifications"
           >
             <Bell className={`h-5 w-5 ${textPrimary}`} />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">
-              3
+              2
             </span>
           </button>
           
@@ -101,7 +124,7 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
               aria-label="Profile"
             >
               <User className={`h-5 w-5 ${textPrimary}`} />
-              <span className={`${textPrimary} text-sm font-medium`}>JD</span>
+              <span className={`${textPrimary} text-sm font-medium`}>User</span>
               <ChevronDown className={`h-4 w-4 ${textPrimary} transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
             </button>
 
@@ -118,6 +141,25 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
                 >
                   <Settings className="h-5 w-5" />
                   <span className="font-medium text-sm">Profile Settings</span>
+                </button>
+
+                <button
+                  onClick={handleThemeToggle}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                    isDark 
+                      ? 'hover:bg-[#2a2a2a] text-gray-300 hover:text-white'
+                      : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">
+                      {isDark ? 'Light Mode' : 'Dark Mode'}
+                    </span>
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Switch to {isDark ? 'light' : 'dark'} theme
+                    </span>
+                  </div>
                 </button>
                 
                 <div className={`border-t ${borderColor}`}></div>
@@ -150,6 +192,46 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
             display: none;
           }
         `}</style>
+        
+        {/* Bill Printing Card */}
+        <div 
+          className={`${cardBg} rounded-xl p-5 border ${borderColor} cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
+          onClick={handleBillPrintingClick}
+        >
+          <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+            <Printer className="h-4 w-4" />
+            Bill Printing
+          </h3>
+          <div className="space-y-3">
+            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+              <div className="flex items-center justify-between">
+                <span className={`${textSecondary} text-xs`}>Pending Bills</span>
+                <span className={`${billPrintingData.pendingBills > 0 ? 'text-orange-500' : textPrimary} text-lg font-semibold`}>
+                  {billPrintingData.pendingBills}
+                </span>
+              </div>
+            </div>
+            
+            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+              <div className="flex items-center justify-between">
+                <span className={`${textSecondary} text-xs`}>Today Printed</span>
+                <span className={`${textPrimary} text-lg font-semibold`}>{billPrintingData.todayPrinted}</span>
+              </div>
+            </div>
+            
+            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+              <div className="flex items-center justify-between">
+                <span className={`${textSecondary} text-xs`}>Printer Status</span>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${billPrintingData.printerStatus === 'online' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                  <span className={`${billPrintingData.printerStatus === 'online' ? 'text-green-500' : 'text-red-500'} text-sm font-semibold capitalize`}>
+                    {billPrintingData.printerStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         
         {/* Kitchen Dashboard Card */}
         <div className={`${cardBg} rounded-xl p-5 border ${borderColor}`}>
