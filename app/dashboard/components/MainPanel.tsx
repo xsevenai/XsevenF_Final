@@ -33,6 +33,7 @@ import CategoryUploadQRComponent from "./CategoryUploadQRComponent"
 import InventoryUploadQRComponent from "./InventoryUploadQRComponent"
 import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
 import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
+import POSComponent from "../pos-component.tsx/PosComponent"
 interface MainPanelProps {
   activeSection: SectionType
   expandedView: ExpandedViewType
@@ -375,17 +376,7 @@ export default function MainPanel({
   )
 
   const renderPOS = () => (
-  <div className="p-6 space-y-6">
-    <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-      <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Point of Sale (POS)</h1>
-      <p className={`${textSecondary}`}>This is the POS initial screen where billing, orders, and items will be managed.</p>
-    </div>
-
-    {/* Placeholder for POS content */}
-    <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-      <p className={`${textPrimary}`}>POS interface coming soon...</p>
-    </div>
-  </div>
+    <POSComponent />
 )
 
 
