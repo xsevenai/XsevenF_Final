@@ -85,6 +85,13 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
     }
   }
 
+  const handlePOSClick = () => {
+  if (setActiveSection) {
+    setActiveSection("pos") // "pos" is the key you'll use in MainPanel
+  }
+}
+
+
   // Show loading while theme is being loaded
   if (!themeLoaded) {
     return (
@@ -192,6 +199,21 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
             display: none;
           }
         `}</style>
+
+        {/* POS Card */}
+<div
+  className={`${cardBg} rounded-xl p-5 border ${borderColor} cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
+  onClick={handlePOSClick}
+>
+  <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+    <Printer className="h-4 w-4" /> {/* Replace with POS icon if you have one */}
+    POS
+  </h3>
+  <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+    <span className={`${textPrimary} text-sm`}>Open POS Interface</span>
+  </div>
+</div>
+
         
         {/* Bill Printing Card */}
         <div 

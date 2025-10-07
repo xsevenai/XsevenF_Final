@@ -125,6 +125,7 @@ export type SectionType =
   | "inventory-upload-qr"
   | "notifications"
   | "bill-printing"
+  | "pos"
 
 export type ExpandedViewType = 
   | "add-menu-item" 

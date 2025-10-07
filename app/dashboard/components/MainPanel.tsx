@@ -374,6 +374,21 @@ export default function MainPanel({
     </div>
   )
 
+  const renderPOS = () => (
+  <div className="p-6 space-y-6">
+    <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+      <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Point of Sale (POS)</h1>
+      <p className={`${textSecondary}`}>This is the POS initial screen where billing, orders, and items will be managed.</p>
+    </div>
+
+    {/* Placeholder for POS content */}
+    <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+      <p className={`${textPrimary}`}>POS interface coming soon...</p>
+    </div>
+  </div>
+)
+
+
   const renderExpandedView = () => {
     return null
   }
@@ -450,6 +465,9 @@ export default function MainPanel({
         return renderKitchen()
       case "payments":
         return renderPayments()
+      case "pos":
+        return renderPOS()
+
       case "profile":
         return <Profile />
       case "notifications":
