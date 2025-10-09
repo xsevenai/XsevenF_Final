@@ -4,7 +4,7 @@
 
 import { ArrowLeft, Upload, QrCode } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import MenuForms from "./MenuForms"
+import MenuForms from "../menu-category-component/MenuForms"
 import type { Table, ExpandedViewType, MenuItem, MenuCategory } from "./types"
 
 interface ExpandedViewsProps {

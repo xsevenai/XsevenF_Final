@@ -3,29 +3,40 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Package, AlertTriangle, RefreshCw, TrendingDown, Scale, ArrowLeft, BarChart3, Loader2 } from "lucide-react"
+import { Package, AlertTriangle, RefreshCw, TrendingDown, Scale, ArrowLeft, BarChart3, Loader2, Users, FileText, Settings } from "lucide-react"
 import { useInventoryManagement } from '@/hooks/use-inventory'
 import { useTheme } from "@/hooks/useTheme"
 import InventoryOverview from './components/InventoryOverview'
-import InventoryItemsList from './components/InventoryItemList'
+import InventoryItemList from './components/InventoryItemList'
 import LowStockAlerts from './components/LowStockAlerts'
-import ReorderManagement from './components/ReorderManagement'
-import UsageTracking from './components/UsageTracking'
+import SupplierManagement from './components/SupplierManagement'
+import PurchaseOrderManagement from './components/PurchaseOrderManagement'
+import StockAdjustments from './components/StockAdjustments'
+import InventoryReports from './components/InventoryReports'
 
-type InventoryView = 'overview' | 'items' | 'low-stock' | 'reorder' | 'usage' | 'stats'
+type InventoryView = 'overview' | 'items' | 'low-stock' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'analytics'
 
 export default function InventoryComponent() {
   const [activeView, setActiveView] = useState<InventoryView>('overview')
   const [mounted, setMounted] = useState(false)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  
+  // Get businessId from localStorage
+  const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+  
   const {
     inventoryItems,
     lowStockItems,
-    reorders,
-    usageTracking,
+    stockAdjustments,
+    suppliers,
+    purchaseOrders,
+    transactions,
+    reports,
     stats,
-    refreshAll
-  } = useInventoryManagement()
+    refreshAll,
+    loading,
+    error
+  } = useInventoryManagement(businessId)
 
   useEffect(() => {
     setMounted(true)
@@ -52,9 +63,11 @@ export default function InventoryComponent() {
     { id: 'overview' as const, label: 'Overview', icon: Package },
     { id: 'items' as const, label: 'All Items', icon: Scale },
     { id: 'low-stock' as const, label: 'Low Stock', icon: AlertTriangle },
-    { id: 'reorder' as const, label: 'Reorders', icon: RefreshCw },
-    { id: 'usage' as const, label: 'Usage', icon: TrendingDown },
-    { id: 'stats' as const, label: 'Analytics', icon: BarChart3 }
+    { id: 'suppliers' as const, label: 'Suppliers', icon: Users },
+    { id: 'purchase-orders' as const, label: 'Purchase Orders', icon: FileText },
+    { id: 'adjustments' as const, label: 'Adjustments', icon: Settings },
+    { id: 'reports' as const, label: 'Reports', icon: BarChart3 },
+    { id: 'analytics' as const, label: 'Analytics', icon: TrendingDown }
   ]
 
   const handleTabClick = (tabId: InventoryView) => {
@@ -76,20 +89,25 @@ export default function InventoryComponent() {
             onRefresh={stats.refresh}
             inventoryItems={inventoryItems.items}
             lowStockItems={lowStockItems.lowStockItems}
-            usageHistory={usageTracking.usageHistory}
+            activeAlerts={lowStockItems.activeAlerts}
             onViewItems={() => setActiveView('items')}
             onViewLowStock={() => setActiveView('low-stock')}
-            onViewUsage={() => setActiveView('usage')}
+            onViewSuppliers={() => setActiveView('suppliers')}
+            onViewPurchaseOrders={() => setActiveView('purchase-orders')}
+            onViewReports={() => setActiveView('reports')}
           />
         )
       case 'items':
         return (
-          <InventoryItemsList
+          <InventoryItemList
             items={inventoryItems.items}
             loading={inventoryItems.loading}
             error={inventoryItems.error}
             onRefresh={inventoryItems.refresh}
+            onCreateItem={inventoryItems.createItem}
             onUpdateItem={inventoryItems.updateItem}
+            onDeleteItem={inventoryItems.deleteItem}
+            onSearchItems={inventoryItems.searchItems}
             onBack={handleBackToOverview}
           />
         )
@@ -97,39 +115,68 @@ export default function InventoryComponent() {
         return (
           <LowStockAlerts
             lowStockItems={lowStockItems.lowStockItems}
+            activeAlerts={lowStockItems.activeAlerts}
             loading={lowStockItems.loading}
             error={lowStockItems.error}
             onRefresh={lowStockItems.refresh}
-            onCreateReorder={reorders.createReorder}
+            onCreateStockAlert={lowStockItems.createStockAlert}
             onBack={handleBackToOverview}
           />
         )
-      case 'reorder':
+      case 'suppliers':
         return (
-          <ReorderManagement
-            reorders={reorders.reorderHistory}
-            loading={reorders.loading}
-            error={reorders.error}
-            onRefresh={() => {}}
-            onCreateReorder={reorders.createReorder}
+          <SupplierManagement
+            suppliers={suppliers.suppliers}
+            loading={suppliers.loading}
+            error={suppliers.error}
+            onRefresh={suppliers.refresh}
+            onCreateSupplier={suppliers.createSupplier}
+            onUpdateSupplier={suppliers.updateSupplier}
+            onDeleteSupplier={suppliers.deleteSupplier}
             onBack={handleBackToOverview}
-            inventoryItems={inventoryItems.items}
           />
         )
-      case 'usage':
+      case 'purchase-orders':
         return (
-          <UsageTracking
-            usageHistory={usageTracking.usageHistory}
-            loading={usageTracking.loading}
-            error={usageTracking.error}
-            onRefresh={usageTracking.refresh}
-            onChangePeriod={usageTracking.changePeriod}
-            currentPeriod={usageTracking.currentPeriod}
-            inventoryItems={inventoryItems.items}
+          <PurchaseOrderManagement
+            purchaseOrders={purchaseOrders.purchaseOrders}
+            suppliers={suppliers.suppliers}
+            loading={purchaseOrders.loading}
+            error={purchaseOrders.error}
+            onRefresh={purchaseOrders.refresh}
+            onCreatePurchaseOrder={purchaseOrders.createPurchaseOrder}
+            onUpdatePurchaseOrder={purchaseOrders.updatePurchaseOrder}
+            onReceivePurchaseOrder={purchaseOrders.receivePurchaseOrder}
             onBack={handleBackToOverview}
           />
         )
-      case 'stats':
+      case 'adjustments':
+        return (
+          <StockAdjustments
+            transactions={transactions.transactions}
+            loading={stockAdjustments.loading || transactions.loading}
+            error={stockAdjustments.error || transactions.error}
+            onRefresh={transactions.refresh}
+            onAdjustStock={stockAdjustments.adjustStock}
+            onPerformStockCount={stockAdjustments.performStockCount}
+            onBack={handleBackToOverview}
+          />
+        )
+      case 'reports':
+        return (
+          <InventoryReports
+            reports={reports}
+            stats={stats.stats}
+            loading={reports.loading}
+            error={reports.error}
+            onGetInventorySummary={reports.getInventorySummary}
+            onGetInventoryValuation={reports.getInventoryValuation}
+            onGetInventoryTurnover={reports.getInventoryTurnover}
+            onGetWasteReport={reports.getWasteReport}
+            onBack={handleBackToOverview}
+          />
+        )
+      case 'analytics':
         return (
           <div className="space-y-6">
             <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
@@ -142,7 +189,7 @@ export default function InventoryComponent() {
                 </button>
                 <div>
                   <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Inventory Analytics</h1>
-                  <p className={`${textSecondary}`}>Detailed analytics and reporting coming soon...</p>
+                  <p className={`${textSecondary}`}>Advanced analytics and insights coming soon...</p>
                 </div>
               </div>
             </div>
@@ -161,11 +208,15 @@ export default function InventoryComponent() {
         return 'All Inventory Items'
       case 'low-stock':
         return 'Low Stock Alerts'
-      case 'reorder':
-        return 'Reorder Management'
-      case 'usage':
-        return 'Usage Tracking'
-      case 'stats':
+      case 'suppliers':
+        return 'Supplier Management'
+      case 'purchase-orders':
+        return 'Purchase Orders'
+      case 'adjustments':
+        return 'Stock Adjustments'
+      case 'reports':
+        return 'Inventory Reports'
+      case 'analytics':
         return 'Inventory Analytics'
       default:
         return 'Inventory Management'
@@ -175,17 +226,21 @@ export default function InventoryComponent() {
   const getPageDescription = () => {
     switch (activeView) {
       case 'overview':
-        return 'Monitor stock levels, track usage, and manage reorders'
+        return 'Monitor stock levels, track usage, and manage inventory'
       case 'items':
         return 'View and manage all inventory items'
       case 'low-stock':
         return 'Items that need immediate attention'
-      case 'reorder':
-        return 'Manage purchase orders and supplier requests'
-      case 'usage':
-        return 'Track ingredient consumption and usage patterns'
-      case 'stats':
-        return 'Detailed analytics and reporting'
+      case 'suppliers':
+        return 'Manage supplier relationships and contacts'
+      case 'purchase-orders':
+        return 'Create and track purchase orders'
+      case 'adjustments':
+        return 'Adjust stock levels and perform counts'
+      case 'reports':
+        return 'Generate inventory reports and analytics'
+      case 'analytics':
+        return 'Advanced analytics and insights'
       default:
         return 'Complete inventory management system'
     }
@@ -255,9 +310,19 @@ export default function InventoryComponent() {
                       {lowStockItems.lowStockItems.length}
                     </span>
                   )}
-                  {tab.id === 'reorder' && reorders.reorderHistory.length > 0 && (
+                  {tab.id === 'suppliers' && suppliers.suppliers.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-medium">
+                      {suppliers.suppliers.length}
+                    </span>
+                  )}
+                  {tab.id === 'purchase-orders' && purchaseOrders.purchaseOrders.length > 0 && (
                     <span className="ml-1 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full font-medium">
-                      {reorders.reorderHistory.length}
+                      {purchaseOrders.purchaseOrders.length}
+                    </span>
+                  )}
+                  {tab.id === 'adjustments' && transactions.transactions.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full font-medium">
+                      {transactions.transactions.length}
                     </span>
                   )}
                 </button>

@@ -5,10 +5,10 @@
 import React, { useState, useEffect } from 'react'
 import { X, Save, Loader2, Package, AlertTriangle } from 'lucide-react'
 import { useTheme } from "@/hooks/useTheme"
-import type { ExtendedInventoryItem } from '@/app/api/inventory/route'
+import type { InventoryItemWithMetrics } from '@/src/api/generated/models/InventoryItemWithMetrics'
 
 interface UpdateStockModalProps {
-  item: ExtendedInventoryItem
+  item: InventoryItemWithMetrics
   onClose: () => void
   onSubmit: (itemId: string, stockQuantity: number, minThreshold?: number) => Promise<void>
   loading?: boolean
@@ -20,8 +20,8 @@ export default function UpdateStockModal({
   onSubmit, 
   loading = false 
 }: UpdateStockModalProps) {
-  const [stockQuantity, setStockQuantity] = useState(item.current_stock)
-  const [minThreshold, setMinThreshold] = useState(item.min_threshold)
+  const [stockQuantity, setStockQuantity] = useState(parseFloat(item.current_stock || '0'))
+  const [minThreshold, setMinThreshold] = useState(parseFloat(item.min_stock || '0'))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [mounted, setMounted] = useState(false)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
@@ -86,7 +86,9 @@ export default function UpdateStockModal({
   }
 
   const newStatus = getNewStatus()
-  const isStatusChanging = newStatus !== item.status
+  const currentStatus = parseFloat(item.current_stock || '0') === 0 ? 'out-of-stock' :
+                       parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'low-stock' : 'in-stock'
+  const isStatusChanging = newStatus !== currentStatus
 
   return (
     <div className={`fixed inset-0 ${overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}>
@@ -118,8 +120,12 @@ export default function UpdateStockModal({
             )}
             <div className="mt-2 flex items-center gap-2">
               <span className={`${textSecondary} text-sm`}>Current Status:</span>
-              <span className={`text-sm font-medium ${getStatusColor(item.status)}`}>
-                {item.status.replace('-', ' ').toUpperCase()}
+              <span className={`text-sm font-medium ${getStatusColor(
+                parseFloat(item.current_stock || '0') === 0 ? 'out-of-stock' :
+                parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'low-stock' : 'in-stock'
+              )}`}>
+                {parseFloat(item.current_stock || '0') === 0 ? 'OUT OF STOCK' :
+                 parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'LOW STOCK' : 'IN STOCK'}
               </span>
             </div>
           </div>
@@ -184,7 +190,7 @@ export default function UpdateStockModal({
                   <span className="text-blue-500 font-medium text-sm">Status will change</span>
                 </div>
                 <div className={`text-sm ${textPrimary}`}>
-                  From <span className={getStatusColor(item.status)}>{item.status.replace('-', ' ')}</span> to{' '}
+                  From <span className={getStatusColor(currentStatus)}>{currentStatus.replace('-', ' ')}</span> to{' '}
                   <span className={getStatusColor(newStatus)}>{newStatus.replace('-', ' ')}</span>
                 </div>
               </div>

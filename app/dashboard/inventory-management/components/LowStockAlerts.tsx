@@ -16,23 +16,27 @@ import {
   ArrowLeft,
   Loader2
 } from "lucide-react"
-import type { ExtendedLowStockItem, ReorderRequest, ReorderResponse } from '@/app/api/inventory/route'
+import type { InventoryItemWithMetrics } from '@/src/api/generated/models/InventoryItemWithMetrics'
+import type { StockAlertCreate } from '@/src/api/generated/models/StockAlertCreate'
+import { AlertType } from '@/src/api/generated/models/AlertType'
 
 interface LowStockAlertsProps {
-  lowStockItems: ExtendedLowStockItem[]
+  lowStockItems: InventoryItemWithMetrics[]
+  activeAlerts: any[]
   loading: boolean
   error: string | null
   onRefresh: () => void
-  onCreateReorder: (data: ReorderRequest) => Promise<ReorderResponse>
+  onCreateStockAlert: (alertData: StockAlertCreate) => Promise<any>
   onBack: () => void
 }
 
 export default function LowStockAlerts({
   lowStockItems,
+  activeAlerts,
   loading,
   error,
   onRefresh,
-  onCreateReorder,
+  onCreateStockAlert,
   onBack
 }: LowStockAlertsProps) {
   const [creatingReorder, setCreatingReorder] = useState<string | null>(null)
@@ -42,9 +46,9 @@ export default function LowStockAlerts({
   // Group items by urgency - moved before early returns to avoid hooks order issues
   const groupedItems = React.useMemo(() => {
     const groups = {
-      high: lowStockItems.filter(item => item.urgency === 'high'),
-      medium: lowStockItems.filter(item => item.urgency === 'medium'),
-      low: lowStockItems.filter(item => item.urgency === 'low')
+      high: lowStockItems.filter(item => item.needs_reorder && parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') * 0.5),
+      medium: lowStockItems.filter(item => item.needs_reorder && parseFloat(item.current_stock || '0') > parseFloat(item.min_stock || '0') * 0.5),
+      low: lowStockItems.filter(item => !item.needs_reorder)
     }
     return groups
   }, [lowStockItems])
@@ -93,49 +97,50 @@ export default function LowStockAlerts({
     }
   }
 
-  const handleCreateReorder = async (item: ExtendedLowStockItem) => {
+  const handleCreateStockAlert = async (item: InventoryItemWithMetrics) => {
     try {
-      setCreatingReorder(item.item_id)
+      setCreatingReorder(item.id)
       
-      // Calculate suggested reorder quantity (to reach max stock)
-      const suggestedQuantity = Math.max(item.threshold * 2, 10) // At least double min stock or 10 units
+      const alertData: StockAlertCreate = {
+        inventory_item_id: item.id,
+        alert_type: AlertType.LOW_STOCK,
+        threshold: parseFloat(item.min_stock || '0'),
+        is_active: true,
+        business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+      }
       
-      await onCreateReorder({
-        item_id: item.item_id,
-        quantity: suggestedQuantity,
-        supplier: item.supplier,
-        notes: `Auto-generated reorder for ${item.status} item`
-      })
+      await onCreateStockAlert(alertData)
       
       // Refresh to get updated data
       onRefresh()
     } catch (error) {
-      console.error('Error creating reorder:', error)
-      alert('Failed to create reorder request')
+      console.error('Error creating stock alert:', error)
+      alert('Failed to create stock alert')
     } finally {
       setCreatingReorder(null)
     }
   }
 
-  const createBulkReorder = async () => {
+  const createBulkStockAlerts = async () => {
     try {
       const highPriorityItems = groupedItems.high
       if (highPriorityItems.length === 0) return
 
       for (const item of highPriorityItems) {
-        const suggestedQuantity = Math.max(item.threshold * 2, 10)
-        await onCreateReorder({
-          item_id: item.item_id,
-          quantity: suggestedQuantity,
-          supplier: item.supplier,
-          notes: 'Bulk reorder for high priority low stock items'
-        })
+        const alertData: StockAlertCreate = {
+          inventory_item_id: item.id,
+          alert_type: AlertType.LOW_STOCK,
+          threshold: parseFloat(item.min_stock || '0'),
+          is_active: true,
+          business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+        }
+        await onCreateStockAlert(alertData)
       }
       
       onRefresh()
     } catch (error) {
-      console.error('Error creating bulk reorder:', error)
-      alert('Failed to create bulk reorder requests')
+      console.error('Error creating bulk stock alerts:', error)
+      alert('Failed to create bulk stock alerts')
     }
   }
 
@@ -213,11 +218,11 @@ export default function LowStockAlerts({
         <div className="flex justify-end gap-3">
           {groupedItems.high.length > 0 && (
             <button
-              onClick={createBulkReorder}
+              onClick={createBulkStockAlerts}
               className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2`}
             >
-              <Truck className="h-4 w-4" />
-              Bulk Reorder High Priority
+              <AlertTriangle className="h-4 w-4" />
+              Create Bulk Alerts
             </button>
           )}
           <button
@@ -283,18 +288,20 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {groupedItems.high.map((item, index) => (
-              <div key={item.item_id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor(item.urgency)}`}
+              <div key={item.id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor('high')}`}
                 style={{ 
                   borderRadius: index % 2 === 0 ? '1.5rem' : '2rem'
                 }}>
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h4 className={`${textPrimary} font-semibold text-lg`}>{item.item_name}</h4>
+                      <h4 className={`${textPrimary} font-semibold text-lg`}>{item.name}</h4>
                       <p className={`${textSecondary} text-sm`}>{item.category}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
-                      {item.status.replace('-', ' ')}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                      parseFloat(item.current_stock || '0') === 0 ? 'out-of-stock' : 'low-stock'
+                    )}`}>
+                      {parseFloat(item.current_stock || '0') === 0 ? 'Out of Stock' : 'Low Stock'}
                     </span>
                   </div>
                   
@@ -305,25 +312,27 @@ export default function LowStockAlerts({
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className={`${textSecondary}`}>Minimum Required:</span>
-                      <span className="text-yellow-500">{item.threshold} {item.unit}</span>
+                      <span className="text-yellow-500">{item.min_stock} {item.unit}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className={`${textSecondary}`}>Supplier:</span>
-                      <span className={`${textPrimary}`}>{item.supplier}</span>
-                    </div>
+                    {item.supplier_id && (
+                      <div className="flex justify-between text-sm">
+                        <span className={`${textSecondary}`}>Supplier:</span>
+                        <span className={`${textPrimary}`}>{item.supplier_id}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <button 
-                    onClick={() => handleCreateReorder(item)}
-                    disabled={creatingReorder === item.item_id}
+                    onClick={() => handleCreateStockAlert(item)}
+                    disabled={creatingReorder === item.id}
                     className={`w-full px-4 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50`}
                   >
-                    {creatingReorder === item.item_id ? (
+                    {creatingReorder === item.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Plus className="h-4 w-4" />
                     )}
-                    {creatingReorder === item.item_id ? 'Creating...' : 'Create Reorder Request'}
+                    {creatingReorder === item.id ? 'Creating...' : 'Create Stock Alert'}
                   </button>
                 </div>
               </div>
@@ -341,43 +350,45 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {groupedItems.medium.map((item, index) => (
-              <div key={item.item_id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor(item.urgency)}`}
+              <div key={item.id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor('medium')}`}
                 style={{ 
                   borderRadius: index % 3 === 0 ? '1.5rem' : index % 3 === 1 ? '2rem' : '1rem'
                 }}>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className={`${textPrimary} font-semibold`}>{item.item_name}</h4>
+                      <h4 className={`${textPrimary} font-semibold`}>{item.name}</h4>
                       <p className={`${textSecondary} text-sm`}>{item.category}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
-                      {item.status.replace('-', ' ')}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor('low-stock')}`}>
+                      Low Stock
                     </span>
                   </div>
                   
                   <div className="space-y-2 mb-3">
                     <div className="flex justify-between text-sm">
                       <span className={`${textSecondary}`}>Stock:</span>
-                      <span className={`${textPrimary}`}>{item.current_stock}/{item.threshold} {item.unit}</span>
+                      <span className={`${textPrimary}`}>{item.current_stock}/{item.min_stock} {item.unit}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className={`${textSecondary}`}>Supplier:</span>
-                      <span className={`${textPrimary} text-xs`}>{item.supplier}</span>
-                    </div>
+                    {item.supplier_id && (
+                      <div className="flex justify-between text-sm">
+                        <span className={`${textSecondary}`}>Supplier:</span>
+                        <span className={`${textPrimary} text-xs`}>{item.supplier_id}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <button 
-                    onClick={() => handleCreateReorder(item)}
-                    disabled={creatingReorder === item.item_id}
+                    onClick={() => handleCreateStockAlert(item)}
+                    disabled={creatingReorder === item.id}
                     className={`w-full px-3 py-2 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-sm disabled:opacity-50`}
                   >
-                    {creatingReorder === item.item_id ? (
+                    {creatingReorder === item.id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       <Plus className="h-3 w-3" />
                     )}
-                    {creatingReorder === item.item_id ? 'Creating...' : 'Reorder'}
+                    {creatingReorder === item.id ? 'Creating...' : 'Create Alert'}
                   </button>
                 </div>
               </div>
@@ -395,34 +406,34 @@ export default function LowStockAlerts({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             {groupedItems.low.map((item, index) => (
-              <div key={item.item_id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor(item.urgency)}`}
+              <div key={item.id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${getUrgencyColor('low')}`}
                 style={{ 
                   borderRadius: index % 4 === 0 ? '1.5rem' : index % 4 === 1 ? '2rem' : index % 4 === 2 ? '1rem' : '2.5rem'
                 }}>
                 <div className="p-4">
                   <div className="mb-3">
-                    <h4 className={`${textPrimary} font-semibold text-sm`}>{item.item_name}</h4>
+                    <h4 className={`${textPrimary} font-semibold text-sm`}>{item.name}</h4>
                     <p className={`${textSecondary} text-xs`}>{item.category}</p>
                   </div>
                   
                   <div className="space-y-2 mb-3">
                     <div className="flex justify-between text-xs">
                       <span className={`${textSecondary}`}>Stock:</span>
-                      <span className={`${textPrimary}`}>{item.current_stock}/{item.threshold} {item.unit}</span>
+                      <span className={`${textPrimary}`}>{item.current_stock}/{item.min_stock} {item.unit}</span>
                     </div>
                   </div>
                   
                   <button 
-                    onClick={() => handleCreateReorder(item)}
-                    disabled={creatingReorder === item.item_id}
+                    onClick={() => handleCreateStockAlert(item)}
+                    disabled={creatingReorder === item.id}
                     className={`w-full px-2 py-1 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-lg font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 text-xs disabled:opacity-50`}
                   >
-                    {creatingReorder === item.item_id ? (
+                    {creatingReorder === item.id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       <Plus className="h-3 w-3" />
                     )}
-                    {creatingReorder === item.item_id ? 'Creating...' : 'Reorder'}
+                    {creatingReorder === item.id ? 'Creating...' : 'Create Alert'}
                   </button>
                 </div>
               </div>

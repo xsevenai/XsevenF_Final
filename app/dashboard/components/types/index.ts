@@ -127,7 +127,7 @@ export type SectionType =
   | "bill-printing"
   | "pos"
 
-export type ExpandedViewType = 
+  export type ExpandedViewType = 
   | "add-menu-item" 
   | "add-category" 
   | "edit-menu-item" 
@@ -142,6 +142,10 @@ export type ExpandedViewType =
   | "live-reservations"
   | "add-inventory-item"
   | "view-qr-code"
+  | "add-modifier" // Add this
+  | "edit-modifier" // Add this
+  | "manage-item-modifiers" // Manage modifiers for a specific menu item
+  | "manage-modifier-items" // Manage menu items for a specific modifier
   | string 
   | null
 

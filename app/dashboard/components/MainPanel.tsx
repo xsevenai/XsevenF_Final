@@ -5,32 +5,32 @@
 import { ArrowLeft, Users, Loader2, TrendingUp, DollarSign, ShoppingBag, Package } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useState, useEffect } from "react"
-import { useMenu } from "@/hooks/use-menu" // Updated import
+import { useMenu } from "@/hooks/use-menu"
 import { useTheme } from "@/hooks/useTheme"
 import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, ExpandedViewType } from "./types"
 import type { MenuItem } from "@/src/api/generated/models/MenuItem"
-import type {  MenuCategory } from "@/src/api/generated/models/MenuCategory"
+import type { MenuCategory } from "@/src/api/generated/models/MenuCategory"
 
 // Import existing components
 import Profile from "../profile/page"
 import NotificationComponent from "../notifcation/NotificationComponent"
 import BillComponent from "./BillComponent"
-import MenuComponent from "./MenuComponent"
+import MenuComponent from "../menu-category-component/MenuComponent"
 import OrderComponent from "../order-component/OrderComponent"
 import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
 import FoodQRComponent from "../food-qr-component/FoodQRComponent"
 import AnalyticsComponent from "../analytics-component/AnalyticsComponent"
 
-// Import new menu components (using default imports)
-import MenuAttributesComponent from "./MenuAttributesComponent"
-import MenuDiscountsComponent from "./MenuDiscountsComponent"
-import MenuListingsComponent from "./MenuListingsComponent"
-import MenuModifiersComponent from "./MenuModifiersComponent"
-import MenuServicesComponent from "./MenuServicesComponent"
+// Import new menu components
+import MenuAttributesComponent from "../menu-category-component/MenuAttributesComponent"
+import MenuDiscountsComponent from "../menu-category-component/MenuDiscountsComponent"
+import MenuListingsComponent from "../menu-category-component/MenuListingsComponent"
+import MenuModifiersComponent from "../menu-category-component/MenuModifiersComponent"
+import MenuServicesComponent from "../menu-category-component/MenuServicesComponent"
 
 // Import upload components
-import MenuUploadQRComponent from "./MenuUploadQRComponent"
+import MenuUploadQRComponent from "../menu-category-component/MenuUploadQRComponent"
 import CategoryUploadQRComponent from "./CategoryUploadQRComponent"
 import InventoryUploadQRComponent from "./InventoryUploadQRComponent"
 import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
@@ -48,9 +48,9 @@ interface MainPanelProps {
   onUpdateTableStatus: (id: string, status: string) => void
   onToggleDayStatus: (day: string) => void
   onUpdateWorkingHours: (day: string, field: keyof WorkingHours, value: string) => void
-  menuItems: MenuItem[] // New prop
-  menuCategories: MenuCategory[] // New prop
-  onRefreshMenu: () => void // New prop
+  menuItems: MenuItem[]
+  menuCategories: MenuCategory[]
+  onRefreshMenu: () => void
 }
 
 export default function MainPanel({
@@ -64,9 +64,9 @@ export default function MainPanel({
   onUpdateTableStatus,
   onToggleDayStatus,
   onUpdateWorkingHours,
-  menuItems, // Destructure new prop
-  menuCategories, // Destructure new prop
-  onRefreshMenu, // Destructure new prop
+  menuItems,
+  menuCategories,
+  onRefreshMenu,
 }: MainPanelProps) {
   // Get businessId from localStorage or your auth context
   const [businessId, setBusinessId] = useState<string>("")
@@ -77,7 +77,6 @@ export default function MainPanel({
     if (storedBusinessId) {
       setBusinessId(storedBusinessId)
     } else {
-      // If no businessId is found, you might want to redirect to login
       console.warn('No business ID found. Please ensure user is logged in.')
     }
   }, [])
@@ -123,6 +122,15 @@ export default function MainPanel({
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+
+  const renderExpandedView = () => {
+    // Keep your existing expanded view logic
+    switch (expandedView) {
+      // ... your existing expanded view cases ...
+      default:
+        return null
+    }
+  }
 
   const renderDashboardOverview = () => (
     <div className="p-6 space-y-6">
@@ -351,7 +359,7 @@ export default function MainPanel({
     <MenuComponent 
       menuItems={menuItems}
       categories={menuCategories}
-      onRefresh={onRefreshMenu} // Use the prop instead of local function
+      onRefresh={onRefreshMenu}
     />
   )
 
@@ -418,10 +426,6 @@ export default function MainPanel({
     <POSComponent />
   )
 
-  const renderExpandedView = () => {
-    return null
-  }
-
   // Main render function
   const renderContent = () => {
     if (expandedView) {
@@ -451,13 +455,13 @@ export default function MainPanel({
       
       // Catalog sub-sections
       case "menu-management":
-        return renderMenu() // Opens your current MenuComponent
+        return renderMenu()
       case "listings":
         return <MenuListingsComponent />
       case "services":
         return <MenuServicesComponent />
       case "modifiers":
-        return <MenuModifiersComponent />
+        return <MenuModifiersComponent /> 
       case "discounts":
         return <MenuDiscountsComponent />
       case "attributes":

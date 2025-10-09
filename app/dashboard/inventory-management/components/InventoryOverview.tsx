@@ -17,21 +17,26 @@ import {
   Calendar,
   Clock,
   RefreshCw,
-  Loader2
+  Loader2,
+  Users,
+  FileText,
+  BarChart3
 } from "lucide-react"
-import type { ExtendedInventoryItem, ExtendedLowStockItem, UsageTracking } from '@/app/api/inventory/route'
+import type { InventoryItemWithMetrics, InventoryTransaction } from '@/src/api/generated/models'
 
 interface InventoryOverviewProps {
   stats: any
   loading: boolean
   error: string | null
   onRefresh: () => void
-  inventoryItems: ExtendedInventoryItem[]
-  lowStockItems: ExtendedLowStockItem[]
-  usageHistory: UsageTracking[]
+  inventoryItems: InventoryItemWithMetrics[]
+  lowStockItems: InventoryItemWithMetrics[]
+  activeAlerts: any[]
   onViewItems?: () => void
   onViewLowStock?: () => void
-  onViewUsage?: () => void
+  onViewSuppliers?: () => void
+  onViewPurchaseOrders?: () => void
+  onViewReports?: () => void
 }
 
 export default function InventoryOverview({
@@ -41,10 +46,12 @@ export default function InventoryOverview({
   onRefresh,
   inventoryItems,
   lowStockItems,
-  usageHistory,
+  activeAlerts,
   onViewItems,
   onViewLowStock,
-  onViewUsage
+  onViewSuppliers,
+  onViewPurchaseOrders,
+  onViewReports
 }: InventoryOverviewProps) {
   const [mounted, setMounted] = useState(false)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
@@ -53,29 +60,33 @@ export default function InventoryOverview({
   const metrics = React.useMemo(() => {
     const totalItems = inventoryItems.length
     const lowStockCount = lowStockItems.length
-    const outOfStockCount = inventoryItems.filter(item => item.is_out_of_stock).length
-    const inStockCount = inventoryItems.filter(item => !item.is_low_stock && !item.is_out_of_stock).length
+    const outOfStockCount = inventoryItems.filter(item => 
+      parseFloat(item.current_stock || '0') <= 0
+    ).length
+    const inStockCount = inventoryItems.filter(item => 
+      parseFloat(item.current_stock || '0') > 0 && !item.needs_reorder
+    ).length
     
-    // Calculate total value and revenue
+    // Calculate total value from inventory items
     const totalValue = inventoryItems.reduce((sum, item) => {
-      return sum + (item.current_stock * (item.cost_per_unit || 0))
+      const currentStock = parseFloat(item.current_stock || '0')
+      const unitCost = parseFloat(item.unit_cost || '0')
+      return sum + (currentStock * unitCost)
     }, 0)
     
-    const totalRevenue = usageHistory.reduce((sum, item) => sum + item.total_revenue, 0)
-    
-    // Find items expiring soon (if we had expiry data)
-    const expiringItemsCount = 0 // Would be calculated from expiry_date
+    // Get total value from stats if available
+    const totalValueFromStats = stats?.overview?.totalValue || totalValue
+    const activeAlertsCount = activeAlerts.length
     
     return {
       totalItems,
-      totalValue,
+      totalValue: totalValueFromStats,
       lowStockCount,
       outOfStockCount,
       inStockCount,
-      totalRevenue,
-      expiringItemsCount
+      activeAlertsCount
     }
-  }, [inventoryItems, lowStockItems, usageHistory])
+  }, [inventoryItems, lowStockItems, activeAlerts, stats])
 
   useEffect(() => {
     setMounted(true)
@@ -176,12 +187,12 @@ export default function InventoryOverview({
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-red-500 font-semibold mb-2">Out of Stock</h3>
-                <div className={`text-2xl font-bold ${textPrimary}`}>{metrics.outOfStockCount}</div>
-                <p className={`${textSecondary} text-sm mt-1`}>Critical shortage</p>
+                <h3 className="text-purple-500 font-semibold mb-2">Total Value</h3>
+                <div className={`text-2xl font-bold ${textPrimary}`}>${metrics.totalValue.toFixed(2)}</div>
+                <p className={`${textSecondary} text-sm mt-1`}>Inventory worth</p>
               </div>
               <div className={`p-3 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl`}>
-                <TrendingDown className="h-6 w-6 text-red-500" />
+                <DollarSign className="h-6 w-6 text-purple-500" />
               </div>
             </div>
           </div>
@@ -210,16 +221,16 @@ export default function InventoryOverview({
       <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
         <div className="p-6">
           <h3 className={`text-xl font-semibold ${textPrimary} mb-4`}>Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div 
               className={`${innerCardBg} border p-4 hover:shadow-md transition-all duration-300 cursor-pointer hover:scale-105 rounded-xl`}
               onClick={onViewItems}
             >
               <div className="flex items-center gap-3">
-                <RefreshCw className="h-6 w-6 text-purple-500" />
+                <Package className="h-6 w-6 text-blue-500" />
                 <div>
-                  <h3 className={`${textPrimary} font-semibold`}>View All Items</h3>
-                  <p className={`${textSecondary} text-sm`}>Manage inventory items</p>
+                  <h3 className={`${textPrimary} font-semibold`}>All Items</h3>
+                  <p className={`${textSecondary} text-sm`}>Manage inventory</p>
                 </div>
               </div>
             </div>
@@ -229,23 +240,36 @@ export default function InventoryOverview({
               onClick={onViewLowStock}
             >
               <div className="flex items-center gap-3">
-                <Package className="h-6 w-6 text-green-500" />
+                <AlertTriangle className="h-6 w-6 text-yellow-500" />
                 <div>
-                  <h3 className={`${textPrimary} font-semibold`}>Low Stock Alerts</h3>
-                  <p className={`${textSecondary} text-sm`}>View critical items</p>
+                  <h3 className={`${textPrimary} font-semibold`}>Low Stock</h3>
+                  <p className={`${textSecondary} text-sm`}>Critical alerts</p>
                 </div>
               </div>
             </div>
             
             <div 
               className={`${innerCardBg} border p-4 hover:shadow-md transition-all duration-300 cursor-pointer hover:scale-105 rounded-xl`}
-              onClick={onViewUsage}
+              onClick={onViewSuppliers}
             >
               <div className="flex items-center gap-3">
-                <Download className="h-6 w-6 text-blue-500" />
+                <Users className="h-6 w-6 text-green-500" />
                 <div>
-                  <h3 className={`${textPrimary} font-semibold`}>Usage Tracking</h3>
-                  <p className={`${textSecondary} text-sm`}>View consumption data</p>
+                  <h3 className={`${textPrimary} font-semibold`}>Suppliers</h3>
+                  <p className={`${textSecondary} text-sm`}>Manage vendors</p>
+                </div>
+              </div>
+            </div>
+            
+            <div 
+              className={`${innerCardBg} border p-4 hover:shadow-md transition-all duration-300 cursor-pointer hover:scale-105 rounded-xl`}
+              onClick={onViewPurchaseOrders}
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="h-6 w-6 text-purple-500" />
+                <div>
+                  <h3 className={`${textPrimary} font-semibold`}>Purchase Orders</h3>
+                  <p className={`${textSecondary} text-sm`}>Track orders</p>
                 </div>
               </div>
             </div>
@@ -266,10 +290,10 @@ export default function InventoryOverview({
                 </p>
                 <div className="space-y-2">
                   {lowStockItems.slice(0, 3).map((item) => (
-                    <div key={item.item_id} className={`flex justify-between items-center p-3 ${innerCardBg} border rounded-xl`}>
-                      <span className={`${textPrimary} font-medium`}>{item.item_name}</span>
+                    <div key={item.id} className={`flex justify-between items-center p-3 ${innerCardBg} border rounded-xl`}>
+                      <span className={`${textPrimary} font-medium`}>{item.name}</span>
                       <span className="text-red-500 text-sm font-medium">
-                        {item.current_stock}/{item.threshold} units
+                        {item.current_stock}/{item.min_stock} units
                       </span>
                     </div>
                   ))}
@@ -285,42 +309,39 @@ export default function InventoryOverview({
         </div>
       )}
 
-      {/* Top Usage Items */}
-      {usageHistory.length > 0 && (
+      {/* Active Alerts */}
+      {activeAlerts.length > 0 && (
         <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-xl font-semibold ${textPrimary}`}>Top Selling Items</h3>
+              <h3 className={`text-xl font-semibold ${textPrimary}`}>Active Alerts</h3>
               <button 
-                onClick={onRefresh}
+                onClick={onViewLowStock}
                 className={`text-sm ${textSecondary} hover:${textPrimary.replace('text-', 'text-')} transition-colors`}
               >
-                View All Usage
+                View All Alerts
               </button>
             </div>
             <div className="space-y-3">
-              {usageHistory.slice(0, 5).map((usage) => (
-                <div key={usage.item_id} className={`flex items-center justify-between p-4 ${innerCardBg} border rounded-xl hover:shadow-sm transition-all duration-200`}>
+              {activeAlerts.slice(0, 5).map((alert) => (
+                <div key={alert.inventory_item_id} className={`flex items-center justify-between p-4 ${innerCardBg} border rounded-xl hover:shadow-sm transition-all duration-200`}>
                   <div className="flex items-center gap-3">
-                    <TrendingDown className="h-5 w-5 text-blue-500" />
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
                     <div>
-                      <p className={`${textPrimary} font-medium`}>{usage.item_name}</p>
+                      <p className={`${textPrimary} font-medium`}>{alert.item_name}</p>
                       <p className={`${textSecondary} text-sm`}>
-                        Sold {usage.total_sold} units - ${usage.total_revenue.toFixed(2)} revenue
+                        Current: {alert.current_stock} | Min: {alert.min_stock}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-blue-500 text-sm font-medium">{usage.total_sold} units</p>
-                    <p className={`${textSecondary} text-xs`}>{usage.period} period</p>
+                    <p className={`text-${alert.severity === 'high' ? 'red' : 'yellow'}-500 text-sm font-medium`}>
+                      {alert.severity.toUpperCase()}
+                    </p>
+                    <p className={`${textSecondary} text-xs`}>Needs reorder</p>
                   </div>
                 </div>
               ))}
-              {usageHistory.length === 0 && (
-                <div className="text-center py-6">
-                  <div className={`${textSecondary} text-sm`}>No usage data available</div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -359,23 +380,21 @@ export default function InventoryOverview({
 
         <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
           <div className="p-6">
-            <h3 className={`text-lg font-semibold ${textPrimary} mb-4`}>Recent Activity Summary</h3>
+            <h3 className={`text-lg font-semibold ${textPrimary} mb-4`}>Inventory Summary</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className={`${textPrimary}`}>Total Sales</span>
+                <span className={`${textPrimary}`}>Total Value</span>
                 <span className={`${textPrimary} font-medium`}>
-                  {usageHistory.reduce((sum, item) => sum + item.total_sold, 0)} units
+                  ${metrics.totalValue.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className={`${textPrimary}`}>Revenue Generated</span>
-                <span className={`${textPrimary} font-medium`}>
-                  ${metrics.totalRevenue.toFixed(2)}
-                </span>
+                <span className={`${textPrimary}`}>Active Alerts</span>
+                <span className={`${textPrimary} font-medium`}>{metrics.activeAlertsCount}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className={`${textPrimary}`}>Items Tracked</span>
-                <span className={`${textPrimary} font-medium`}>{usageHistory.length}</span>
+                <span className={`${textPrimary} font-medium`}>{metrics.totalItems}</span>
               </div>
             </div>
           </div>

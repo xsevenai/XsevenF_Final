@@ -3,14 +3,14 @@
 "use client"
 
 import { useState } from 'react'
-import { Edit, Trash2, Plus, Loader2 } from 'lucide-react'
+import { Edit, Trash2, Plus, Loader2, Search, Copy, Settings, X, ArrowLeft } from 'lucide-react'
 import MenuForms from './MenuForms'
 import { useTheme } from '@/hooks/useTheme'
 import { useMenu } from '@/hooks/use-menu' // Updated import
 import { configureAPI } from '@/lib/api-config'
 import type { MenuItem } from '@/src/api/generated/models/MenuItem'
 import type { MenuCategory } from '@/src/api/generated/models/MenuCategory'
-import type { ExpandedViewType } from './types'
+import type { ExpandedViewType } from '../components/types'
 
 interface MenuComponentProps {
   menuItems: MenuItem[]
@@ -25,9 +25,14 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'items' | 'categories'>('items')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItem | null>(null)
   
-  // Use the merged hook for delete operations
-  const { deleteItem, deleteCategory } = useMenu('') // businessId not needed for deletes
+  // Get businessId from localStorage
+  const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+  
+  // Use the merged hook for operations
+  const { deleteItem, deleteCategory, duplicateItem, modifiers, assignModifierToItem, removeModifierFromItem } = useMenu(businessId)
 
   const handleEditMenuItem = (item: MenuItem) => {
     setEditingItem(item)
@@ -68,6 +73,18 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
       alert('Failed to delete category. Please try again.')
     } finally {
       setIsDeleting(null)
+    }
+  }
+
+  // Duplicate menu item handler
+  const handleDuplicateMenuItem = async (item: MenuItem) => {
+    try {
+      configureAPI()
+      await duplicateItem(item.id)
+      onRefresh()
+    } catch (error) {
+      console.error('Failed to duplicate menu item:', error)
+      alert('Failed to duplicate menu item. Please try again.')
     }
   }
 
@@ -112,6 +129,43 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     handleCloseEdit()
   }
 
+  // Modifier management functions
+  const handleManageModifiers = (item: MenuItem) => {
+    setSelectedItemForModifiers(item)
+    setExpandedView('manage-item-modifiers')
+  }
+
+  const handleAssignModifier = async (modifierId: string) => {
+    if (!selectedItemForModifiers) return
+    
+    try {
+      await assignModifierToItem(selectedItemForModifiers.id, modifierId, 0)
+      onRefresh()
+      alert('Modifier assigned successfully!')
+    } catch (error: any) {
+      console.error('Failed to assign modifier:', error)
+      alert(error.message || 'Failed to assign modifier. Please try again.')
+    }
+  }
+
+  const handleRemoveModifier = async (modifierId: string) => {
+    if (!selectedItemForModifiers) return
+    
+    try {
+      await removeModifierFromItem(selectedItemForModifiers.id, modifierId)
+      onRefresh()
+      alert('Modifier removed successfully!')
+    } catch (error: any) {
+      console.error('Failed to remove modifier:', error)
+      alert(error.message || 'Failed to remove modifier. Please try again.')
+    }
+  }
+
+  const handleCloseModifierManagement = () => {
+    setExpandedView(null)
+    setSelectedItemForModifiers(null)
+  }
+
   // Show loading while theme is being loaded
   if (!themeLoaded) {
     return (
@@ -140,8 +194,93 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white border-[#444444]' 
     : 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white border-blue-600'
 
+  // Filtered lists based on searchTerm
+  const filteredMenuItems = menuItems.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category.id.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   // If we have an expanded view, show the appropriate form
   if (expandedView) {
+    // Handle modifier management views
+    if (expandedView === 'manage-item-modifiers') {
+      return (
+        <div className="p-6 space-y-6">
+          {/* Header with Back Button */}
+          <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleCloseModifierManagement}
+                className={`${textSecondary} ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+              <div>
+                <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
+                  Manage Modifiers for "{selectedItemForModifiers?.name}"
+                </h1>
+                <p className={`${textSecondary} transition-colors duration-300`}>
+                  Assign or remove modifiers for this menu item
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Modifier Management Content */}
+          <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+            <div className="space-y-4">
+              {/* Available Modifiers */}
+              <div>
+                <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Available Modifiers</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {modifiers.map((modifier: any) => (
+                    <div
+                      key={modifier.id}
+                      className={`${innerCardBg} p-4 border rounded-lg flex items-center justify-between`}
+                    >
+                      <div>
+                        <h5 className={`${textPrimary} font-medium`}>{modifier.name}</h5>
+                        <p className={`${textSecondary} text-sm`}>
+                          {modifier.required ? 'Required' : 'Optional'} • {modifier.type}
+                        </p>
+                        <p className={`${textSecondary} text-xs`}>
+                          {modifier.options?.length || 0} options
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleAssignModifier(modifier.id)}
+                        className={`${isDark ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-300`}
+                      >
+                        <Plus className="h-4 w-4 inline mr-1" />
+                        Assign
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Assigned Modifiers (placeholder) */}
+              <div>
+                <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Assigned Modifiers</h4>
+                <div className={`${innerCardBg} p-4 border rounded-lg`}>
+                  <p className={`${textSecondary} text-sm`}>
+                    Assigned modifiers will appear here once the backend endpoints are implemented.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Handle other expanded views with MenuForms
     return (
       <MenuForms
         formType={expandedView as 'menu-item' | 'category' | 'edit-menu-item' | 'edit-category'}
@@ -174,7 +313,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
               <Plus className="h-4 w-4" />
               Add Category
             </button>
-
             {/* Add Menu Item Button */}
             <button
               onClick={() => setExpandedView('add-menu-item')}
@@ -185,8 +323,32 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
             </button>
           </div>
         </div>
+        {/* Search Bar */}
+        <div className="mt-6 flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === 'items' ? 'menu items' : 'categories'}...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && setSearchTerm(e.currentTarget.value)}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-colors duration-300
+                ${isDark ? 'bg-[#222] text-white border-[#444] focus:border-purple-500' : 'bg-gray-100 text-gray-900 border-gray-300 focus:border-blue-500'}
+              `}
+            />
+            <Search className={`absolute left-3 top-2.5 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </div>
+          <button
+            onClick={() => setSearchTerm(searchTerm)}
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium border transition-all
+              ${primaryButtonBg} shadow hover:shadow-lg hover:scale-105`}
+            title="Search"
+          >
+            <Search className="h-4 w-4" />
+            Search
+          </button>
+        </div>
       </div>
-
       {/* Tabs Navigation */}
       <div className={`${cardBg} p-3 border shadow-lg flex gap-2 transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
         {/* Menu Items Tab */}
@@ -223,7 +385,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
         <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
           <h2 className={`text-xl font-bold ${textPrimary} mb-6 transition-colors duration-300`}>All Menu Items</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {menuItems.map((item, index) => {
+            {filteredMenuItems.map((item, index) => {
               const category = categories.find(cat => cat.id === item.category_id)
               return (
                 <div
@@ -256,9 +418,10 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h4 className={`${textPrimary} font-semibold text-base mb-1 transition-colors duration-300`}>{item.name}</h4>
-<p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold text-xl`}>
-  ${(parseFloat(String(item.price)) || 0).toFixed(2)}
-</p>                   </div>
+                      <p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold text-xl`}>
+                        ${(parseFloat(String(item.price)) || 0).toFixed(2)}
+                      </p>
+                    </div>
                     <div className="flex gap-1">
                       <button 
                         onClick={() => handleEditMenuItem(item)} 
@@ -268,12 +431,26 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                         <Edit className="h-4 w-4" />
                       </button>
                       <button 
+                        onClick={() => handleManageModifiers(item)} 
+                        className={`${textSecondary} hover:text-purple-400 p-1 transition-colors duration-300`} 
+                        title="Manage Modifiers"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                      <button 
                         onClick={() => handleDeleteMenuItem(item.id)} 
                         disabled={isDeleting === item.id} 
                         className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300 disabled:opacity-50`} 
                         title="Delete Menu Item"
                       >
                         <Trash2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicateMenuItem(item)}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="Duplicate Menu Item"
+                      >
+                        <Copy className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -289,7 +466,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                       {item.is_available ? 'Available' : 'Unavailable'}
                     </span>
                     <button
-                      onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                      onClick={() => handleToggleAvailability(item.id, item.is_available || false)}
                       className={`text-xs px-2 py-1 rounded ${
                         item.is_available 
                           ? 'bg-red-500 hover:bg-red-600 text-white' 
@@ -316,7 +493,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
         <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
           <h2 className={`text-xl font-bold ${textPrimary} mb-6 transition-colors duration-300`}>All Categories</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((category, index) => (
+            {filteredCategories.map((category, index) => (
               <div 
                 key={category.id} 
                 className={`${innerCardBg} p-5 border hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
@@ -360,6 +537,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
           </div>
         </div>
       )}
+
     </div>
   )
 }

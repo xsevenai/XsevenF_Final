@@ -8,6 +8,9 @@ import { MenuItemCreate } from '@/src/api/generated/models/MenuItemCreate'
 import { MenuItemUpdate } from '@/src/api/generated/models/MenuItemUpdate'
 import { MenuCategoryCreate } from '@/src/api/generated/models/MenuCategoryCreate' // Add this import
 import { MenuCategoryUpdate } from '@/src/api/generated/models/MenuCategoryUpdate' // Add this import
+import { ItemModifier } from '@/src/api/generated/models/ItemModifier'
+import { ItemModifierCreate } from '@/src/api/generated/models/ItemModifierCreate'
+import { ItemModifierUpdate } from '@/src/api/generated/models/ItemModifierUpdate'
 import { configureAPI } from '@/lib/api-config'
 
 interface MenuItemFilters {
@@ -75,26 +78,37 @@ export function useMenuItems(businessId: string, filters?: MenuItemFilters) {
     }
   }
 
-  const updateItem = async (itemId: string, data: MenuItemUpdate) => {
-    try {
-      setError(null)
-      configureAPI()
-      
-      const updatedItem = await MenuManagementService.updateMenuItemApiV1MenuItemsItemIdPut(
-        itemId,
-        data
-      )
-      
-      setItems(prev => prev.map(item => 
-        item.id === itemId ? updatedItem : item
-      ))
-      return updatedItem
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to update menu item'
-      setError(errorMessage)
-      throw new Error(errorMessage)
-    }
+// In your use-menu.ts hook, update the updateItem function:
+const updateItem = async (itemId: string, data: MenuItemUpdate) => {
+  try {
+    setError(null)
+    configureAPI()
+    
+    console.log('🔄 Updating menu item:', { itemId, data })
+    
+    const updatedItem = await MenuManagementService.updateMenuItemApiV1MenuItemsItemIdPut(
+      itemId,
+      data
+    )
+    
+    console.log('✅ Menu item updated successfully:', updatedItem)
+    
+    setItems(prev => prev.map(item => 
+      item.id === itemId ? updatedItem : item
+    ))
+    return updatedItem
+  } catch (err: any) {
+    console.error('❌ Error updating menu item:', {
+      message: err.message,
+      status: err.status,
+      body: err.body,
+      url: err.url
+    })
+    const errorMessage = err.body?.detail || err.message || 'Failed to update menu item'
+    setError(errorMessage)
+    throw new Error(errorMessage)
   }
+}
 
   const deleteItem = async (itemId: string, softDelete: boolean = true) => {
     try {
@@ -269,14 +283,150 @@ export function useMenuCategories(businessId: string) {
   }
 }
 
-// Combined hook for both items and categories
+// Menu Modifiers Hook
+export function useMenuModifiers(businessId: string) {
+  const [modifiers, setModifiers] = useState<ItemModifier[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchModifiers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      const data = await MenuManagementService.listItemModifiersApiV1MenuModifiersGet(
+        businessId,
+        null // modifier_type
+      )
+      setModifiers(data)
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch modifiers')
+      console.error('Error fetching modifiers:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (businessId) fetchModifiers()
+  }, [businessId])
+
+  const createModifier = async (data: ItemModifierCreate) => {
+    try {
+      setError(null)
+      configureAPI()
+      const newModifier = await MenuManagementService.createItemModifierApiV1MenuModifiersPost(data)
+      setModifiers(prev => [newModifier, ...prev])
+      return newModifier
+    } catch (err: any) {
+      setError(err.message || 'Failed to create modifier')
+      throw err
+    }
+  }
+
+  const updateModifier = async (modifierId: string, data: ItemModifierUpdate) => {
+    try {
+      setError(null)
+      configureAPI()
+      const updated = await MenuManagementService.updateItemModifierApiV1MenuModifiersModifierIdPut(
+        modifierId,
+        data
+      )
+      setModifiers(prev => prev.map(m => m.id === modifierId ? updated : m))
+      return updated
+    } catch (err: any) {
+      setError(err.message || 'Failed to update modifier')
+      throw err
+    }
+  }
+
+  const deleteModifier = async (modifierId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      await MenuManagementService.deleteItemModifierApiV1MenuModifiersModifierIdDelete(modifierId)
+      setModifiers(prev => prev.filter(m => m.id !== modifierId))
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete modifier')
+      throw err
+    }
+  }
+
+  const getModifier = async (modifierId: string) => {
+    try {
+      configureAPI()
+      return await MenuManagementService.getItemModifierApiV1MenuModifiersModifierIdGet(modifierId)
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  // Assign modifier to menu item
+  const assignModifierToItem = async (itemId: string, modifierId: string, displayOrder: number = 0) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.assignModifierToItemApiV1MenuItemsItemIdModifiersModifierIdPost(
+        itemId,
+        modifierId,
+        displayOrder
+      )
+      
+      // Refresh modifiers to get updated data
+      fetchModifiers()
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to assign modifier to item'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }
+
+  // Remove modifier from menu item
+  const removeModifierFromItem = async (itemId: string, modifierId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      await MenuManagementService.removeModifierFromItemApiV1MenuItemsItemIdModifiersModifierIdDelete(
+        itemId,
+        modifierId
+      )
+      
+      // Refresh modifiers to get updated data
+      fetchModifiers()
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to remove modifier from item'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }
+
+  return {
+    modifiers,
+    loading,
+    error,
+    fetchModifiers,
+    createModifier,
+    updateModifier,
+    deleteModifier,
+    getModifier,
+    assignModifierToItem,
+    removeModifierFromItem
+  }
+}
+
+// Combined hook for items, categories, and modifiers
 export function useMenu(businessId: string, filters?: MenuItemFilters) {
   const itemsHook = useMenuItems(businessId, filters)
   const categoriesHook = useMenuCategories(businessId)
+  const modifiersHook = useMenuModifiers(businessId)
 
   const refreshAll = () => {
     itemsHook.refresh()
     categoriesHook.refresh()
+    modifiersHook.fetchModifiers()
   }
 
   return {
@@ -301,9 +451,21 @@ export function useMenu(businessId: string, filters?: MenuItemFilters) {
     deleteCategory: categoriesHook.deleteCategory,
     getCategory: categoriesHook.getCategory,
     
+    // Modifiers
+    modifiers: modifiersHook.modifiers,
+    modifiersLoading: modifiersHook.loading,
+    modifiersError: modifiersHook.error,
+    refreshModifiers: modifiersHook.fetchModifiers,
+    createModifier: modifiersHook.createModifier,
+    updateModifier: modifiersHook.updateModifier,
+    deleteModifier: modifiersHook.deleteModifier,
+    getModifier: modifiersHook.getModifier,
+    assignModifierToItem: modifiersHook.assignModifierToItem,
+    removeModifierFromItem: modifiersHook.removeModifierFromItem,
+    
     // Combined
     refreshAll,
-    loading: itemsHook.loading || categoriesHook.loading,
-    error: itemsHook.error || categoriesHook.error
+    loading: itemsHook.loading || categoriesHook.loading || modifiersHook.loading,
+    error: itemsHook.error || categoriesHook.error || modifiersHook.error
   }
 }
