@@ -8,7 +8,7 @@ import Sidebar from "./components/Sidebar"
 import MainPanel from "./components/MainPanel"
 import RightSidebar from "./components/RightSidebar"
 import ExpandedViews from "./components/ExpandedViews"
-import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
+import { useMenu } from "@/hooks/use-menu"
 import type { 
   Table, 
   WorkingHours, 
@@ -31,10 +31,16 @@ export default function Dashboard() {
   const { theme, isLoaded: themeLoaded, isDark } = useTheme()
   const [activeSection, setActiveSection] = useState<SectionType>("dashboard")
   const [expandedView, setExpandedView] = useState<ExpandedViewType>(null)
+  const [businessId, setBusinessId] = useState<string>("")
   
-  // Use the custom hooks for menu data
-  const { refresh: refreshMenuItems } = useMenuItems()
-  const { refresh: refreshCategories } = useMenuCategories()
+  // Use the combined menu hook
+  const { 
+    items: menuItems,
+    categories: menuCategories,
+    refreshItems: refreshMenuItems,
+    refreshCategories: refreshCategories,
+    refreshAll: refreshMenu
+  } = useMenu(businessId)
 
   // Mock data - you can replace these with real API calls later
   const [tables] = useState<Table[]>([
@@ -139,12 +145,21 @@ export default function Dashboard() {
     },
   ])
 
-  // Check for authentication on mount
+  // Check for authentication and get business ID on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
+    const storedBusinessId = localStorage.getItem('businessId')
+    
     if (!token) {
       // Redirect to login if no token
       window.location.href = '/'
+      return
+    }
+    
+    if (storedBusinessId) {
+      setBusinessId(storedBusinessId)
+    } else {
+      console.warn('No businessId found in localStorage')
     }
   }, [])
 
@@ -238,6 +253,9 @@ export default function Dashboard() {
             onUpdateTableStatus={handleUpdateTableStatus}
             onToggleDayStatus={handleToggleDayStatus}
             onUpdateWorkingHours={handleUpdateWorkingHours}
+            menuItems={menuItems}
+            menuCategories={menuCategories}
+            onRefreshMenu={refreshMenu}
           />
           
           {/* Right Sidebar - Real-time Performance */}

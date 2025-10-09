@@ -5,9 +5,11 @@
 import { ArrowLeft, Users, Loader2, TrendingUp, DollarSign, ShoppingBag, Package } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useState, useEffect } from "react"
-import { useMenuItems, useMenuCategories } from "@/hooks/use-menu"
+import { useMenu } from "@/hooks/use-menu" // Updated import
 import { useTheme } from "@/hooks/useTheme"
 import type { Table, WorkingHours, ActivityItem, LiveChat, SectionType, ExpandedViewType } from "./types"
+import type { MenuItem } from "@/src/api/generated/models/MenuItem"
+import type {  MenuCategory } from "@/src/api/generated/models/MenuCategory"
 
 // Import existing components
 import Profile from "../profile/page"
@@ -34,6 +36,7 @@ import InventoryUploadQRComponent from "./InventoryUploadQRComponent"
 import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
 import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
 import POSComponent from "../pos-component.tsx/PosComponent"
+
 interface MainPanelProps {
   activeSection: SectionType
   expandedView: ExpandedViewType
@@ -45,6 +48,9 @@ interface MainPanelProps {
   onUpdateTableStatus: (id: string, status: string) => void
   onToggleDayStatus: (day: string) => void
   onUpdateWorkingHours: (day: string, field: keyof WorkingHours, value: string) => void
+  menuItems: MenuItem[] // New prop
+  menuCategories: MenuCategory[] // New prop
+  onRefreshMenu: () => void // New prop
 }
 
 export default function MainPanel({
@@ -58,9 +64,31 @@ export default function MainPanel({
   onUpdateTableStatus,
   onToggleDayStatus,
   onUpdateWorkingHours,
+  menuItems, // Destructure new prop
+  menuCategories, // Destructure new prop
+  onRefreshMenu, // Destructure new prop
 }: MainPanelProps) {
-  const { items: menuItems, loading: menuLoading, error: menuError, refresh: refreshMenu } = useMenuItems()
-  const { categories, loading: categoriesLoading, error: categoriesError, refresh: refreshCategories } = useMenuCategories()
+  // Get businessId from localStorage or your auth context
+  const [businessId, setBusinessId] = useState<string>("")
+  
+  useEffect(() => {
+    // Get business ID from localStorage or your auth system
+    const storedBusinessId = localStorage.getItem('businessId')
+    if (storedBusinessId) {
+      setBusinessId(storedBusinessId)
+    } else {
+      // If no businessId is found, you might want to redirect to login
+      console.warn('No business ID found. Please ensure user is logged in.')
+    }
+  }, [])
+
+  // Use the merged menu hook for additional functionality if needed
+  const { 
+    loading: menuLoading,
+    error: menuError,
+    refreshAll
+  } = useMenu(businessId)
+  
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
   const [mounted, setMounted] = useState(false)
@@ -77,11 +105,6 @@ export default function MainPanel({
   }
 
   const tableStats = getTableStatusCounts()
-
-  const handleMenuRefresh = () => {
-    refreshMenu()
-    refreshCategories()
-  }
 
   const handleCreateOrder = () => {
     console.log('Create order button clicked')
@@ -147,7 +170,15 @@ export default function MainPanel({
             </div>
           </div>
           <h3 className={`${textSecondary} text-xs font-medium uppercase tracking-wider mb-2`}>Menu Items</h3>
-          <div className={`${textPrimary} text-3xl font-bold`}>{menuLoading ? '...' : menuItems.length || '56'}</div>
+          <div className={`${textPrimary} text-3xl font-bold`}>
+            {menuLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin inline" />
+            ) : menuError ? (
+              '0'
+            ) : (
+              menuItems.length
+            )}
+          </div>
         </div>
 
         {/* Categories Card */}
@@ -159,7 +190,15 @@ export default function MainPanel({
             </div>
           </div>
           <h3 className={`${textSecondary} text-xs font-medium uppercase tracking-wider mb-2`}>Categories</h3>
-          <div className={`${textPrimary} text-3xl font-bold`}>{categoriesLoading ? '...' : categories.length || '12'}</div>
+          <div className={`${textPrimary} text-3xl font-bold`}>
+            {menuLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin inline" />
+            ) : menuError ? (
+              '0'
+            ) : (
+              menuCategories.length
+            )}
+          </div>
         </div>
       </div>
 
@@ -311,8 +350,8 @@ export default function MainPanel({
   const renderMenu = () => (
     <MenuComponent 
       menuItems={menuItems}
-      categories={categories}
-      onRefresh={handleMenuRefresh}
+      categories={menuCategories}
+      onRefresh={onRefreshMenu} // Use the prop instead of local function
     />
   )
 
@@ -377,8 +416,7 @@ export default function MainPanel({
 
   const renderPOS = () => (
     <POSComponent />
-)
-
+  )
 
   const renderExpandedView = () => {
     return null

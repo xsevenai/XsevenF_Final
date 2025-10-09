@@ -1,20 +1,23 @@
 // hooks/use-menu.ts
-import { useState, useEffect } from 'react'
-import { 
-  menuAPI, 
-  MenuItem, 
-  MenuCategory, 
-  CreateMenuItemData, 
-  CreateCategoryData,
-  UpdateMenuItemData,
-  UpdateCategoryData 
-} from '@/lib/menu-api'
 
-export function useMenuItems(filters?: {
-  category_id?: string
-  is_available?: boolean
+import { useState, useEffect } from 'react'
+import { MenuManagementService } from '@/src/api/generated/services/MenuManagementService'
+import { MenuItem } from '@/src/api/generated/models/MenuItem'
+import { MenuCategory } from '@/src/api/generated/models/MenuCategory'
+import { MenuItemCreate } from '@/src/api/generated/models/MenuItemCreate'
+import { MenuItemUpdate } from '@/src/api/generated/models/MenuItemUpdate'
+import { MenuCategoryCreate } from '@/src/api/generated/models/MenuCategoryCreate' // Add this import
+import { MenuCategoryUpdate } from '@/src/api/generated/models/MenuCategoryUpdate' // Add this import
+import { configureAPI } from '@/lib/api-config'
+
+interface MenuItemFilters {
+  categoryId?: string
+  isAvailable?: boolean
   search?: string
-}) {
+}
+
+// Menu Items Hook
+export function useMenuItems(businessId: string, filters?: MenuItemFilters) {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,95 +26,137 @@ export function useMenuItems(filters?: {
     try {
       setLoading(true)
       setError(null)
-      const data = await menuAPI.getMenuItems(filters)
+      
+      configureAPI()
+      
+      const data = await MenuManagementService.listMenuItemsApiV1MenuItemsGet(
+        businessId,
+        filters?.categoryId || null,
+        filters?.isAvailable !== undefined ? filters.isAvailable : null,
+        filters?.search || null,
+        50, // limit
+        0   // offset
+      )
+      
       setItems(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch menu items')
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to fetch menu items'
+      setError(errorMessage)
+      console.error('Error fetching menu items:', err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchItems()
-  }, [filters?.category_id, filters?.is_available, filters?.search])
+    if (businessId) {
+      fetchItems()
+    }
+  }, [businessId, filters?.categoryId, filters?.isAvailable, filters?.search])
 
   const refresh = () => {
-    fetchItems()
+    if (businessId) {
+      fetchItems()
+    }
   }
 
-  const createItem = async (data: CreateMenuItemData) => {
+  const createItem = async (data: MenuItemCreate) => {
     try {
       setError(null)
-      const newItem = await menuAPI.createMenuItem(data)
+      configureAPI()
+      
+      const newItem = await MenuManagementService.createMenuItemApiV1MenuItemsPost(data)
       setItems(prev => [newItem, ...prev])
       return newItem
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create menu item'
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to create menu item'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  const updateItemAvailability = async (id: string, isAvailable: boolean) => {
+  const updateItem = async (itemId: string, data: MenuItemUpdate) => {
     try {
       setError(null)
-      // Optimistic update
-      setItems(prev => prev.map(item => 
-        item.id === id ? { ...item, is_available: isAvailable } : item
-      ))
+      configureAPI()
       
-      await menuAPI.updateItemAvailability(id, { is_available: isAvailable })
+      const updatedItem = await MenuManagementService.updateMenuItemApiV1MenuItemsItemIdPut(
+        itemId,
+        data
+      )
       
-    } catch (err) {
-      // Revert optimistic update on error
       setItems(prev => prev.map(item => 
-        item.id === id ? { ...item, is_available: !isAvailable } : item
-      ))
-      setError(err instanceof Error ? err.message : 'Failed to update availability')
-    }
-  }
-
-  const updateItem = async (id: string, data: UpdateMenuItemData) => {
-    try {
-      setError(null)
-      const updatedItem = await menuAPI.updateMenuItem(id, data)
-      setItems(prev => prev.map(item => 
-        item.id === id ? updatedItem : item
+        item.id === itemId ? updatedItem : item
       ))
       return updatedItem
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update menu item'
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to update menu item'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  const deleteItem = async (id: string) => {
+  const deleteItem = async (itemId: string, softDelete: boolean = true) => {
     try {
       setError(null)
-      await menuAPI.deleteMenuItem(id)
-      setItems(prev => prev.filter(item => item.id !== id))
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete menu item'
+      configureAPI()
+      
+      await MenuManagementService.deleteMenuItemApiV1MenuItemsItemIdDelete(itemId, softDelete)
+      setItems(prev => prev.filter(item => item.id !== itemId))
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to delete menu item'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  return { 
-    items, 
-    loading, 
-    error, 
-    refresh, 
+  const getItem = async (itemId: string, includeModifiers: boolean = true) => {
+    try {
+      configureAPI()
+      return await MenuManagementService.getMenuItemApiV1MenuItemsItemIdGet(
+        itemId,
+        includeModifiers
+      )
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get menu item'
+      throw new Error(errorMessage)
+    }
+  }
+
+  const duplicateItem = async (itemId: string, newName?: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const duplicated = await MenuManagementService.duplicateMenuItemApiV1MenuItemsItemIdDuplicatePost(
+        itemId,
+        newName || null
+      )
+      
+      setItems(prev => [duplicated, ...prev])
+      return duplicated
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to duplicate menu item'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }
+
+  return {
+    items,
+    loading,
+    error,
+    refresh,
     createItem,
     updateItem,
-    updateItemAvailability,
-    deleteItem
+    deleteItem,
+    getItem,
+    duplicateItem
   }
 }
 
-export function useMenuCategories() {
+// Menu Categories Hook
+export function useMenuCategories(businessId: string) {
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -120,87 +165,145 @@ export function useMenuCategories() {
     try {
       setLoading(true)
       setError(null)
-      const data = await menuAPI.getCategories()
+      
+      configureAPI()
+      
+      const data = await MenuManagementService.listMenuCategoriesApiV1MenuCategoriesGet(
+        businessId,
+        null, // parent_id
+        true  // is_active (only active categories)
+      )
+      
       setCategories(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch categories')
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to fetch categories'
+      setError(errorMessage)
+      console.error('Error fetching categories:', err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    if (businessId) {
+      fetchCategories()
+    }
+  }, [businessId])
 
   const refresh = () => {
-    fetchCategories()
+    if (businessId) {
+      fetchCategories()
+    }
   }
 
-  const createCategory = async (data: CreateCategoryData) => {
+  // ADD THESE MISSING METHODS:
+  const createCategory = async (data: MenuCategoryCreate) => {
     try {
       setError(null)
-      const newCategory = await menuAPI.createCategory(data)
+      configureAPI()
+      
+      const newCategory = await MenuManagementService.createMenuCategoryApiV1MenuCategoriesPost(data)
       setCategories(prev => [newCategory, ...prev])
       return newCategory
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create category'
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to create category'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  const updateCategory = async (id: string, data: UpdateCategoryData) => {
+  const updateCategory = async (categoryId: string, data: MenuCategoryUpdate) => {
     try {
       setError(null)
-      const updatedCategory = await menuAPI.updateCategory(id, data)
-      setCategories(prev => prev.map(category => 
-        category.id === id ? updatedCategory : category
+      configureAPI()
+      
+      const updatedCategory = await MenuManagementService.updateMenuCategoryApiV1MenuCategoriesCategoryIdPut(
+        categoryId,
+        data
+      )
+      
+      setCategories(prev => prev.map(cat => 
+        cat.id === categoryId ? updatedCategory : cat
       ))
       return updatedCategory
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update category'
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to update category'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  const deleteCategory = async (id: string) => {
+  const deleteCategory = async (categoryId: string) => {
     try {
       setError(null)
-      await menuAPI.deleteCategory(id)
-      setCategories(prev => prev.filter(category => category.id !== id))
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete category'
+      configureAPI()
+      
+      await MenuManagementService.deleteMenuCategoryApiV1MenuCategoriesCategoryIdDelete(categoryId)
+      setCategories(prev => prev.filter(cat => cat.id !== categoryId))
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to delete category'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
   }
 
-  return { 
-    categories, 
-    loading, 
-    error, 
+  const getCategory = async (categoryId: string) => {
+    try {
+      configureAPI()
+      return await MenuManagementService.getMenuCategoryApiV1MenuCategoriesCategoryIdGet(categoryId)
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get category'
+      throw new Error(errorMessage)
+    }
+  }
+
+  return {
+    categories,
+    loading,
+    error,
     refresh,
-    createCategory,
-    updateCategory,
-    deleteCategory
+    createCategory, // Add this
+    updateCategory, // Add this
+    deleteCategory,
+    getCategory
   }
 }
 
-// Unified hook for managing both menu items and categories
-export function useMenu() {
-  const menuItems = useMenuItems()
-  const categories = useMenuCategories()
+// Combined hook for both items and categories
+export function useMenu(businessId: string, filters?: MenuItemFilters) {
+  const itemsHook = useMenuItems(businessId, filters)
+  const categoriesHook = useMenuCategories(businessId)
+
+  const refreshAll = () => {
+    itemsHook.refresh()
+    categoriesHook.refresh()
+  }
 
   return {
-    items: menuItems,
-    categories: categories,
-    loading: menuItems.loading || categories.loading,
-    error: menuItems.error || categories.error,
-    refresh: () => {
-      menuItems.refresh()
-      categories.refresh()
-    }
+    // Items
+    items: itemsHook.items,
+    itemsLoading: itemsHook.loading,
+    itemsError: itemsHook.error,
+    refreshItems: itemsHook.refresh,
+    createItem: itemsHook.createItem,
+    updateItem: itemsHook.updateItem,
+    deleteItem: itemsHook.deleteItem,
+    getItem: itemsHook.getItem,
+    duplicateItem: itemsHook.duplicateItem,
+    
+    // Categories
+    categories: categoriesHook.categories,
+    categoriesLoading: categoriesHook.loading,
+    categoriesError: categoriesHook.error,
+    refreshCategories: categoriesHook.refresh,
+    createCategory: categoriesHook.createCategory, // Add this
+    updateCategory: categoriesHook.updateCategory, // Add this
+    deleteCategory: categoriesHook.deleteCategory,
+    getCategory: categoriesHook.getCategory,
+    
+    // Combined
+    refreshAll,
+    loading: itemsHook.loading || categoriesHook.loading,
+    error: itemsHook.error || categoriesHook.error
   }
 }

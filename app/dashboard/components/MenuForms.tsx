@@ -5,17 +5,10 @@
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useState, useEffect } from "react"
-import { useMenuCategories } from "@/hooks/use-menu"
+import { useMenu } from "@/hooks/use-menu"
 import { useTheme } from "@/hooks/useTheme"
-import { 
-  menuAPI, 
-  CreateMenuItemData, 
-  CreateCategoryData, 
-  UpdateMenuItemData,
-  UpdateCategoryData,
-  MenuItem,
-  MenuCategory 
-} from "@/lib/menu-api"
+import type { MenuItem } from "@/src/api/generated/models/MenuItem"
+import type { MenuCategory } from "@/src/api/generated/models/MenuCategory"
 
 interface MenuFormsProps {
   formType: 'menu-item' | 'category' | 'edit-menu-item' | 'edit-category' | 'add-menu-item' | 'add-category'
@@ -24,8 +17,8 @@ interface MenuFormsProps {
   onCategoryCreated?: () => void
   onMenuItemUpdated?: () => void
   onCategoryUpdated?: () => void
-  editItem?: MenuItem  // For editing existing menu item
-  editCategory?: MenuCategory  // For editing existing category
+  editItem?: MenuItem
+  editCategory?: MenuCategory
 }
 
 export default function MenuForms({ 
@@ -38,7 +31,8 @@ export default function MenuForms({
   editItem,
   editCategory 
 }: MenuFormsProps) {
-  const { categories, loading: categoriesLoading } = useMenuCategories()
+  const [businessId, setBusinessId] = useState<string>("")
+  const { categories, categoriesLoading, createItem, updateItem, createCategory, updateCategory } = useMenu(businessId)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   
   // Normalize form type for consistent handling
@@ -46,18 +40,18 @@ export default function MenuForms({
                             formType === 'add-category' ? 'category' : 
                             formType
   
-  // Form states
-  const [menuItemForm, setMenuItemForm] = useState<CreateMenuItemData>({
+  // Form states - FIXED: Use proper types and handle undefined values
+  const [menuItemForm, setMenuItemForm] = useState({
     name: '',
     description: '',
     price: 0,
     category_id: '',
     image_url: '',
     is_available: true,
-    sort_order: 0
+    // Remove sort_order if it doesn't exist in the API model
   })
   
-  const [categoryForm, setCategoryForm] = useState<CreateCategoryData>({
+  const [categoryForm, setCategoryForm] = useState({
     name: '',
     description: ''
   })
@@ -66,19 +60,23 @@ export default function MenuForms({
   
   useEffect(() => {
     setMounted(true)
+    // Get business ID from localStorage
+    const storedBusinessId = localStorage.getItem('businessId')
+    if (storedBusinessId) {
+      setBusinessId(storedBusinessId)
+    }
   }, [])
 
-  // Initialize form with edit data when component mounts or editItem/editCategory changes
+  // Initialize form with edit data - FIXED: Handle undefined values properly
   useEffect(() => {
     if ((normalizedFormType === 'edit-menu-item') && editItem) {
       setMenuItemForm({
-        name: editItem.name,
+        name: editItem.name || '',
         description: editItem.description || '',
-        price: editItem.price,
-        category_id: editItem.category_id,
+price: typeof editItem.price === 'string' ? parseFloat(editItem.price) : (editItem.price || 0),        category_id: editItem.category_id || '',
         image_url: editItem.image_url || '',
-        is_available: editItem.is_available,
-        sort_order: editItem.sort_order
+        is_available: editItem.is_available !== undefined ? editItem.is_available : true,
+        // Remove sort_order if it doesn't exist in the model
       })
     }
   }, [normalizedFormType, editItem])
@@ -86,7 +84,7 @@ export default function MenuForms({
   useEffect(() => {
     if ((normalizedFormType === 'edit-category') && editCategory) {
       setCategoryForm({
-        name: editCategory.name,
+        name: editCategory.name || '',
         description: editCategory.description || ''
       })
     }
@@ -131,27 +129,37 @@ export default function MenuForms({
       }
 
       if (normalizedFormType === 'edit-menu-item' && editItem) {
-        // Update existing menu item
-        const updateData: UpdateMenuItemData = {
+        // Update existing menu item - FIXED: Use proper update data structure
+        const updateData = {
           name: menuItemForm.name,
           description: menuItemForm.description || undefined,
           price: menuItemForm.price,
           category_id: menuItemForm.category_id,
           image_url: menuItemForm.image_url || undefined,
           is_available: menuItemForm.is_available,
-          sort_order: menuItemForm.sort_order
+          // Remove sort_order if it doesn't exist in the model
         }
         
-        await menuAPI.updateMenuItem(editItem.id, updateData)
+        await updateItem(editItem.id, updateData)
         setSubmitSuccess(true)
         
-        // Notify parent component to refresh menu items
         if (onMenuItemUpdated) {
           onMenuItemUpdated()
         }
       } else {
-        // Create new menu item
-        await menuAPI.createMenuItem(menuItemForm)
+        // Create new menu item - FIXED: Use proper create data structure
+        const createData = {
+          name: menuItemForm.name,
+          description: menuItemForm.description || undefined,
+          price: menuItemForm.price,
+          category_id: menuItemForm.category_id,
+          image_url: menuItemForm.image_url || undefined,
+          is_available: menuItemForm.is_available,
+          business_id: businessId,
+          // Remove sort_order if it doesn't exist in the model
+        }
+        
+        await createItem(createData)
         setSubmitSuccess(true)
         setMenuItemForm({
           name: '',
@@ -160,16 +168,13 @@ export default function MenuForms({
           category_id: '',
           image_url: '',
           is_available: true,
-          sort_order: 0
         })
         
-        // Notify parent component to refresh menu items
         if (onMenuItemCreated) {
           onMenuItemCreated()
         }
       }
       
-      // Auto-close after success
       setTimeout(() => {
         onBack()
       }, 1500)
@@ -194,34 +199,39 @@ export default function MenuForms({
 
       if (normalizedFormType === 'edit-category' && editCategory) {
         // Update existing category
-        const updateData: UpdateCategoryData = {
+        const updateData = {
           name: categoryForm.name,
           description: categoryForm.description || undefined
         }
         
-        await menuAPI.updateCategory(editCategory.id, updateData)
+        await updateCategory(editCategory.id, updateData)
         setSubmitSuccess(true)
         
-        // Notify parent component to refresh categories
         if (onCategoryUpdated) {
           onCategoryUpdated()
         }
       } else {
-        // Create new category
-        await menuAPI.createCategory(categoryForm)
+        // Create new category - FIXED: Use proper create data structure
+        const createData = {
+          name: categoryForm.name,
+          description: categoryForm.description || undefined,
+          business_id: businessId,
+          is_active: true,
+          display_order: 0
+        }
+        
+        await createCategory(createData)
         setSubmitSuccess(true)
         setCategoryForm({
           name: '',
           description: ''
         })
         
-        // Notify parent component to refresh categories
         if (onCategoryCreated) {
           onCategoryCreated()
         }
       }
       
-      // Auto-close after success
       setTimeout(() => {
         onBack()
       }, 1500)

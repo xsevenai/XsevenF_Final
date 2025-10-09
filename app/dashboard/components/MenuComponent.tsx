@@ -5,8 +5,11 @@
 import { useState } from 'react'
 import { Edit, Trash2, Plus, Loader2 } from 'lucide-react'
 import MenuForms from './MenuForms'
-import { menuAPI, MenuItem, MenuCategory } from '@/lib/menu-api'
 import { useTheme } from '@/hooks/useTheme'
+import { useMenu } from '@/hooks/use-menu' // Updated import
+import { configureAPI } from '@/lib/api-config'
+import type { MenuItem } from '@/src/api/generated/models/MenuItem'
+import type { MenuCategory } from '@/src/api/generated/models/MenuCategory'
 import type { ExpandedViewType } from './types'
 
 interface MenuComponentProps {
@@ -22,6 +25,9 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'items' | 'categories'>('items')
+  
+  // Use the merged hook for delete operations
+  const { deleteItem, deleteCategory } = useMenu('') // businessId not needed for deletes
 
   const handleEditMenuItem = (item: MenuItem) => {
     setEditingItem(item)
@@ -38,7 +44,8 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     
     setIsDeleting(itemId)
     try {
-      await menuAPI.deleteMenuItem(itemId)
+      configureAPI()
+      await deleteItem(itemId, true)
       onRefresh()
     } catch (error) {
       console.error('Failed to delete menu item:', error)
@@ -53,7 +60,8 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     
     setIsDeleting(categoryId)
     try {
-      await menuAPI.deleteCategory(categoryId)
+      configureAPI()
+      await deleteCategory(categoryId)
       onRefresh()
     } catch (error) {
       console.error('Failed to delete category:', error)
@@ -71,7 +79,11 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
 
   const handleToggleAvailability = async (itemId: string, currentAvailability: boolean) => {
     try {
-      await menuAPI.updateItemAvailability(itemId, { is_available: !currentAvailability })
+      configureAPI()
+      const { updateItem } = useMenu('') // Get update function
+      await updateItem(itemId, {
+        is_available: !currentAvailability
+      })
       onRefresh()
     } catch (error) {
       console.error('Failed to toggle availability:', error)
@@ -244,8 +256,9 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h4 className={`${textPrimary} font-semibold text-base mb-1 transition-colors duration-300`}>{item.name}</h4>
-                      <p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold text-xl`}>${item.price.toFixed(2)}</p>
-                    </div>
+<p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold text-xl`}>
+  ${(parseFloat(String(item.price)) || 0).toFixed(2)}
+</p>                   </div>
                     <div className="flex gap-1">
                       <button 
                         onClick={() => handleEditMenuItem(item)} 
@@ -270,10 +283,27 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                     <p className={`${textSecondary} text-sm mb-3 transition-colors duration-300`}>{item.description}</p>
                   )}
 
+                  {/* Availability toggle */}
+                  <div className="flex items-center justify-between mt-3">
+                    <span className={`text-xs font-medium ${item.is_available ? 'text-green-500' : 'text-red-500'}`}>
+                      {item.is_available ? 'Available' : 'Unavailable'}
+                    </span>
+                    <button
+                      onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                      className={`text-xs px-2 py-1 rounded ${
+                        item.is_available 
+                          ? 'bg-red-500 hover:bg-red-600 text-white' 
+                          : 'bg-green-500 hover:bg-green-600 text-white'
+                      } transition-colors`}
+                    >
+                      {item.is_available ? 'Make Unavailable' : 'Make Available'}
+                    </button>
+                  </div>
+
                   {/* Footer */}
                   <div className={`mt-3 pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'} transition-colors duration-300`}>
                     <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} transition-colors duration-300`}>
-                      {categories.find(cat => cat.id === item.category_id)?.name || 'Uncategorized'}
+                      {category?.name || 'Uncategorized'}
                     </span>
                   </div>
                 </div>
@@ -317,8 +347,11 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                 {category.description && (
                   <p className={`${textSecondary} text-sm mb-3 transition-colors duration-300`}>{category.description}</p>
                 )}
-                <div className={`mt-3 pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'} transition-colors duration-300`}>
-                  <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} transition-colors duration-300`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-medium ${category.is_active ? 'text-green-500' : 'text-red-500'}`}>
+                    {category.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     {menuItems.filter(item => item.category_id === category.id).length} items
                   </span>
                 </div>
