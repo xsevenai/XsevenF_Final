@@ -270,3 +270,56 @@ export interface AnalyticsData {
   timeRange: string
   generatedAt: string
 }
+
+// Floor Plan related interfaces
+export interface FloorPlanElement {
+  id: string
+  type: 'table' | 'bar' | 'counter' | 'wall' | 'door'
+  x: number
+  y: number
+  width: number
+  height: number
+  seats?: number
+  label?: string
+  rotation?: number
+  color?: string
+}
+
+export interface FloorPlanLayout {
+  elements: FloorPlanElement[]
+  canvas: {
+    width: number
+    height: number
+  }
+  background?: string
+  grid?: {
+    enabled: boolean
+    size: number
+  }
+}
+
+export interface FloorPlanData {
+  id: string
+  business_id: string
+  name: string
+  location_id?: string
+  layout: FloorPlanLayout
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface FloorPlanCreateData {
+  name: string
+  business_id: string
+  location_id?: string
+  layout: FloorPlanLayout
+  is_active?: boolean
+}
+
+export interface FloorPlanUpdateData {
+  name?: string
+  location_id?: string
+  layout?: FloorPlanLayout
+  is_active?: boolean
+}

@@ -36,6 +36,7 @@ import InventoryUploadQRComponent from "./InventoryUploadQRComponent"
 import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryComponent"
 import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
 import POSComponent from "../pos-component.tsx/PosComponent"
+import FloorPlanComponent from "../floorplan-component/FloorPlanComponent"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -387,15 +388,7 @@ export default function MainPanel({
 
   // Simple placeholder components for other sections
   const renderFloorplans = () => (
-    <div className="p-6 space-y-6">
-      <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Floor Plans</h1>
-        <p className={`${textSecondary}`}>Design and manage restaurant floor layouts</p>
-      </div>
-      <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <p className={`${textPrimary}`}>Floor plans management coming soon...</p>
-      </div>
-    </div>
+    <FloorPlanComponent businessId={businessId} />
   )
 
   const renderKitchen = () => (

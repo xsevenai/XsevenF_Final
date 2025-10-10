@@ -6,11 +6,17 @@ import { useState, useEffect } from "react"
 import { Search, MapPin, Users, TrendingUp, Loader2, AlertCircle, CheckCircle, Clock } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTheme } from "@/hooks/useTheme"
-import { tablesApi } from "@/lib/tables-api"
 
 interface TableAvailabilitySearchProps {
+  checkTableAvailability: (params: {
+    party_size: number
+    location_id?: string
+    time_slot?: string
+    business_id?: string
+  }) => Promise<any>
   onAvailabilityCheck?: (data: any) => void
   autoExpanded?: boolean
+  businessId?: string
 }
 
 interface AvailabilityData {
@@ -27,12 +33,17 @@ interface AvailabilityData {
   }>
 }
 
-export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpanded = false }: TableAvailabilitySearchProps) {
+export default function TableAvailabilitySearch({ 
+  checkTableAvailability, 
+  onAvailabilityCheck, 
+  autoExpanded = false,
+  businessId 
+}: TableAvailabilitySearchProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [filters, setFilters] = useState({
     section: '',
-    capacity: ''
+    capacity: '2' // Default to 2 instead of empty
   })
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -57,23 +68,69 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
       setLoading(true)
       setError(null)
       
-      const filterParams: any = {}
-      if (filters.section) filterParams.section = filters.section
-      if (filters.capacity) filterParams.capacity = parseInt(filters.capacity)
+      // Prepare parameters - ensure party_size is at least 1
+      const partySize = parseInt(filters.capacity) || 1
+      if (partySize < 1) {
+        setError('Party size must be at least 1')
+        return
+      }
+
+      const params: any = {
+        party_size: partySize
+      }
       
-      const data = await tablesApi.checkTableAvailability(filterParams)
-      setAvailability(data)
-      onAvailabilityCheck?.(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to check availability')
+      // Add business_id if available
+      if (businessId) {
+        params.business_id = businessId
+      }
+      
+      // Add location_id if we have a section filter
+      if (filters.section) {
+        params.location_id = filters.section
+      }
+      
+      console.log('Calling checkTableAvailability with params:', params)
+      
+      const data = await checkTableAvailability(params)
+      console.log('Availability response:', data)
+      
+      // Transform the response to match your expected format
+      const transformedData: AvailabilityData = {
+        total_tables: data.length,
+        available_count: data.length, // All returned tables are available
+        occupied_count: 0, // You might need to calculate this from your tables data
+        reserved_count: 0, // You might need to calculate this from your tables data
+        maintenance_count: 0, // You might need to calculate this from your tables data
+        available_tables: data.map((table: any) => ({
+          id: table.id,
+          table_number: table.table_number || 0,
+          capacity: table.capacity || 0,
+          section: table.section || 'Unknown'
+        }))
+      }
+      
+      setAvailability(transformedData)
+      onAvailabilityCheck?.(transformedData)
+    } catch (err: any) {
+      console.error('Availability check error:', err)
+      
+      // More detailed error handling
+      if (err.response?.data?.detail) {
+        setError(`API Error: ${err.response.data.detail}`)
+      } else if (err.message?.includes('Validation Error')) {
+        setError('Invalid parameters. Please check your filters and try again.')
+      } else {
+        setError(err.message || 'Failed to check table availability')
+      }
     } finally {
       setLoading(false)
     }
   }
 
   const clearFilters = () => {
-    setFilters({ section: '', capacity: '' })
+    setFilters({ section: '', capacity: '2' })
     setAvailability(null)
+    setError(null)
   }
 
   useEffect(() => {
@@ -82,8 +139,10 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
 
   // Auto-check availability when component mounts
   useEffect(() => {
-    checkAvailability()
-  }, [])
+    if (mounted && businessId) {
+      checkAvailability()
+    }
+  }, [mounted, businessId])
 
   if (!themeLoaded || !mounted) {
     return null
@@ -154,6 +213,20 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
           </div>
         )}
 
+        {/* Error Display */}
+        {error && (
+          <div className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20"
+            style={{ borderRadius: '0.5rem' }}>
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-red-400/80 text-xs mt-1">
+                Please check that business ID is valid and party size is at least 1.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Expanded Search Filters */}
         {isExpanded && (
           <div className={`space-y-4 pt-4 border-t ${borderColor}`}>
@@ -181,7 +254,7 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
               <div>
                 <label className={`block text-sm font-medium ${textPrimary} mb-2`}>
                   <Users className="h-4 w-4 inline mr-2" />
-                  Minimum Capacity
+                  Party Size
                 </label>
                 <input
                   type="number"
@@ -191,7 +264,7 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                   onChange={(e) => setFilters(prev => ({ ...prev, capacity: e.target.value }))}
                   className={`w-full px-3 py-2 ${inputBg} border ${textPrimary} placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors`}
                   style={{ borderRadius: '0.5rem' }}
-                  placeholder="Any capacity"
+                  placeholder="Enter party size"
                 />
               </div>
 
@@ -199,7 +272,7 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
               <div className="flex items-end gap-2">
                 <button
                   onClick={checkAvailability}
-                  disabled={loading}
+                  disabled={loading || !businessId}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white transition-colors"
                   style={{ borderRadius: '0.5rem' }}
                 >
@@ -224,15 +297,6 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                 </button>
               </div>
             </div>
-
-            {/* Error Display */}
-            {error && (
-              <div className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20"
-                style={{ borderRadius: '0.5rem' }}>
-                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
 
             {/* Available Tables List */}
             {availability && availability.available_tables.length > 0 && (
@@ -269,6 +333,15 @@ export default function TableAvailabilitySearch({ onAvailabilityCheck, autoExpan
                 <p className={`${textTertiary} text-sm`}>Try adjusting your filters or check back later</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Business ID Debug Info */}
+        {!businessId && (
+          <div className="flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20"
+            style={{ borderRadius: '0.5rem' }}>
+            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+            <p className="text-yellow-400 text-sm">No business ID available. Please ensure you're logged in.</p>
           </div>
         )}
       </div>

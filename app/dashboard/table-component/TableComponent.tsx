@@ -5,17 +5,40 @@
 import { useState, useEffect } from "react"
 import { Plus, BarChart3, Settings, Search } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
+import { useTables } from "@/hooks/use-operations"
 import TableList from "./TableList"
 import TablePostingForm from "./TablePostingForm"
 import TableAvailabilitySearch from "./TableAvailabiltySearch"
-import TableLayoutManager from "./TableLayoutManager"
 
 export default function TableComponent() {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [businessId, setBusinessId] = useState<string>("")
   const [showAddForm, setShowAddForm] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'availability' | 'layout'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'availability'>('overview')
+
+  // Get business ID from localStorage
+  useEffect(() => {
+    const storedBusinessId = localStorage.getItem('businessId')
+    if (storedBusinessId) {
+      setBusinessId(storedBusinessId)
+    } else {
+      console.warn('No business ID found. Please ensure user is logged in.')
+    }
+  }, [])
+
+  // Use the tables hook from use-operations
+  const { 
+    tables, 
+    loading, 
+    error, 
+    refresh: refreshTables,
+    createTable,
+    updateTable,
+    assignTable,
+    releaseTable,
+    checkTableAvailability
+  } = useTables(businessId)
 
   useEffect(() => {
     setMounted(true)
@@ -36,7 +59,7 @@ export default function TableComponent() {
 
   // Handle table updates
   const handleTableUpdate = () => {
-    setRefreshTrigger(prev => prev + 1)
+    refreshTables()
   }
 
   // Handle successful table creation
@@ -49,11 +72,6 @@ export default function TableComponent() {
   const handleAvailabilityCheck = (data: any) => {
     // You can use this data to show notifications or update other components
     console.log('Availability data:', data)
-  }
-
-  // Handle layout update
-  const handleLayoutUpdate = () => {
-    handleTableUpdate()
   }
 
   return (
@@ -106,18 +124,6 @@ export default function TableComponent() {
           <Search className="h-4 w-4" />
           Availability
         </button>
-        <button
-          onClick={() => setActiveTab('layout')}
-          className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 ${
-            activeTab === 'layout'
-              ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
-              : tabInactive
-          }`}
-          style={{ borderRadius: '0.5rem' }}
-        >
-          <Settings className="h-4 w-4" />
-          Layout Manager
-        </button>
       </div>
 
       {/* Tab Content */}
@@ -125,25 +131,27 @@ export default function TableComponent() {
         {/* Overview Tab - Default Table List */}
         {activeTab === 'overview' && (
           <>
-            <TableList onTableUpdate={handleTableUpdate} />
+            <TableList 
+              tables={tables}
+              loading={loading}
+              error={error}
+              onTableUpdate={handleTableUpdate}
+              onUpdateTable={updateTable}
+              onAssignTable={assignTable}
+              onReleaseTable={releaseTable}
+            />
           </>
         )}
 
         {/* Availability Tab */}
         {activeTab === 'availability' && (
-          <TableAvailabilitySearch 
-            onAvailabilityCheck={handleAvailabilityCheck} 
-            autoExpanded={true}
-          />
-        )}
-
-        {/* Layout Manager Tab */}
-        {activeTab === 'layout' && (
-          <TableLayoutManager 
-            onLayoutUpdate={handleLayoutUpdate} 
-            autoExpanded={true}
-          />
-        )}
+  <TableAvailabilitySearch 
+    checkTableAvailability={checkTableAvailability}
+    onAvailabilityCheck={handleAvailabilityCheck} 
+    autoExpanded={true}
+    businessId={businessId} // Make sure to pass this
+  />
+)}
       </div>
 
       {/* Table Posting Form Modal */}
@@ -151,6 +159,8 @@ export default function TableComponent() {
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}
         onSuccess={handleTableCreated}
+        createTable={createTable}
+        tables={tables}
       />
     </div>
   )

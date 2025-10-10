@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { X, Users, Phone, Mail, User, MessageSquare, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTheme } from "@/hooks/useTheme"
-import { tablesApi, CustomerAssignmentData } from "@/lib/tables-api"
+import type { TableAssignment } from "@/src/api/generated/models/TableAssignment"
 
 interface CustomerAssignmentProps {
   tableId: string
@@ -15,6 +15,7 @@ interface CustomerAssignmentProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (orderId: string) => void
+  onAssignTable: (assignment: TableAssignment) => Promise<any>
 }
 
 interface FormData {
@@ -39,7 +40,8 @@ export default function CustomerAssignment({
   tableCapacity,
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  onAssignTable
 }: CustomerAssignmentProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -163,7 +165,9 @@ export default function CustomerAssignment({
       setError(null)
       
       // Prepare assignment data
-      const assignmentData: CustomerAssignmentData = {
+      const assignmentData: TableAssignment = {
+        table_id: tableId,
+        order_id: `temp-order-${Date.now()}`, // Generate temporary order ID
         party_size: formData.party_size,
         special_requests: formData.special_requests.trim() || undefined
       }
@@ -179,7 +183,7 @@ export default function CustomerAssignment({
         assignmentData.customer_email = formData.customer_email.trim()
       }
 
-      const response = await tablesApi.assignCustomerToTable(tableId, assignmentData)
+      const response = await onAssignTable(assignmentData)
       
       setSuccess(response.message)
       onSuccess?.(response.order_id)

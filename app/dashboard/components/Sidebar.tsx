@@ -71,7 +71,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
     { id: "food-qr" as const, label: "Food QR", icon: QrCode },
     { id: "tables" as const, label: "Tables", icon: Users },
     { id: "working-hours" as const, label: "Working Hours", icon: Clock },
-    { id: "floorplans" as const, label: "Floorplans", icon: Map },
+    { id: "floorplans" as const, label: "Floor Plans", icon: Map },
     { id: "kitchen" as const, label: "Kitchen", icon: Monitor },
     { 
       id: "customers" as const, 

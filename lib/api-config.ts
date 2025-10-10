@@ -7,6 +7,7 @@ export function configureAPI() {
   
   OpenAPI.TOKEN = async () => {
     const token = localStorage.getItem('accessToken')
+    console.log('Using token:', token ? 'Found' : 'Not found')
     if (!token) throw new Error('No authentication token found')
     return token
   }

@@ -3,38 +3,38 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, QrCode, UserPlus } from "lucide-react"
+import { Plus, Filter, Grid3X3, List, Search, Users, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, Trash2, UserPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTheme } from "@/hooks/useTheme"
-import { useTables, useTableStats } from "@/hooks/use-tables"
-import TableQRCode from "./TableQRCode"
+import type { TableWithDetails } from "@/src/api/generated/models/TableWithDetails"
 import CustomerAssignment from "./CustomerAssignment"
 
 interface TableListProps {
+  tables: TableWithDetails[]
+  loading: boolean
+  error: string | null
   onTableUpdate?: () => void
+  onUpdateTable: (tableId: string, data: any) => Promise<void>
+  onAssignTable: (assignment: any) => Promise<void>
+  onReleaseTable: (tableId: string) => Promise<void>
 }
 
-export default function TableList({ onTableUpdate }: TableListProps) {
+export default function TableList({ 
+  tables, 
+  loading, 
+  error, 
+  onTableUpdate, 
+  onUpdateTable, 
+  onAssignTable, 
+  onReleaseTable 
+}: TableListProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const {
-    tables,
-    loading,
-    error,
-    refresh,
-    updateTableStatus,
-    deleteTable,
-  } = useTables()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [updating, setUpdating] = useState<string | null>(null)
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  
-  // QR Code modal state
-  const [qrModal, setQrModal] = useState<{ tableId: string; tableNumber: number } | null>(null)
   
   // Customer assignment modal state
   const [assignmentModal, setAssignmentModal] = useState<{ 
@@ -43,7 +43,14 @@ export default function TableList({ onTableUpdate }: TableListProps) {
     tableCapacity: number;
   } | null>(null)
 
-  const tableStats = useTableStats(tables)
+  // Calculate table stats
+  const tableStats = {
+    total: tables.length,
+    available: tables.filter(t => t.status === "available").length,
+    occupied: tables.filter(t => t.status === "occupied").length,
+    maintenance: tables.filter(t => t.status === "maintenance").length,
+    reserved: tables.filter(t => t.status === "reserved").length,
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -68,36 +75,13 @@ export default function TableList({ onTableUpdate }: TableListProps) {
   const handleUpdateTableStatus = async (tableId: string, newStatus: string) => {
     try {
       setUpdating(tableId)
-      await updateTableStatus(tableId, newStatus)
+      await onUpdateTable(tableId, { status: newStatus })
       onTableUpdate?.()
     } catch (err) {
       console.error('Failed to update table status:', err)
     } finally {
       setUpdating(null)
     }
-  }
-
-  // Handle table deletion
-  const handleDeleteTable = async (tableId: string) => {
-    try {
-      setDeleting(tableId)
-      await deleteTable(tableId)
-      setDeleteConfirm(null)
-      onTableUpdate?.()
-    } catch (err) {
-      console.error('Failed to delete table:', err)
-    } finally {
-      setDeleting(null)
-    }
-  }
-
-  // QR Code handlers
-  const openQRModal = (tableId: string, tableNumber: number) => {
-    setQrModal({ tableId, tableNumber })
-  }
-
-  const closeQRModal = () => {
-    setQrModal(null)
   }
 
   // Customer assignment handlers
@@ -114,19 +98,10 @@ export default function TableList({ onTableUpdate }: TableListProps) {
     onTableUpdate?.()
   }
 
-  // Confirm delete dialog
-  const confirmDelete = (tableId: string, tableNumber: number) => {
-    setDeleteConfirm(tableId)
-  }
-
-  const cancelDelete = () => {
-    setDeleteConfirm(null)
-  }
-
   // Filter tables based on search and status
   const filteredTables = tables.filter((table) => {
-    const matchesSearch = table.number.toString().includes(searchTerm) || 
-                         table.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = table.table_number.toString().includes(searchTerm) || 
+                         table.section.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === "all" || table.status === filterStatus
     return matchesSearch && matchesStatus
   })
@@ -172,7 +147,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         {/* Assign Customer Button - only for available tables */}
         {table.status === 'available' && (
           <button
-            onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
+            onClick={() => openAssignmentModal(table.id, table.table_number, table.capacity)}
             className={`p-2 ${textTertiary} hover:text-blue-400 hover:bg-blue-500/10 transition-colors`}
             style={{ borderRadius: '0.5rem' }}
             title="Assign Customer"
@@ -181,37 +156,24 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           </button>
         )}
         
-        {/* QR Code Button */}
-        <button
-          onClick={() => openQRModal(table.id, table.number)}
-          className={`p-2 ${textTertiary} hover:text-purple-400 hover:bg-purple-500/10 transition-colors`}
-          style={{ borderRadius: '0.5rem' }}
-          title="Generate QR Code"
-        >
-          <QrCode className="h-4 w-4" />
-        </button>
-        
-        {/* Delete Button */}
-        <button
-          onClick={() => confirmDelete(table.id, table.number)}
-          disabled={deleting === table.id || table.status === 'occupied'}
-          className={`p-2 ${textTertiary} hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-          style={{ borderRadius: '0.5rem' }}
-          title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
-        >
-          {deleting === table.id ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4" />
-          )}
-        </button>
+        {/* Release Table Button - only for occupied tables */}
+        {table.status === 'occupied' && (
+          <button
+            onClick={() => onReleaseTable(table.id)}
+            className={`p-2 ${textTertiary} hover:text-orange-400 hover:bg-orange-500/10 transition-colors`}
+            style={{ borderRadius: '0.5rem' }}
+            title="Release Table"
+          >
+            <Users className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="text-center space-y-4">
         {/* Table Number */}
         <div className="flex items-center justify-between pr-20">
-          <h3 className={`${textPrimary} font-bold text-lg`}>Table {table.number}</h3>
-          <span className={`${textSecondary} text-sm`}>{table.seats} seats</span>
+          <h3 className={`${textPrimary} font-bold text-lg`}>Table {table.table_number}</h3>
+          <span className={`${textSecondary} text-sm`}>{table.capacity} seats</span>
         </div>
 
         {/* Table Visual */}
@@ -221,7 +183,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         </div>
 
         {/* Location */}
-        <p className={`${textSecondary} text-sm`}>{table.location}</p>
+        <p className={`${textSecondary} text-sm`}>{table.section}</p>
 
         {/* Status Badge */}
         <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
@@ -267,8 +229,8 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             {getStatusIcon(table.status)}
           </div>
           <div>
-            <h3 className={`${textPrimary} font-semibold`}>Table {table.number}</h3>
-            <p className={`${textSecondary} text-sm`}>{table.location} • {table.seats} seats</p>
+            <h3 className={`${textPrimary} font-semibold`}>Table {table.table_number}</h3>
+            <p className={`${textSecondary} text-sm`}>{table.section} • {table.capacity} seats</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -301,7 +263,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
             {/* Assign Customer Button - only for available tables */}
             {table.status === 'available' && (
               <button
-                onClick={() => openAssignmentModal(table.id, table.number, table.seats)}
+                onClick={() => openAssignmentModal(table.id, table.table_number, table.capacity)}
                 className={`p-2 ${textTertiary} hover:text-blue-400 hover:bg-blue-500/10 transition-colors`}
                 style={{ borderRadius: '0.5rem' }}
                 title="Assign Customer"
@@ -310,30 +272,17 @@ export default function TableList({ onTableUpdate }: TableListProps) {
               </button>
             )}
             
-            {/* QR Code Button for List View */}
-            <button
-              onClick={() => openQRModal(table.id, table.number)}
-              className={`p-2 ${textTertiary} hover:text-purple-400 hover:bg-purple-500/10 transition-colors`}
-              style={{ borderRadius: '0.5rem' }}
-              title="Generate QR Code"
-            >
-              <QrCode className="h-4 w-4" />
-            </button>
-            
-            {/* Delete Button for List View */}
-            <button
-              onClick={() => confirmDelete(table.id, table.number)}
-              disabled={deleting === table.id || table.status === 'occupied'}
-              className={`p-2 ${textTertiary} hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-              style={{ borderRadius: '0.5rem' }}
-              title={table.status === 'occupied' ? 'Cannot delete occupied table' : 'Delete table'}
-            >
-              {deleting === table.id ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </button>
+            {/* Release Table Button - only for occupied tables */}
+            {table.status === 'occupied' && (
+              <button
+                onClick={() => onReleaseTable(table.id)}
+                className={`p-2 ${textTertiary} hover:text-orange-400 hover:bg-orange-500/10 transition-colors`}
+                style={{ borderRadius: '0.5rem' }}
+                title="Release Table"
+              >
+                <Users className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -360,7 +309,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           <h3 className="text-red-400 font-semibold mb-2">Error Loading Tables</h3>
           <p className={`${textSecondary} text-sm mb-4`}>{error}</p>
           <button
-            onClick={refresh}
+            onClick={onTableUpdate}
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors"
             style={{ borderRadius: '0.5rem' }}
           >
@@ -374,63 +323,6 @@ export default function TableList({ onTableUpdate }: TableListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className={`${modalBg} border shadow-lg p-6 max-w-md w-full mx-4`}
-            style={{ borderRadius: '1rem' }}>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-red-500/20 flex items-center justify-center mx-auto mb-4"
-                style={{ borderRadius: '50%' }}>
-                <Trash2 className="h-6 w-6 text-red-400" />
-              </div>
-              <h3 className={`${textPrimary} font-semibold text-lg mb-2`}>Delete Table</h3>
-              <p className={`${textSecondary} mb-6`}>
-                Are you sure you want to delete Table {tables.find(t => t.id === deleteConfirm)?.number}? 
-                This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={cancelDelete}
-                  className={`px-4 py-2 ${innerCardBg} ${hoverBg} ${textPrimary} transition-colors`}
-                  style={{ borderRadius: '0.5rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTable(deleteConfirm)}
-                  disabled={deleting === deleteConfirm}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  style={{ borderRadius: '0.5rem' }}
-                >
-                  {deleting === deleteConfirm ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR Code Modal */}
-      {qrModal && (
-        <TableQRCode
-          tableId={qrModal.tableId}
-          tableNumber={qrModal.tableNumber}
-          isOpen={true}
-          onClose={closeQRModal}
-        />
-      )}
-
       {/* Customer Assignment Modal */}
       {assignmentModal && (
         <CustomerAssignment
@@ -440,6 +332,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
           isOpen={true}
           onClose={closeAssignmentModal}
           onSuccess={handleAssignmentSuccess}
+          onAssignTable={onAssignTable}
         />
       )}
 
@@ -509,7 +402,7 @@ export default function TableList({ onTableUpdate }: TableListProps) {
         <div className="flex items-center gap-3">
           {/* Refresh Button */}
           <button
-            onClick={refresh}
+            onClick={onTableUpdate}
             disabled={loading}
             className={`p-2 ${innerCardBg} ${hoverBg} ${textSecondary} hover:${textPrimary} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             style={{ borderRadius: '0.5rem' }}

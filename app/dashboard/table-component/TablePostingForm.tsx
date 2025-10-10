@@ -6,12 +6,15 @@ import { useState, useEffect } from "react"
 import { X, Plus, Loader2, MapPin, Users, Hash, Home } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useTheme } from "@/hooks/useTheme"
-import { useTables } from "@/hooks/use-tables"
+import type { TableWithDetails } from "@/src/api/generated/models/TableWithDetails"
+import type { TableCreate } from "@/src/api/generated/models/TableCreate"
 
 interface TablePostingFormProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  createTable: (data: TableCreate) => Promise<any>
+  tables: TableWithDetails[]
 }
 
 interface TableFormData {
@@ -28,10 +31,9 @@ const initialFormData: TableFormData = {
   location_notes: ""
 }
 
-export default function TablePostingForm({ isOpen, onClose, onSuccess }: TablePostingFormProps) {
+export default function TablePostingForm({ isOpen, onClose, onSuccess, createTable, tables }: TablePostingFormProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const { addTable, tables } = useTables()
   const [formData, setFormData] = useState<TableFormData>(initialFormData)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<TableFormData>>({})
@@ -71,7 +73,7 @@ export default function TablePostingForm({ isOpen, onClose, onSuccess }: TablePo
   // Get next available table number
   const getNextTableNumber = () => {
     if (tables.length === 0) return 1
-    const maxNumber = Math.max(...tables.map(table => table.number || 0))
+    const maxNumber = Math.max(...tables.map(table => table.table_number || 0))
     return maxNumber + 1
   }
 
@@ -101,7 +103,7 @@ export default function TablePostingForm({ isOpen, onClose, onSuccess }: TablePo
     // Validate table number
     if (!formData.table_number || formData.table_number < 1) {
       newErrors.table_number = 1
-    } else if (tables.some(table => table.number === formData.table_number)) {
+    } else if (tables.some(table => table.table_number === formData.table_number)) {
       newErrors.table_number = formData.table_number
     }
 
@@ -167,18 +169,18 @@ export default function TablePostingForm({ isOpen, onClose, onSuccess }: TablePo
     try {
       setLoading(true)
       
-      // Transform data to match what the hook expects (which will then transform to backend format)
-      const tableData = {
-        number: formData.table_number,
-        seats: formData.capacity,
-        location: formData.section,
-        status: "available" as const,
-        location_notes: formData.location_notes.trim() || "" // Always return string, never undefined
+      // Transform data to match the TableCreate interface
+      const tableData: TableCreate = {
+        table_number: formData.table_number.toString(),
+        capacity: formData.capacity,
+        section: formData.section,
+        location_notes: formData.location_notes.trim() || "",
+        status: "available"
       }
 
       console.log('Form data being sent:', tableData) // Debug log
 
-      await addTable(tableData)
+      await createTable(tableData)
       
       // Success
       onSuccess?.()

@@ -1,6 +1,6 @@
 // lib/tables-api.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1/food'
 
 // API response handler
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -58,6 +58,14 @@ export interface CreateTableData {
   location_notes: string
 }
 
+export interface UpdateTableData {
+  table_number?: string
+  capacity?: number
+  section?: string
+  location_notes?: string
+  status?: "available" | "occupied" | "reserved" | "maintenance"
+}
+
 export interface TableAvailabilityResponse {
   total_tables: number
   available_count: number
@@ -72,21 +80,7 @@ export interface TableAvailabilityResponse {
   }>
 }
 
-export interface TableLayoutUpdateData {
-  tables: Array<{
-    id: string
-    section?: string
-    location_notes?: string
-    capacity?: number
-  }>
-}
-
-export interface TableLayoutUpdateResponse {
-  message: string
-  updated_tables: number
-}
-
-export interface CustomerAssignmentData {
+export interface AssignTableData {
   customer_name?: string
   customer_phone?: string
   customer_email?: string
@@ -94,34 +88,14 @@ export interface CustomerAssignmentData {
   special_requests?: string
 }
 
-export interface CustomerAssignmentResponse {
+export interface AssignTableResponse {
   message: string
   table: Table
   order_id: string
 }
 
 export const tablesApi = {
-  // Get all tables
-  async getTables(): Promise<Table[]> {
-    const response = await fetch(`${API_BASE_URL}/tables`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    })
-    
-    return handleResponse<Table[]>(response)
-  },
-
-  // Get single table
-  async getTable(id: string): Promise<Table> {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    })
-    
-    return handleResponse<Table>(response)
-  },
-
-  // Create new table
+  // POST /api/v1/food/tables - Create Table
   async createTable(tableData: CreateTableData): Promise<Table> {
     const response = await fetch(`${API_BASE_URL}/tables`, {
       method: 'POST',
@@ -132,19 +106,28 @@ export const tablesApi = {
     return handleResponse<Table>(response)
   },
 
-  // Update table status (dedicated endpoint)
-  async updateTableStatus(id: string, status: string): Promise<Table> {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}/status`, {
-      method: 'PUT',
+  // GET /api/v1/food/tables - List Tables
+  async getTables(): Promise<Table[]> {
+    const response = await fetch(`${API_BASE_URL}/tables`, {
+      method: 'GET',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ status }),
+    })
+    
+    return handleResponse<Table[]>(response)
+  },
+
+  // GET /api/v1/food/tables/{table_id} - Get Table
+  async getTable(id: string): Promise<Table> {
+    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
     })
     
     return handleResponse<Table>(response)
   },
 
-  // Update entire table
-  async updateTable(id: string, tableData: Partial<Table>): Promise<Table> {
+  // PUT /api/v1/food/tables/{table_id} - Update Table
+  async updateTable(id: string, tableData: UpdateTableData): Promise<Table> {
     const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -154,28 +137,28 @@ export const tablesApi = {
     return handleResponse<Table>(response)
   },
 
-  // Partially update table
-  async patchTable(id: string, tableData: Partial<Table>): Promise<Table> {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
-      method: 'PATCH',
+  // POST /api/v1/food/tables/assign - Assign Table
+  async assignTable(assignData: AssignTableData): Promise<AssignTableResponse> {
+    const response = await fetch(`${API_BASE_URL}/tables/assign`, {
+      method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(tableData),
+      body: JSON.stringify(assignData),
+    })
+    
+    return handleResponse<AssignTableResponse>(response)
+  },
+
+  // POST /api/v1/food/tables/{table_id}/release - Release Table
+  async releaseTable(id: string): Promise<Table> {
+    const response = await fetch(`${API_BASE_URL}/tables/${id}/release`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
     })
     
     return handleResponse<Table>(response)
   },
 
-  // Delete table
-  async deleteTable(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    })
-    
-    return handleResponse<void>(response)
-  },
-
-  // Check table availability
+  // GET /api/v1/food/tables/availability - Check Table Availability
   async checkTableAvailability(filters?: {
     section?: string
     capacity?: number
@@ -193,77 +176,5 @@ export const tablesApi = {
     })
     
     return handleResponse<TableAvailabilityResponse>(response)
-  },
-
-  // Update table layout
-  async updateTableLayout(layoutData: TableLayoutUpdateData): Promise<TableLayoutUpdateResponse> {
-    const response = await fetch(`${API_BASE_URL}/tables/layout`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(layoutData),
-    })
-    
-    return handleResponse<TableLayoutUpdateResponse>(response)
-  },
-
-  // Get table QR code
-  async getTableQRCode(
-    id: string, 
-    options?: {
-      size?: number
-      color?: string
-      background_color?: string
-    }
-  ): Promise<{
-    table_id: string  // Changed from number to string for UUID
-    table_number: string
-    qr_code: {
-      id: string
-      image_base64: string
-      data: string
-      size: number
-      color: string
-      background_color: string
-      url: string
-    }
-  }> {
-    const params = new URLSearchParams()
-    if (options?.size) params.append('size', options.size.toString())
-    if (options?.color) params.append('color', options.color)
-    if (options?.background_color) params.append('background_color', options.background_color)
-    
-    const queryString = params.toString()
-    const url = `${API_BASE_URL}/tables/${id}/qr${queryString ? `?${queryString}` : ''}`
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    })
-    
-    return handleResponse(response)
-  },
-
-  // Assign customer to table
-  async assignCustomerToTable(
-    id: string,
-    customerData: {
-      customer_name?: string
-      customer_phone?: string
-      customer_email?: string
-      party_size: number
-      special_requests?: string
-    }
-  ): Promise<{
-    message: string
-    table: Table
-    order_id: string
-  }> {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}/assign`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(customerData),
-    })
-    
-    return handleResponse(response)
   }
 }
