@@ -55,6 +55,8 @@ export default function InventoryItemList({
   const [updatingStock, setUpdatingStock] = useState<string | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [deletingItem, setDeletingItem] = useState<string | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<InventoryItemWithMetrics | null>(null)
   const [mounted, setMounted] = useState(false)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
@@ -149,6 +151,20 @@ export default function InventoryItemList({
       alert('Failed to create inventory item')
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      setDeletingItem(itemId)
+      await onDeleteItem(itemId)
+      setItemToDelete(null)
+      onRefresh()
+    } catch (error) {
+      console.error('Failed to delete item:', error)
+      alert('Failed to delete inventory item')
+    } finally {
+      setDeletingItem(null)
     }
   }
 
@@ -350,6 +366,18 @@ export default function InventoryItemList({
                       <Edit3 className="h-4 w-4" />
                     )}
                   </button>
+                  <button 
+                    onClick={() => setItemToDelete(item)}
+                    disabled={deletingItem === item.id}
+                    className={`p-2 ${buttonHoverBg} rounded-xl text-red-500 transition-all duration-200 hover:scale-110 disabled:opacity-50`}
+                    title="Delete Item"
+                  >
+                    {deletingItem === item.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
                 
                 <p className={`text-xs ${textSecondary}`}>
@@ -549,6 +577,58 @@ export default function InventoryItemList({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-md w-full mx-4`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-xl font-bold ${textPrimary}`}>Confirm Deletion</h3>
+              <button
+                onClick={() => setItemToDelete(null)}
+                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <p className={`${textSecondary} mb-4`}>
+                Are you sure you want to delete this inventory item? This action cannot be undone.
+              </p>
+              <div className={`${innerCardBg} p-4 rounded-lg border`}>
+                <h4 className={`${textPrimary} font-medium mb-2`}>{itemToDelete.name}</h4>
+                <p className={`${textSecondary} text-sm`}>SKU: {itemToDelete.sku || 'N/A'}</p>
+                <p className={`${textSecondary} text-sm`}>Current Stock: {itemToDelete.current_stock} {itemToDelete.unit}</p>
+                {itemToDelete.category && (
+                  <p className={`${textSecondary} text-sm`}>Category: {itemToDelete.category}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setItemToDelete(null)}
+                className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteItem(itemToDelete.id)}
+                disabled={deletingItem === itemToDelete.id}
+                className={`bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 flex items-center gap-2`}
+              >
+                {deletingItem === itemToDelete.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                {deletingItem === itemToDelete.id ? 'Deleting...' : 'Delete Item'}
+              </button>
+            </div>
           </div>
         </div>
       )}

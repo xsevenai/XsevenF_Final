@@ -17,30 +17,17 @@ export function configureAPI() {
   
   OpenAPI.WITH_CREDENTIALS = false
   
-  console.log('🔧 API Configured - Backend URL:', OpenAPI.BASE)
-  
   // ✅ COMPLETE PATH INTERCEPTION
   const originalRequest = (OpenAPI as any).request
   if (originalRequest && typeof originalRequest === 'function') {
     (OpenAPI as any).request = async (options: any) => {
       if (options.url && typeof options.url === 'string') {
-        const originalUrl = options.url
-        console.log('🔗 Original API URL:', originalUrl)
-        
-        // Fix ALL incorrect prefixes
-        if (options.url.includes('/food/')) {
-          options.url = options.url.replace('/food/', '/')
-          console.log('🔄 Fixed /food/ prefix:', originalUrl, '→', options.url)
-        }
+        // Note: /food/ prefix is actually correct for food hospitality endpoints
+        // Don't remove it - the server expects /api/v1/food/inventory/...
         
         // Fix double api/v1 issue (if any remain)
         if (options.url.includes('/api/v1/api/v1/')) {
           options.url = options.url.replace('/api/v1/api/v1/', '/api/v1/')
-          console.log('🔄 Fixed double api/v1:', originalUrl, '→', options.url)
-        }
-        
-        if (originalUrl !== options.url) {
-          console.log('✅ Final URL:', options.url)
         }
       }
       return originalRequest(options)

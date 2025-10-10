@@ -109,6 +109,20 @@ export const useInventoryItems = (businessId: string) => {
     return updateItem(itemId, updateData)
   }, [updateItem])
 
+  const getItem = useCallback(async (itemId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const item = await FoodHospitalityInventoryService.getInventoryItemApiV1FoodInventoryItemsItemIdGet(itemId)
+      return item
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get inventory item'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const searchItems = useCallback(async (searchParams: InventorySearch) => {
     try {
       setLoading(true)
@@ -140,6 +154,7 @@ export const useInventoryItems = (businessId: string) => {
     createItem,
     updateItem,
     deleteItem,
+    getItem,
     updateStockQuantity,
     searchItems,
     fetchItems
@@ -175,7 +190,6 @@ export const useLowStockItems = (businessId: string) => {
       setActiveAlerts(alertsData)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch low stock items')
-      console.error('Error fetching low stock items:', err)
     } finally {
       setLoading(false)
     }
@@ -196,6 +210,57 @@ export const useLowStockItems = (businessId: string) => {
     }
   }, [fetchLowStockItems])
 
+  const listStockAlerts = useCallback(async (isActive?: boolean, alertType?: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const alerts = await FoodHospitalityInventoryService.listStockAlertsApiV1FoodInventoryAlertsGet(
+        businessId,
+        isActive,
+        alertType
+      )
+      return alerts
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to list stock alerts'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [businessId])
+
+  const updateStockAlert = useCallback(async (alertId: string, isActive: boolean) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const updatedAlert = await FoodHospitalityInventoryService.updateStockAlertApiV1FoodInventoryAlertsAlertIdPut(alertId, isActive)
+      await fetchLowStockItems() // Refresh data
+      return updatedAlert
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to update stock alert'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [fetchLowStockItems])
+
+  const deleteStockAlert = useCallback(async (alertId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const result = await FoodHospitalityInventoryService.deleteStockAlertApiV1FoodInventoryAlertsAlertIdDelete(alertId)
+      await fetchLowStockItems() // Refresh data
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to delete stock alert'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [fetchLowStockItems])
+
   useEffect(() => {
     if (businessId) {
       fetchLowStockItems()
@@ -208,7 +273,10 @@ export const useLowStockItems = (businessId: string) => {
     loading,
     error,
     refresh: fetchLowStockItems,
-    createStockAlert
+    createStockAlert,
+    listStockAlerts,
+    updateStockAlert,
+    deleteStockAlert
   }
 }
 
@@ -312,6 +380,20 @@ export const useSuppliers = (businessId: string) => {
     }
   }, [])
 
+  const getSupplier = useCallback(async (supplierId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const supplier = await FoodHospitalityInventoryService.getSupplierApiV1FoodInventorySuppliersSupplierIdGet(supplierId)
+      return supplier
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get supplier'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const deleteSupplier = useCallback(async (supplierId: string) => {
     try {
       setError(null)
@@ -339,6 +421,7 @@ export const useSuppliers = (businessId: string) => {
     refresh: fetchSuppliers,
     createSupplier,
     updateSupplier,
+    getSupplier,
     deleteSupplier
   }
 }
@@ -378,13 +461,24 @@ export const usePurchaseOrders = (businessId: string) => {
 
   const createPurchaseOrder = useCallback(async (data: PurchaseOrderCreate, createdBy?: string) => {
     try {
+      console.log('API: Creating purchase order with data:', data)
+      console.log('API: Created by:', createdBy)
       setError(null)
       configureAPI()
       
       const newPO = await FoodHospitalityInventoryService.createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost(data, createdBy)
+      console.log('API: Purchase order created successfully:', newPO)
       setPurchaseOrders(prev => [newPO, ...prev])
       return newPO
     } catch (err: any) {
+      console.error('API: Error creating purchase order:', err)
+      console.error('API: Error details:', {
+        message: err.message,
+        status: err.status,
+        response: err.response,
+        data: data,
+        createdBy: createdBy
+      })
       const errorMessage = err.message || 'Failed to create purchase order'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -401,6 +495,20 @@ export const usePurchaseOrders = (businessId: string) => {
       return updatedPO
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to update purchase order'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
+  const getPurchaseOrder = useCallback(async (poId: string) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const purchaseOrder = await FoodHospitalityInventoryService.getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet(poId)
+      return purchaseOrder
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get purchase order'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
@@ -434,6 +542,7 @@ export const usePurchaseOrders = (businessId: string) => {
     refresh: fetchPurchaseOrders,
     createPurchaseOrder,
     updatePurchaseOrder,
+    getPurchaseOrder,
     receivePurchaseOrder
   }
 }
@@ -649,6 +758,66 @@ export const useInventoryStats = (businessId: string) => {
   }
 }
 
+// Hook for auto-reorder functionality
+export const useAutoReorder = (businessId: string) => {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const triggerAutoReorder = useCallback(async (dryRun: boolean = false) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await FoodHospitalityInventoryService.triggerAutoReorderApiV1FoodInventoryAutoReorderPost(businessId, dryRun)
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to trigger auto-reorder'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [businessId])
+
+  return {
+    loading,
+    error,
+    triggerAutoReorder,
+    clearError: () => setError(null)
+  }
+}
+
+// Hook for POS sync functionality
+export const usePosSync = (businessId: string) => {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const syncFromPos = useCallback(async (posSystem: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await FoodHospitalityInventoryService.syncFromPosApiV1FoodInventorySyncFromPosPost(businessId, posSystem)
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to sync from POS'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [businessId])
+
+  return {
+    loading,
+    error,
+    syncFromPos,
+    clearError: () => setError(null)
+  }
+}
+
 // Combined hook for complete inventory management
 export const useInventoryManagement = (businessId: string) => {
   const inventoryItems = useInventoryItems(businessId)
@@ -659,6 +828,8 @@ export const useInventoryManagement = (businessId: string) => {
   const transactions = useInventoryTransactions(businessId)
   const reports = useInventoryReports(businessId)
   const stats = useInventoryStats(businessId)
+  const autoReorder = useAutoReorder(businessId)
+  const posSync = usePosSync(businessId)
 
   const refreshAll = useCallback(async () => {
     await Promise.all([
@@ -693,11 +864,15 @@ export const useInventoryManagement = (businessId: string) => {
     reports,
     stats,
     
+    // Automation and integrations
+    autoReorder,
+    posSync,
+    
     // Combined operations
     refreshAll,
     
     // Loading and error states
-    loading: inventoryItems.loading || lowStockItems.loading || suppliers.loading || purchaseOrders.loading || transactions.loading,
-    error: inventoryItems.error || lowStockItems.error || suppliers.error || purchaseOrders.error || transactions.error
+    loading: inventoryItems.loading || lowStockItems.loading || suppliers.loading || purchaseOrders.loading || transactions.loading || autoReorder.loading || posSync.loading,
+    error: inventoryItems.error || lowStockItems.error || suppliers.error || purchaseOrders.error || transactions.error || autoReorder.error || posSync.error
   }
 }

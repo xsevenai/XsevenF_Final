@@ -13,8 +13,13 @@ import SupplierManagement from './components/SupplierManagement'
 import PurchaseOrderManagement from './components/PurchaseOrderManagement'
 import StockAdjustments from './components/StockAdjustments'
 import InventoryReports from './components/InventoryReports'
+import AutoReorderManagement from './components/AutoReorderManagement'
+import PosSyncManagement from './components/PosSyncManagement'
+import TransactionHistory from './components/TransactionHistory'
+import AnalyticsDashboard from './components/AnalyticsDashboard'
+import StockAlertManagement from './components/StockAlertManagement'
 
-type InventoryView = 'overview' | 'items' | 'low-stock' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'analytics'
+type InventoryView = 'overview' | 'items' | 'low-stock' | 'stock-alerts' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'analytics' | 'auto-reorder' | 'pos-sync' | 'transactions'
 
 export default function InventoryComponent() {
   const [activeView, setActiveView] = useState<InventoryView>('overview')
@@ -33,6 +38,8 @@ export default function InventoryComponent() {
     transactions,
     reports,
     stats,
+    autoReorder,
+    posSync,
     refreshAll,
     loading,
     error
@@ -63,11 +70,15 @@ export default function InventoryComponent() {
     { id: 'overview' as const, label: 'Overview', icon: Package },
     { id: 'items' as const, label: 'All Items', icon: Scale },
     { id: 'low-stock' as const, label: 'Low Stock', icon: AlertTriangle },
+    { id: 'stock-alerts' as const, label: 'Stock Alerts', icon: AlertTriangle },
     { id: 'suppliers' as const, label: 'Suppliers', icon: Users },
     { id: 'purchase-orders' as const, label: 'Purchase Orders', icon: FileText },
     { id: 'adjustments' as const, label: 'Adjustments', icon: Settings },
     { id: 'reports' as const, label: 'Reports', icon: BarChart3 },
-    { id: 'analytics' as const, label: 'Analytics', icon: TrendingDown }
+    { id: 'analytics' as const, label: 'Analytics', icon: TrendingDown },
+    { id: 'transactions' as const, label: 'Transactions', icon: FileText },
+    { id: 'auto-reorder' as const, label: 'Auto-Reorder', icon: RefreshCw },
+    { id: 'pos-sync' as const, label: 'POS Sync', icon: RefreshCw }
   ]
 
   const handleTabClick = (tabId: InventoryView) => {
@@ -123,6 +134,21 @@ export default function InventoryComponent() {
             onBack={handleBackToOverview}
           />
         )
+      case 'stock-alerts':
+        return (
+          <StockAlertManagement
+            lowStockItems={inventoryItems.items}
+            activeAlerts={lowStockItems.activeAlerts}
+            loading={lowStockItems.loading}
+            error={lowStockItems.error}
+            onRefresh={lowStockItems.refresh}
+            onCreateStockAlert={lowStockItems.createStockAlert}
+            onListStockAlerts={lowStockItems.listStockAlerts}
+            onUpdateStockAlert={lowStockItems.updateStockAlert}
+            onDeleteStockAlert={lowStockItems.deleteStockAlert}
+            onBack={handleBackToOverview}
+          />
+        )
       case 'suppliers':
         return (
           <SupplierManagement
@@ -141,6 +167,7 @@ export default function InventoryComponent() {
           <PurchaseOrderManagement
             purchaseOrders={purchaseOrders.purchaseOrders}
             suppliers={suppliers.suppliers}
+            inventoryItems={inventoryItems.items}
             loading={purchaseOrders.loading}
             error={purchaseOrders.error}
             onRefresh={purchaseOrders.refresh}
@@ -178,22 +205,41 @@ export default function InventoryComponent() {
         )
       case 'analytics':
         return (
-          <div className="space-y-6">
-            <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleBackToOverview}
-                  className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                </button>
-                <div>
-                  <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Inventory Analytics</h1>
-                  <p className={`${textSecondary}`}>Advanced analytics and insights coming soon...</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AnalyticsDashboard
+            stats={stats.stats}
+            loading={stats.loading}
+            error={stats.error}
+            onRefresh={stats.refresh}
+            onBack={handleBackToOverview}
+          />
+        )
+      case 'transactions':
+        return (
+          <TransactionHistory
+            transactions={transactions.transactions}
+            loading={transactions.loading}
+            error={transactions.error}
+            onRefresh={transactions.refresh}
+            onBack={handleBackToOverview}
+          />
+        )
+      case 'auto-reorder':
+        return (
+          <AutoReorderManagement
+            loading={autoReorder.loading}
+            error={autoReorder.error}
+            onTriggerAutoReorder={autoReorder.triggerAutoReorder}
+            onBack={handleBackToOverview}
+          />
+        )
+      case 'pos-sync':
+        return (
+          <PosSyncManagement
+            loading={posSync.loading}
+            error={posSync.error}
+            onSyncFromPos={posSync.syncFromPos}
+            onBack={handleBackToOverview}
+          />
         )
       default:
         return null
@@ -208,6 +254,8 @@ export default function InventoryComponent() {
         return 'All Inventory Items'
       case 'low-stock':
         return 'Low Stock Alerts'
+      case 'stock-alerts':
+        return 'Stock Alert Management'
       case 'suppliers':
         return 'Supplier Management'
       case 'purchase-orders':
@@ -218,6 +266,12 @@ export default function InventoryComponent() {
         return 'Inventory Reports'
       case 'analytics':
         return 'Inventory Analytics'
+      case 'transactions':
+        return 'Transaction History'
+      case 'auto-reorder':
+        return 'Auto-Reorder Management'
+      case 'pos-sync':
+        return 'POS Sync Management'
       default:
         return 'Inventory Management'
     }
@@ -231,6 +285,8 @@ export default function InventoryComponent() {
         return 'View and manage all inventory items'
       case 'low-stock':
         return 'Items that need immediate attention'
+      case 'stock-alerts':
+        return 'Manage inventory alerts and notifications'
       case 'suppliers':
         return 'Manage supplier relationships and contacts'
       case 'purchase-orders':
@@ -241,6 +297,12 @@ export default function InventoryComponent() {
         return 'Generate inventory reports and analytics'
       case 'analytics':
         return 'Advanced analytics and insights'
+      case 'transactions':
+        return 'View all inventory transactions and movements'
+      case 'auto-reorder':
+        return 'Automatically manage inventory reordering'
+      case 'pos-sync':
+        return 'Synchronize with point of sale systems'
       default:
         return 'Complete inventory management system'
     }
@@ -308,6 +370,11 @@ export default function InventoryComponent() {
                   {tab.id === 'low-stock' && lowStockItems.lowStockItems.length > 0 && (
                     <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-medium">
                       {lowStockItems.lowStockItems.length}
+                    </span>
+                  )}
+                  {tab.id === 'stock-alerts' && lowStockItems.activeAlerts.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-medium">
+                      {lowStockItems.activeAlerts.length}
                     </span>
                   )}
                   {tab.id === 'suppliers' && suppliers.suppliers.length > 0 && (
