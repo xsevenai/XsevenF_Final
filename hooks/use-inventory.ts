@@ -40,6 +40,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
+      console.log('Fetching inventory items with params:', params)
       const data = await FoodHospitalityInventoryService.listInventoryItemsApiV1FoodInventoryItemsGet(
         businessId,
         params?.location_id || null,
@@ -48,6 +49,7 @@ export const useInventoryItems = (businessId: string) => {
         params?.limit || 50,
         params?.offset || 0
       )
+      console.log('Fetched inventory items:', data.length, 'items')
       setItems(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch inventory items')
@@ -142,15 +144,19 @@ export const useInventoryItems = (businessId: string) => {
 
   useEffect(() => {
     if (businessId) {
-      fetchItems()
+      fetchItems({ low_stock_only: false })
     }
   }, [businessId, fetchItems])
+
+  const fetchAllItems = useCallback(async () => {
+    return fetchItems({ low_stock_only: false })
+  }, [fetchItems])
 
   return {
     items,
     loading,
     error,
-    refresh: fetchItems,
+    refresh: fetchAllItems,
     createItem,
     updateItem,
     deleteItem,

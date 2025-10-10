@@ -143,8 +143,7 @@ export default function InventoryReports({
                   <span className={`${textSecondary} text-sm`}>Total Value</span>
                 </div>
                 <div className={`${textPrimary} text-2xl font-bold`}>
-                  ${(reportData.total_value || stats.overview?.totalValue || 0).toFixed(2)}
-                </div>
+                ${(Number(reportData.total_value || stats.overview?.totalValue || 0)).toFixed(2)}                </div>
               </div>
               <div className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-4 rounded-lg`}>
                 <div className="flex items-center gap-2 mb-2">

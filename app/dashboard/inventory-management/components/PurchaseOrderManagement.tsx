@@ -54,9 +54,11 @@ export default function PurchaseOrderManagement({
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState<string | null>(null)
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
   const [isReceiving, setIsReceiving] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Theme-aware styles
   const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
@@ -136,6 +138,24 @@ export default function PurchaseOrderManagement({
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleUpdatePO = async (poId: string, updateData: PurchaseOrderUpdate) => {
+    try {
+      setIsUpdating(true)
+      await onUpdatePurchaseOrder(poId, updateData)
+      setShowEditForm(null)
+      onRefresh()
+    } catch (error) {
+      console.error('Failed to update purchase order:', error)
+      alert('Failed to update purchase order')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleEditPO = (poId: string) => {
+    setShowEditForm(poId)
   }
 
   if (loading) {
@@ -244,6 +264,13 @@ export default function PurchaseOrderManagement({
                     </span>
                     <div className="flex gap-1">
                       <button
+                        onClick={() => handleEditPO(po.id)}
+                        className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
+                        title="Edit Purchase Order"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => setSelectedPO(po)}
                         className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
                         title="View Details"
@@ -321,6 +348,30 @@ export default function PurchaseOrderManagement({
               onSubmit={handleCreatePO}
               onCancel={() => setShowCreateForm(false)}
               loading={isCreating}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Edit PO Form Modal */}
+      {showEditForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-xl font-bold ${textPrimary}`}>Edit Purchase Order</h3>
+              <button
+                onClick={() => setShowEditForm(null)}
+                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+              >
+                ×
+              </button>
+            </div>
+            
+            <PurchaseOrderUpdateForm
+              purchaseOrder={purchaseOrders.find(po => po.id === showEditForm)}
+              onSubmit={(updateData) => handleUpdatePO(showEditForm, updateData)}
+              onCancel={() => setShowEditForm(null)}
+              loading={isUpdating}
             />
           </div>
         </div>
@@ -629,7 +680,7 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
                   <div>
                     <span className={`${textPrimary} font-medium`}>{itemName}</span>
                     <span className={`${textSecondary} ml-2`}>
-                      {item.quantity} × ${item.unit_cost.toFixed(2)} = ${(item.quantity * item.unit_cost).toFixed(2)}
+                      {item.quantity} × ${Number(item.unit_cost).toFixed(2)} = ${Number(item.total).toFixed(2)}
                     </span>
                   </div>
                   <button
@@ -661,6 +712,142 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Creating...' : 'Create Purchase Order'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// Purchase Order Update Form Component
+interface PurchaseOrderUpdateFormProps {
+  purchaseOrder: PurchaseOrder | undefined
+  onSubmit: (updateData: PurchaseOrderUpdate) => Promise<void>
+  onCancel: () => void
+  loading: boolean
+}
+
+function PurchaseOrderUpdateForm({ purchaseOrder, onSubmit, onCancel, loading }: PurchaseOrderUpdateFormProps) {
+  const [formData, setFormData] = useState<PurchaseOrderUpdate>({
+    status: purchaseOrder?.status || null,
+    expected_delivery_date: purchaseOrder?.expected_delivery_date || null,
+    actual_delivery_date: purchaseOrder?.actual_delivery_date || null,
+    notes: purchaseOrder?.notes || null
+  })
+  const { isDark } = useTheme()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await onSubmit(formData)
+  }
+
+  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
+  const textPrimary = isDark ? "text-white" : "text-gray-900"
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
+  const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
+
+  if (!purchaseOrder) {
+    return <div>Purchase order not found</div>
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+            Status
+          </label>
+          <select
+            value={formData.status || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+          >
+            <option value="">Select status...</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="received">Received</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+            Expected Delivery Date
+          </label>
+          <input
+            type="date"
+            value={formData.expected_delivery_date ? new Date(formData.expected_delivery_date).toISOString().split('T')[0] : ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, expected_delivery_date: e.target.value ? new Date(e.target.value).toISOString() : null }))}
+            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+          />
+        </div>
+
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+            Actual Delivery Date
+          </label>
+          <input
+            type="date"
+            value={formData.actual_delivery_date ? new Date(formData.actual_delivery_date).toISOString().split('T')[0] : ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, actual_delivery_date: e.target.value ? new Date(e.target.value).toISOString() : null }))}
+            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+          Notes
+        </label>
+        <textarea
+          value={formData.notes || ''}
+          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value || null }))}
+          className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+          rows={3}
+          placeholder="Update notes..."
+        />
+      </div>
+
+      {/* Current Purchase Order Info */}
+      <div className={`${cardBg} p-4 border rounded-lg`}>
+        <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Current Purchase Order Info</h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className={`${textSecondary}`}>Order Number:</span>
+            <p className={`${textPrimary} font-medium`}>{purchaseOrder.order_number}</p>
+          </div>
+          <div>
+            <span className={`${textSecondary}`}>Total Amount:</span>
+            <p className={`${textPrimary} font-medium`}>${parseFloat(purchaseOrder.total_amount).toFixed(2)}</p>
+          </div>
+          <div>
+            <span className={`${textSecondary}`}>Order Date:</span>
+            <p className={`${textPrimary} font-medium`}>
+              {new Date(purchaseOrder.order_date).toLocaleDateString()}
+            </p>
+          </div>
+          <div>
+            <span className={`${textSecondary}`}>Items Count:</span>
+            <p className={`${textPrimary} font-medium`}>{purchaseOrder.items.length} items</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className={`px-6 py-2 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} border rounded-lg font-medium transition-all duration-200`}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-6 py-2 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? 'Updating...' : 'Update Purchase Order'}
         </button>
       </div>
     </form>
