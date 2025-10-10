@@ -705,41 +705,51 @@ export const useInventoryStats = (businessId: string) => {
 
   const [summaryReport, setSummaryReport] = React.useState<any>(null)
 
-  const stats = React.useMemo(() => {
-    const totalItems = inventoryItems.length
-    const lowStockCount = lowStockItems.length
-    const outOfStockCount = inventoryItems.filter(item => 
-      parseFloat(item.current_stock || '0') <= 0
-    ).length
-    const inStockCount = inventoryItems.filter(item => 
-      parseFloat(item.current_stock || '0') > 0 && !item.needs_reorder
-    ).length
+// Replace the stats useMemo in useInventoryStats hook (around line 662-677)
+
+const stats = React.useMemo(() => {
+  const totalItems = inventoryItems.length
+  const lowStockCount = lowStockItems.length
+  const outOfStockCount = inventoryItems.filter(item => 
+    parseFloat(item.current_stock || '0') <= 0
+  ).length
+  const inStockCount = inventoryItems.filter(item => 
+    parseFloat(item.current_stock || '0') > 0 && !item.needs_reorder
+  ).length
+  
+  // Calculate total value from inventory items - FIX: Ensure proper number parsing
+  const totalValue = inventoryItems.reduce((sum, item) => {
+    const currentStock = parseFloat(String(item.current_stock || '0'))
+    const unitCost = parseFloat(String(item.unit_cost || '0'))
+    const itemValue = currentStock * unitCost
     
-    // Calculate total value from inventory items
-    const totalValue = inventoryItems.reduce((sum, item) => {
-      const currentStock = parseFloat(item.current_stock || '0')
-      const unitCost = parseFloat(item.unit_cost || '0')
-      return sum + (currentStock * unitCost)
-    }, 0)
+    // Debug logging to see what's being calculated
+    console.log(`Item: ${item.name}, Stock: ${currentStock}, Cost: ${unitCost}, Value: ${itemValue}`)
+    
+    return sum + itemValue
+  }, 0)
 
-    // Recent transactions
-    const recentTransactions = transactions.slice(0, 10)
+  console.log('Total calculated value:', totalValue)
+  console.log('Total items for calculation:', inventoryItems.length)
 
-    return {
-      overview: {
-        totalItems,
-        totalValue,
-        lowStockCount,
-        outOfStockCount,
-        inStockCount,
-        activeAlerts: activeAlerts.length
-      },
-      lowStockItems,
-      activeAlerts,
-      recentTransactions,
-      summaryReport
-    }
-  }, [inventoryItems, lowStockItems, activeAlerts, transactions, summaryReport])
+  // Recent transactions
+  const recentTransactions = transactions.slice(0, 10)
+
+  return {
+    overview: {
+      totalItems,
+      totalValue, // This should now calculate correctly
+      lowStockCount,
+      outOfStockCount,
+      inStockCount,
+      activeAlerts: activeAlerts.length
+    },
+    lowStockItems,
+    activeAlerts,
+    recentTransactions,
+    summaryReport
+  }
+}, [inventoryItems, lowStockItems, activeAlerts, transactions, summaryReport])
 
   const refreshStats = React.useCallback(async () => {
     try {

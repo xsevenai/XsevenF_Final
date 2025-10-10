@@ -3,23 +3,20 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Package, AlertTriangle, RefreshCw, TrendingDown, Scale, ArrowLeft, BarChart3, Loader2, Users, FileText, Settings } from "lucide-react"
+import { Package, RefreshCw, Scale, ArrowLeft, BarChart3, Loader2, Users, FileText, Settings } from "lucide-react"
 import { useInventoryManagement } from '@/hooks/use-inventory'
 import { useTheme } from "@/hooks/useTheme"
 import InventoryOverview from './components/InventoryOverview'
 import InventoryItemList from './components/InventoryItemList'
-import LowStockAlerts from './components/LowStockAlerts'
 import SupplierManagement from './components/SupplierManagement'
 import PurchaseOrderManagement from './components/PurchaseOrderManagement'
 import StockAdjustments from './components/StockAdjustments'
 import InventoryReports from './components/InventoryReports'
-import AutoReorderManagement from './components/AutoReorderManagement'
 import PosSyncManagement from './components/PosSyncManagement'
 import TransactionHistory from './components/TransactionHistory'
-import AnalyticsDashboard from './components/AnalyticsDashboard'
 import StockAlertManagement from './components/StockAlertManagement'
 
-type InventoryView = 'overview' | 'items' | 'low-stock' | 'stock-alerts' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'analytics' | 'auto-reorder' | 'pos-sync' | 'transactions'
+type InventoryView = 'overview' | 'items' | 'stock-alerts' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'pos-sync' | 'transactions'
 
 export default function InventoryComponent() {
   const [activeView, setActiveView] = useState<InventoryView>('overview')
@@ -38,7 +35,6 @@ export default function InventoryComponent() {
     transactions,
     reports,
     stats,
-    autoReorder,
     posSync,
     refreshAll,
     loading,
@@ -69,15 +65,12 @@ export default function InventoryComponent() {
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Package },
     { id: 'items' as const, label: 'All Items', icon: Scale },
-    { id: 'low-stock' as const, label: 'Low Stock', icon: AlertTriangle },
-    { id: 'stock-alerts' as const, label: 'Stock Alerts', icon: AlertTriangle },
+    { id: 'stock-alerts' as const, label: 'Stock Alerts', icon: Package },
     { id: 'suppliers' as const, label: 'Suppliers', icon: Users },
     { id: 'purchase-orders' as const, label: 'Purchase Orders', icon: FileText },
     { id: 'adjustments' as const, label: 'Adjustments', icon: Settings },
     { id: 'reports' as const, label: 'Reports', icon: BarChart3 },
-    { id: 'analytics' as const, label: 'Analytics', icon: TrendingDown },
     { id: 'transactions' as const, label: 'Transactions', icon: FileText },
-    { id: 'auto-reorder' as const, label: 'Auto-Reorder', icon: RefreshCw },
     { id: 'pos-sync' as const, label: 'POS Sync', icon: RefreshCw }
   ]
 
@@ -102,7 +95,7 @@ export default function InventoryComponent() {
             lowStockItems={lowStockItems.lowStockItems}
             activeAlerts={lowStockItems.activeAlerts}
             onViewItems={() => setActiveView('items')}
-            onViewLowStock={() => setActiveView('low-stock')}
+            onViewLowStock={() => setActiveView('stock-alerts')}
             onViewSuppliers={() => setActiveView('suppliers')}
             onViewPurchaseOrders={() => setActiveView('purchase-orders')}
             onViewReports={() => setActiveView('reports')}
@@ -119,18 +112,6 @@ export default function InventoryComponent() {
             onUpdateItem={inventoryItems.updateItem}
             onDeleteItem={inventoryItems.deleteItem}
             onSearchItems={inventoryItems.searchItems}
-            onBack={handleBackToOverview}
-          />
-        )
-      case 'low-stock':
-        return (
-          <LowStockAlerts
-            lowStockItems={lowStockItems.lowStockItems}
-            activeAlerts={lowStockItems.activeAlerts}
-            loading={lowStockItems.loading}
-            error={lowStockItems.error}
-            onRefresh={lowStockItems.refresh}
-            onCreateStockAlert={lowStockItems.createStockAlert}
             onBack={handleBackToOverview}
           />
         )
@@ -203,16 +184,6 @@ export default function InventoryComponent() {
             onBack={handleBackToOverview}
           />
         )
-      case 'analytics':
-        return (
-          <AnalyticsDashboard
-            stats={stats.stats}
-            loading={stats.loading}
-            error={stats.error}
-            onRefresh={stats.refresh}
-            onBack={handleBackToOverview}
-          />
-        )
       case 'transactions':
         return (
           <TransactionHistory
@@ -220,15 +191,6 @@ export default function InventoryComponent() {
             loading={transactions.loading}
             error={transactions.error}
             onRefresh={transactions.refresh}
-            onBack={handleBackToOverview}
-          />
-        )
-      case 'auto-reorder':
-        return (
-          <AutoReorderManagement
-            loading={autoReorder.loading}
-            error={autoReorder.error}
-            onTriggerAutoReorder={autoReorder.triggerAutoReorder}
             onBack={handleBackToOverview}
           />
         )
@@ -252,8 +214,6 @@ export default function InventoryComponent() {
         return 'Inventory Overview'
       case 'items':
         return 'All Inventory Items'
-      case 'low-stock':
-        return 'Low Stock Alerts'
       case 'stock-alerts':
         return 'Stock Alert Management'
       case 'suppliers':
@@ -264,12 +224,8 @@ export default function InventoryComponent() {
         return 'Stock Adjustments'
       case 'reports':
         return 'Inventory Reports'
-      case 'analytics':
-        return 'Inventory Analytics'
       case 'transactions':
         return 'Transaction History'
-      case 'auto-reorder':
-        return 'Auto-Reorder Management'
       case 'pos-sync':
         return 'POS Sync Management'
       default:
@@ -283,8 +239,6 @@ export default function InventoryComponent() {
         return 'Monitor stock levels, track usage, and manage inventory'
       case 'items':
         return 'View and manage all inventory items'
-      case 'low-stock':
-        return 'Items that need immediate attention'
       case 'stock-alerts':
         return 'Manage inventory alerts and notifications'
       case 'suppliers':
@@ -295,12 +249,8 @@ export default function InventoryComponent() {
         return 'Adjust stock levels and perform counts'
       case 'reports':
         return 'Generate inventory reports and analytics'
-      case 'analytics':
-        return 'Advanced analytics and insights'
       case 'transactions':
         return 'View all inventory transactions and movements'
-      case 'auto-reorder':
-        return 'Automatically manage inventory reordering'
       case 'pos-sync':
         return 'Synchronize with point of sale systems'
       default:
@@ -367,11 +317,6 @@ export default function InventoryComponent() {
                 >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
-                  {tab.id === 'low-stock' && lowStockItems.lowStockItems.length > 0 && (
-                    <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-medium">
-                      {lowStockItems.lowStockItems.length}
-                    </span>
-                  )}
                   {tab.id === 'stock-alerts' && lowStockItems.activeAlerts.length > 0 && (
                     <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-medium">
                       {lowStockItems.activeAlerts.length}
