@@ -2,23 +2,26 @@
 
 "use client"
 
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, CheckSquare, Square } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useState, useEffect } from "react"
 import { useMenu } from "@/hooks/use-menu"
 import { useTheme } from "@/hooks/useTheme"
 import type { MenuItem } from "@/src/api/generated/models/MenuItem"
 import type { MenuCategory } from "@/src/api/generated/models/MenuCategory"
+import type { BulkMenuItemUpdate } from "@/src/api/generated/models/BulkMenuItemUpdate"
 
 interface MenuFormsProps {
-  formType: 'menu-item' | 'category' | 'edit-menu-item' | 'edit-category' | 'add-menu-item' | 'add-category'
+  formType: 'menu-item' | 'category' | 'edit-menu-item' | 'edit-category' | 'add-menu-item' | 'add-category' | 'bulk-update'
   onBack: () => void
   onMenuItemCreated?: () => void
   onCategoryCreated?: () => void
   onMenuItemUpdated?: () => void
   onCategoryUpdated?: () => void
+  onBulkUpdate?: () => void
   editItem?: MenuItem
   editCategory?: MenuCategory
+  selectedItems?: MenuItem[]
 }
 
 export default function MenuForms({ 
@@ -28,16 +31,19 @@ export default function MenuForms({
   onCategoryCreated,
   onMenuItemUpdated,
   onCategoryUpdated,
+  onBulkUpdate,
   editItem,
-  editCategory 
+  editCategory,
+  selectedItems = []
 }: MenuFormsProps) {
   const [businessId, setBusinessId] = useState<string>("")
-  const { categories, categoriesLoading, createItem, updateItem, createCategory, updateCategory } = useMenu(businessId)
+  const { categories, categoriesLoading, createItem, updateItem, createCategory, updateCategory, bulkUpdateItems } = useMenu(businessId)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   
   // Normalize form type for consistent handling
   const normalizedFormType = formType === 'add-menu-item' ? 'menu-item' : 
                             formType === 'add-category' ? 'category' : 
+                            formType === 'bulk-update' ? 'bulk-update' :
                             formType
   
   // Form states - FIXED: Use proper types and handle undefined values
@@ -53,6 +59,15 @@ export default function MenuForms({
   
   const [categoryForm, setCategoryForm] = useState({
     name: '',
+    description: ''
+  })
+
+  const [bulkUpdateForm, setBulkUpdateForm] = useState({
+    price: undefined as number | undefined,
+    cost: undefined as number | undefined,
+    category_id: '',
+    is_available: undefined as boolean | undefined,
+    image_url: '',
     description: ''
   })
 
@@ -238,6 +253,66 @@ price: typeof editItem.price === 'string' ? parseFloat(editItem.price) : (editIt
       
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : `Failed to ${normalizedFormType === 'edit-category' ? 'update' : 'create'} category`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleBulkUpdateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitError(null)
+    setSubmitSuccess(false)
+
+    try {
+      if (selectedItems.length === 0) {
+        throw new Error('No items selected for bulk update')
+      }
+
+      // Prepare bulk update data
+      const updateData: any = {}
+      
+      if (bulkUpdateForm.price !== undefined) {
+        updateData.price = bulkUpdateForm.price
+      }
+      if (bulkUpdateForm.cost !== undefined) {
+        updateData.cost = bulkUpdateForm.cost
+      }
+      if (bulkUpdateForm.category_id) {
+        updateData.category_id = bulkUpdateForm.category_id
+      }
+      if (bulkUpdateForm.is_available !== undefined) {
+        updateData.is_available = bulkUpdateForm.is_available
+      }
+      if (bulkUpdateForm.image_url) {
+        updateData.image_url = bulkUpdateForm.image_url
+      }
+      if (bulkUpdateForm.description) {
+        updateData.description = bulkUpdateForm.description
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error('Please specify at least one field to update')
+      }
+
+      const bulkUpdate: BulkMenuItemUpdate = {
+        item_ids: selectedItems.map(item => item.id),
+        updates: updateData
+      }
+
+      await bulkUpdateItems(bulkUpdate)
+      setSubmitSuccess(true)
+      
+      if (onBulkUpdate) {
+        onBulkUpdate()
+      }
+      
+      setTimeout(() => {
+        onBack()
+      }, 1500)
+      
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to bulk update menu items')
     } finally {
       setIsSubmitting(false)
     }
@@ -488,6 +563,191 @@ price: typeof editItem.price === 'string' ? parseFloat(editItem.price) : (editIt
     </div>
   )
 
+  const renderBulkUpdateForm = () => (
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`}
+        style={{ borderRadius: '1.5rem' }}>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </button>
+          <div>
+            <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>
+              Bulk Update Menu Items
+            </h1>
+            <p className={`${textSecondary}`}>
+              Update multiple menu items at once ({selectedItems.length} items selected)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Items Preview */}
+      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <div className="p-6">
+          <h3 className={`${textPrimary} font-semibold text-lg mb-4`}>Selected Items</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {selectedItems.map((item) => (
+              <div key={item.id} className={`${innerCardBg} p-3 border rounded-lg`}>
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4 text-green-500" />
+                  <span className={`${textPrimary} font-medium text-sm`}>{item.name}</span>
+                </div>
+                <p className={`${textSecondary} text-xs`}>
+                  ${(parseFloat(String(item.price)) || 0).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <div className="p-8">
+          {submitSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+              <p className="text-green-500 font-medium">
+                {selectedItems.length} items updated successfully!
+              </p>
+            </div>
+          )}
+          
+          {submitError && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-red-500 font-medium">{submitError}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleBulkUpdateSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={`block ${textPrimary} font-medium mb-3`}>
+                  New Price ($)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={bulkUpdateForm.price || ''}
+                  onChange={(e) => setBulkUpdateForm(prev => ({ 
+                    ...prev, 
+                    price: e.target.value ? parseFloat(e.target.value) : undefined 
+                  }))}
+                  className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                  placeholder="Leave empty to keep current"
+                />
+              </div>
+              <div>
+                <label className={`block ${textPrimary} font-medium mb-3`}>
+                  New Cost ($)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={bulkUpdateForm.cost || ''}
+                  onChange={(e) => setBulkUpdateForm(prev => ({ 
+                    ...prev, 
+                    cost: e.target.value ? parseFloat(e.target.value) : undefined 
+                  }))}
+                  className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                  placeholder="Leave empty to keep current"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className={`block ${textPrimary} font-medium mb-3`}>
+                New Category
+              </label>
+              {categoriesLoading ? (
+                <div className={`flex items-center gap-2 ${textSecondary}`}>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading categories...</span>
+                </div>
+              ) : (
+                <select 
+                  value={bulkUpdateForm.category_id}
+                  onChange={(e) => setBulkUpdateForm(prev => ({ ...prev, category_id: e.target.value }))}
+                  className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                >
+                  <option value="">Keep current category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            
+            <div>
+              <label className={`block ${textPrimary} font-medium mb-3`}>New Description</label>
+              <textarea
+                rows={3}
+                value={bulkUpdateForm.description}
+                onChange={(e) => setBulkUpdateForm(prev => ({ ...prev, description: e.target.value }))}
+                className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 resize-none`}
+                placeholder="Leave empty to keep current description"
+              />
+            </div>
+            
+            <div>
+              <label className={`block ${textPrimary} font-medium mb-3`}>New Image URL</label>
+              <input
+                type="url"
+                value={bulkUpdateForm.image_url}
+                onChange={(e) => setBulkUpdateForm(prev => ({ ...prev, image_url: e.target.value }))}
+                className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                placeholder="Leave empty to keep current image"
+              />
+            </div>
+            
+            <div>
+              <label className={`block ${textPrimary} font-medium mb-3`}>Availability</label>
+              <select
+                value={bulkUpdateForm.is_available === undefined ? '' : bulkUpdateForm.is_available.toString()}
+                onChange={(e) => setBulkUpdateForm(prev => ({ 
+                  ...prev, 
+                  is_available: e.target.value === '' ? undefined : e.target.value === 'true'
+                }))}
+                className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+              >
+                <option value="">Keep current availability</option>
+                <option value="true">Make Available</option>
+                <option value="false">Make Unavailable</option>
+              </select>
+            </div>
+            
+            <div className="flex gap-4 pt-4">
+              <button
+                type="submit"
+                disabled={isSubmitting || categoriesLoading}
+                className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border shadow-lg hover:shadow-xl hover:scale-105`}
+              >
+                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSubmitting ? 'Updating...' : `Update ${selectedItems.length} Items`}
+              </button>
+              <button
+                type="button"
+                onClick={onBack}
+                disabled={isSubmitting}
+                className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:scale-105`}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <style jsx>{`
@@ -495,7 +755,8 @@ price: typeof editItem.price === 'string' ? parseFloat(editItem.price) : (editIt
           display: none;
         }
       `}</style>
-      {(normalizedFormType === 'menu-item' || normalizedFormType === 'edit-menu-item') ? renderMenuItemForm() : renderCategoryForm()}
+      {normalizedFormType === 'bulk-update' ? renderBulkUpdateForm() :
+       (normalizedFormType === 'menu-item' || normalizedFormType === 'edit-menu-item') ? renderMenuItemForm() : renderCategoryForm()}
     </div>
   )
 }

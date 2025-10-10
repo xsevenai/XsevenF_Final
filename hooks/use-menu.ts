@@ -11,6 +11,9 @@ import { MenuCategoryUpdate } from '@/src/api/generated/models/MenuCategoryUpdat
 import { ItemModifier } from '@/src/api/generated/models/ItemModifier'
 import { ItemModifierCreate } from '@/src/api/generated/models/ItemModifierCreate'
 import { ItemModifierUpdate } from '@/src/api/generated/models/ItemModifierUpdate'
+import { MenuImport } from '@/src/api/generated/models/MenuImport'
+import { BulkMenuItemUpdate } from '@/src/api/generated/models/BulkMenuItemUpdate'
+import { MenuItemSearch } from '@/src/api/generated/models/MenuItemSearch'
 import { configureAPI } from '@/lib/api-config'
 
 interface MenuItemFilters {
@@ -156,6 +159,37 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
     }
   }
 
+  const searchItems = async (searchCriteria: MenuItemSearch) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const results = await MenuManagementService.searchMenuItemsApiV1MenuItemsSearchPost(searchCriteria)
+      return results
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to search menu items'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }
+
+  const bulkUpdateItems = async (bulkUpdate: BulkMenuItemUpdate) => {
+    try {
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.bulkUpdateMenuItemsApiV1MenuItemsBulkUpdatePost(bulkUpdate)
+      
+      // Refresh items to get updated data
+      refresh()
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to bulk update menu items'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }
+
   return {
     items,
     loading,
@@ -165,7 +199,9 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
     updateItem,
     deleteItem,
     getItem,
-    duplicateItem
+    duplicateItem,
+    searchItems,
+    bulkUpdateItems
   }
 }
 
@@ -463,9 +499,138 @@ export function useMenu(businessId: string, filters?: MenuItemFilters) {
     assignModifierToItem: modifiersHook.assignModifierToItem,
     removeModifierFromItem: modifiersHook.removeModifierFromItem,
     
+    // Additional item methods
+    searchItems: itemsHook.searchItems,
+    bulkUpdateItems: itemsHook.bulkUpdateItems,
+    
     // Combined
     refreshAll,
     loading: itemsHook.loading || categoriesHook.loading || modifiersHook.loading,
     error: itemsHook.error || categoriesHook.error || modifiersHook.error
+  }
+}
+
+// Menu Import/Export Hook
+export function useMenuImportExport(businessId: string) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const importMenu = async (menuImport: MenuImport) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.importMenuApiV1MenuImportPost(menuImport)
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to import menu'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const exportMenu = async (format: 'json' | 'csv' | 'pdf' = 'json', includeInactive: boolean = false) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.exportMenuApiV1MenuExportBusinessIdGet(
+        businessId,
+        format,
+        includeInactive
+      )
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to export menu'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return {
+    loading,
+    error,
+    importMenu,
+    exportMenu
+  }
+}
+
+// Menu Analytics Hook
+export function useMenuAnalytics(businessId: string) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const getTopMenuItems = async (period: '1d' | '7d' | '30d' | '90d' = '7d', limit: number = 10) => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.getTopMenuItemsApiV1MenuAnalyticsBusinessIdTopItemsGet(
+        businessId,
+        period,
+        limit
+      )
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get top menu items'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getCategoryPerformance = async (period: '1d' | '7d' | '30d' | '90d' = '7d') => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.getCategoryPerformanceApiV1MenuAnalyticsBusinessIdCategoryPerformanceGet(
+        businessId,
+        period
+      )
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get category performance'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const analyzeProfitMargins = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      configureAPI()
+      
+      const result = await MenuManagementService.analyzeProfitMarginsApiV1MenuAnalyticsBusinessIdProfitMarginsGet(
+        businessId
+      )
+      return result
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to analyze profit margins'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return {
+    loading,
+    error,
+    getTopMenuItems,
+    getCategoryPerformance,
+    analyzeProfitMargins
   }
 }

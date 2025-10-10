@@ -3,8 +3,11 @@
 "use client"
 
 import { useState } from 'react'
-import { Edit, Trash2, Plus, Loader2, Search, Copy, Settings, X, ArrowLeft } from 'lucide-react'
+import { Edit, Trash2, Plus, Loader2, Search, Copy, Settings, X, ArrowLeft, Upload, Download, BarChart3, Filter } from 'lucide-react'
 import MenuForms from './MenuForms'
+import MenuImportExportComponent from './MenuImportExportComponent'
+import MenuAnalyticsComponent from './MenuAnalyticsComponent'
+import MenuSearchComponent from './MenuSearchComponent'
 import { useTheme } from '@/hooks/useTheme'
 import { useMenu } from '@/hooks/use-menu' // Updated import
 import { configureAPI } from '@/lib/api-config'
@@ -20,7 +23,7 @@ interface MenuComponentProps {
 
 export default function MenuComponent({ menuItems, categories, onRefresh }: MenuComponentProps) {
   const { theme, isLoaded: themeLoaded, isDark } = useTheme()
-  const [expandedView, setExpandedView] = useState<ExpandedViewType | 'edit-menu-item' | 'edit-category' | null>(null)
+  const [expandedView, setExpandedView] = useState<ExpandedViewType | 'edit-menu-item' | 'edit-category' | 'import-export' | 'analytics' | 'advanced-search' | null>(null)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
@@ -208,6 +211,19 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
 
   // If we have an expanded view, show the appropriate form
   if (expandedView) {
+    // Handle new component views
+    if (expandedView === 'import-export') {
+      return <MenuImportExportComponent onBack={handleCloseEdit} />
+    }
+    
+    if (expandedView === 'analytics') {
+      return <MenuAnalyticsComponent onBack={handleCloseEdit} />
+    }
+    
+    if (expandedView === 'advanced-search') {
+      return <MenuSearchComponent onBack={handleCloseEdit} />
+    }
+    
     // Handle modifier management views
     if (expandedView === 'manage-item-modifiers') {
       return (
@@ -304,7 +320,31 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
             <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>Menu Management</h1>
             <p className={`${textSecondary} transition-colors duration-300`}>Manage your restaurant menu items and categories</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            {/* Advanced Search Button */}
+            <button
+              onClick={() => setExpandedView('advanced-search')}
+              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+            >
+              <Filter className="h-4 w-4" />
+              Advanced Search
+            </button>
+            {/* Analytics Button */}
+            <button
+              onClick={() => setExpandedView('analytics')}
+              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </button>
+            {/* Import/Export Button */}
+            <button
+              onClick={() => setExpandedView('import-export')}
+              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+            >
+              <Upload className="h-4 w-4" />
+              Import/Export
+            </button>
             {/* Add Category Button */}
             <button
               onClick={() => setExpandedView('add-category')}
