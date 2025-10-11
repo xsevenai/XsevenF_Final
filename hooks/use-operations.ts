@@ -30,6 +30,7 @@ import type { StaffScheduleUpdate } from '@/src/api/generated/models/StaffSchedu
 import type { TimeClock } from '@/src/api/generated/models/TimeClock'
 import type { TimeClockCreate } from '@/src/api/generated/models/TimeClockCreate'
 import type { OperationsDashboard } from '@/src/api/generated/models/OperationsDashboard'
+import { v4 as uuidv4 } from 'uuid';
 
 // Hook for locations management
 export const useLocations = (businessId: string) => {
@@ -316,30 +317,68 @@ export const useTables = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityOperationsService.assignTableApiV1FoodTablesAssignPost(assignment)
-      await fetchTables() // Refresh table data
+      // Ensure order_id is a valid UUID
+      const formattedAssignment = {
+        ...assignment,
+        order_id: assignment.order_id.startsWith('temp-order-') 
+          ? uuidv4() // Generate real UUID for temp orders
+          : assignment.order_id
+      }
+      
+      console.log('🎯 Sending assignment data:', formattedAssignment)
+      
+      const result = await FoodHospitalityOperationsService.assignTableApiV1FoodTablesAssignPost(formattedAssignment)
+      
+      // Immediately update the table status to "occupied" in the frontend state
+      setTables(prev => prev.map(table => 
+        table.id === assignment.table_id 
+          ? { 
+              ...table, 
+              status: 'occupied' as any,
+              current_order_id: formattedAssignment.order_id
+            }
+          : table
+      ))
+      
+      console.log('✅ Table assigned successfully:', result)
       return result
     } catch (err: any) {
+      console.error('❌ Full error:', err)
       const errorMessage = err.message || 'Failed to assign table'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [fetchTables])
+  }, []) // Remove fetchTables dependency to avoid unnecessary refreshes
+  
 
   const releaseTable = useCallback(async (tableId: string) => {
     try {
       setError(null)
       configureAPI()
       
+      console.log('🔄 Releasing table:', tableId)
       const result = await FoodHospitalityOperationsService.releaseTableApiV1FoodTablesTableIdReleasePost(tableId)
-      await fetchTables() // Refresh table data
+      
+      // Immediately update the table status to "available" in the frontend state
+      setTables(prev => prev.map(table => 
+        table.id === tableId 
+          ? { 
+              ...table, 
+              status: 'available' as any,
+              current_order_id: null
+            }
+          : table
+      ))
+      
+      console.log('✅ Table released successfully:', result)
       return result
     } catch (err: any) {
+      console.error('❌ Full error:', err)
       const errorMessage = err.message || 'Failed to release table'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [fetchTables])
+  }, []) // Remove fetchTables dependency to avoid unnecessary refreshes
 
   const checkTableAvailability = useCallback(async (params: {
     party_size: number

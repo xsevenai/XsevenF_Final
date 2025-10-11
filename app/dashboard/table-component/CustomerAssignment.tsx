@@ -159,7 +159,7 @@ export default function CustomerAssignment({
     if (!validateForm()) {
       return
     }
-
+  
     try {
       setLoading(true)
       setError(null)
@@ -171,7 +171,7 @@ export default function CustomerAssignment({
         party_size: formData.party_size,
         special_requests: formData.special_requests.trim() || undefined
       }
-
+  
       // Add customer info only if provided
       if (formData.customer_name.trim()) {
         assignmentData.customer_name = formData.customer_name.trim()
@@ -182,10 +182,11 @@ export default function CustomerAssignment({
       if (formData.customer_email.trim()) {
         assignmentData.customer_email = formData.customer_email.trim()
       }
-
+  
+      console.log('📤 Assigning table with data:', assignmentData)
       const response = await onAssignTable(assignmentData)
       
-      setSuccess(response.message)
+      setSuccess(`Table ${tableNumber} assigned successfully!`)
       onSuccess?.(response.order_id)
       
       // Close modal after 2 seconds
@@ -195,6 +196,7 @@ export default function CustomerAssignment({
       }, 2000)
       
     } catch (err) {
+      console.error('❌ Assignment error:', err)
       setError(err instanceof Error ? err.message : 'Failed to assign customer to table')
     } finally {
       setLoading(false)

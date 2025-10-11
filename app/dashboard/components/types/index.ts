@@ -115,6 +115,7 @@ export type SectionType =
   | "working-hours"
   | "floorplans"
   | "kitchen"
+  | "kds"
   | "customers"
   | "directory"
   | "feedback"
@@ -322,4 +323,57 @@ export interface FloorPlanUpdateData {
   location_id?: string
   layout?: FloorPlanLayout
   is_active?: boolean
+}
+
+// KDS (Kitchen Display System) related interfaces
+export interface KDSOrderItem {
+  menu_item_id: string
+  name: string
+  quantity: number
+  modifiers?: string[]
+  special_instructions?: string
+}
+
+export interface KDSOrder {
+  id: string
+  order_id: string
+  business_id: string
+  station: string
+  items: KDSOrderItem[]
+  priority?: number
+  target_time?: string
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
+  prep_start_time?: string
+  prep_end_time?: string
+  assigned_to?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KDSOrderCreate {
+  order_id: string
+  business_id: string
+  station: string
+  items: KDSOrderItem[]
+  priority?: number
+  target_time?: string
+}
+
+export interface KDSOrderUpdate {
+  status?: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
+  assigned_to?: string
+  prep_start_time?: string
+  prep_end_time?: string
+}
+
+export interface KDSPerformance {
+  total_orders: number
+  completed_orders: number
+  average_prep_time: number
+  orders_per_hour: number
+  station_performance: {
+    station: string
+    orders_count: number
+    average_prep_time: number
+  }[]
 }

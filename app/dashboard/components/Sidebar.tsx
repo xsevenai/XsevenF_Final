@@ -24,6 +24,7 @@ import {
   Settings,
   Percent,
   Tags,
+  ChefHat,
 } from "lucide-react"
 import Link from "next/link"
 import { useTheme } from "@/hooks/useTheme"
@@ -73,6 +74,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
     { id: "working-hours" as const, label: "Working Hours", icon: Clock },
     { id: "floorplans" as const, label: "Floor Plans", icon: Map },
     { id: "kitchen" as const, label: "Kitchen", icon: Monitor },
+    { id: "kds" as const, label: "KDS", icon: ChefHat },
     { 
       id: "customers" as const, 
       label: "Customers", 

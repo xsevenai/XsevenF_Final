@@ -21,6 +21,7 @@ import TableComponent from "../table-component/TableComponent"
 import InventoryComponent from "../inventory-management/InventoryComponent"
 import FoodQRComponent from "../food-qr-component/FoodQRComponent"
 import AnalyticsComponent from "../analytics-component/AnalyticsComponent"
+import KDSComponent from "../kds-component/KDSComponent"
 
 // Import new menu components
 import MenuAttributesComponent from "../menu-category-component/MenuAttributesComponent"
@@ -386,6 +387,10 @@ export default function MainPanel({
     <TableComponent />
   )
 
+  const renderKDS = () => (
+    <KDSComponent businessId={businessId} />
+  )
+
   // Simple placeholder components for other sections
   const renderFloorplans = () => (
     <FloorPlanComponent businessId={businessId} />
@@ -489,6 +494,8 @@ export default function MainPanel({
         return renderFloorplans()
       case "kitchen":
         return renderKitchen()
+      case "kds":
+        return renderKDS()
       case "payments":
         return renderPayments()
       case "pos":

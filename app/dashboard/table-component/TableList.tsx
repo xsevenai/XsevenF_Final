@@ -95,13 +95,14 @@ export default function TableList({
 
   const handleAssignmentSuccess = (orderId: string) => {
     console.log('Customer assigned successfully, order ID:', orderId)
-    onTableUpdate?.()
+    // Don't refresh immediately - the assignTable function already updates local state
+    // onTableUpdate?.() // Removed to prevent overriding local state update
   }
 
   // Filter tables based on search and status
   const filteredTables = tables.filter((table) => {
     const matchesSearch = table.table_number.toString().includes(searchTerm) || 
-                         table.section.toLowerCase().includes(searchTerm.toLowerCase())
+                         (table.location?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === "all" || table.status === filterStatus
     return matchesSearch && matchesStatus
   })
@@ -136,6 +137,18 @@ export default function TableList({
     }
   }
 
+   const handleReleaseTable = async (tableId: string) => {
+    try {
+      setUpdating(tableId)
+      await onReleaseTable(tableId)
+      // Don't refresh immediately - the releaseTable function already updates local state
+      // onTableUpdate?.() // Removed to prevent overriding local state update
+    } catch (err) {
+      console.error('Failed to release table:', err)
+    } finally {
+      setUpdating(null)
+    }
+  }
   const renderTableCard = (table: any) => (
     <Card
       key={table.id}
@@ -156,17 +169,26 @@ export default function TableList({
           </button>
         )}
         
-        {/* Release Table Button - only for occupied tables */}
-        {table.status === 'occupied' && (
-          <button
-            onClick={() => onReleaseTable(table.id)}
-            className={`p-2 ${textTertiary} hover:text-orange-400 hover:bg-orange-500/10 transition-colors`}
-            style={{ borderRadius: '0.5rem' }}
-            title="Release Table"
-          >
-            <Users className="h-4 w-4" />
-          </button>
-        )}
+
+{(table.status === 'occupied' || table.status === 'reserved') && (
+  <button
+    onClick={() => handleReleaseTable(table.id)}
+    disabled={updating === table.id}
+    className={`p-2 ${
+      updating === table.id 
+        ? 'text-gray-400 cursor-not-allowed' 
+        : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
+    } transition-colors`}
+    style={{ borderRadius: '0.5rem' }}
+    title={updating === table.id ? 'Releasing...' : 'Release Table'}
+  >
+    {updating === table.id ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <Users className="h-4 w-4" />
+    )}
+  </button>
+)}
       </div>
 
       <div className="text-center space-y-4">
@@ -183,7 +205,7 @@ export default function TableList({
         </div>
 
         {/* Location */}
-        <p className={`${textSecondary} text-sm`}>{table.section}</p>
+        <p className={`${textSecondary} text-sm`}>{table.location?.name || 'No location'}</p>
 
         {/* Status Badge */}
         <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
@@ -223,40 +245,10 @@ export default function TableList({
       style={{ borderRadius: '1rem' }}
     >
       <div className="flex items-center justify-between">
+        {/* ... existing content ... */}
+        
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 flex items-center justify-center ${getStatusColor(table.status)}`}
-            style={{ borderRadius: '0.5rem' }}>
-            {getStatusIcon(table.status)}
-          </div>
-          <div>
-            <h3 className={`${textPrimary} font-semibold`}>Table {table.table_number}</h3>
-            <p className={`${textSecondary} text-sm`}>{table.section} • {table.capacity} seats</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
-            style={{ borderRadius: '9999px' }}>
-            <span className="capitalize">{table.status}</span>
-          </div>
-          <div className="relative">
-            <select
-              value={table.status}
-              onChange={(e) => handleUpdateTableStatus(table.id, e.target.value)}
-              disabled={updating === table.id}
-              className={`${inputBg} border ${textPrimary} px-3 py-2 text-sm ${hoverBg} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-              style={{ borderRadius: '0.5rem' }}
-            >
-              <option value="available">Available</option>
-              <option value="occupied">Occupied</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="reserved">Reserved</option>
-            </select>
-            {updating === table.id && (
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
-              </div>
-            )}
-          </div>
+          {/* ... status badge and select ... */}
           
           {/* Action Buttons for List View */}
           <div className="flex items-center gap-1">
@@ -272,17 +264,27 @@ export default function TableList({
               </button>
             )}
             
-            {/* Release Table Button - only for occupied tables */}
-            {table.status === 'occupied' && (
-              <button
-                onClick={() => onReleaseTable(table.id)}
-                className={`p-2 ${textTertiary} hover:text-orange-400 hover:bg-orange-500/10 transition-colors`}
-                style={{ borderRadius: '0.5rem' }}
-                title="Release Table"
-              >
-                <Users className="h-4 w-4" />
-              </button>
-            )}
+            {/* Release Table Button - for occupied and reserved tables */}
+
+{(table.status === 'occupied' || table.status === 'reserved') && (
+  <button
+    onClick={() => handleReleaseTable(table.id)}
+    disabled={updating === table.id}
+    className={`p-2 ${
+      updating === table.id 
+        ? 'text-gray-400 cursor-not-allowed' 
+        : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
+    } transition-colors`}
+    style={{ borderRadius: '0.5rem' }}
+    title={updating === table.id ? 'Releasing...' : 'Release Table'}
+  >
+    {updating === table.id ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <Users className="h-4 w-4" />
+    )}
+  </button>
+)}
           </div>
         </div>
       </div>
