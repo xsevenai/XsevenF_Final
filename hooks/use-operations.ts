@@ -588,10 +588,15 @@ export const useStaffMembers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newStaffMember = await FoodHospitalityOperationsService.createStaffMemberApiV1FoodStaffPost(data)
+      console.log('🔄 Sending staff creation request:', data)
+      
+      // Use the new endpoint
+      const newStaffMember = await FoodHospitalityOperationsService.createStaffMemberApiV1FoodStaffPost(businessId, data)
+      
       setStaffMembers(prev => [newStaffMember, ...prev])
       return newStaffMember
     } catch (err: any) {
+      console.log('❌ Error details:', err)
       const errorMessage = err.message || 'Failed to create staff member'
       setError(errorMessage)
       throw new Error(errorMessage)

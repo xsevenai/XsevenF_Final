@@ -25,6 +25,7 @@ import {
   Percent,
   Tags,
   ChefHat,
+  UserCog,
 } from "lucide-react"
 import Link from "next/link"
 import { useTheme } from "@/hooks/useTheme"
@@ -85,6 +86,8 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
         { id: "feedback" as const, label: "Feedback", icon: MessageCircle },
       ]
     },
+    { id: "staff" as const, label: "Staff", icon: UserCog },
+    { id: "time-clock" as const, label: "Time Clock", icon: Clock },
     { id: "payments" as const, label: "Payments", icon: CreditCard },
   ]
 

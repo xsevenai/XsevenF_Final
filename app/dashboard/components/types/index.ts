@@ -119,6 +119,8 @@ export type SectionType =
   | "customers"
   | "directory"
   | "feedback"
+  | "staff"
+  | "time-clock"
   | "payments"
   | "profile"
   | "menu-upload-qr"

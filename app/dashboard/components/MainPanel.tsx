@@ -38,6 +38,8 @@ import CustomerDirectoryComponent from "../customer-component/CustomerDirectoryC
 import CustomerFeedbackComponent from "../customer-component/CustomerFeedbackComponent"
 import POSComponent from "../pos-component.tsx/PosComponent"
 import FloorPlanComponent from "../floorplan-component/FloorPlanComponent"
+import StaffComponent from "../staff-component/StaffComponent"
+import { TimeClockComponent } from "../time-clock-in-component"
 
 interface MainPanelProps {
   activeSection: SectionType
@@ -424,6 +426,14 @@ export default function MainPanel({
     <POSComponent />
   )
 
+  const renderStaff = () => (
+    <StaffComponent businessId={businessId} />
+  )
+
+  const renderTimeClock = () => (
+    <TimeClockComponent businessId={businessId} />
+  )
+
   // Main render function
   const renderContent = () => {
     if (expandedView) {
@@ -496,6 +506,10 @@ export default function MainPanel({
         return renderKitchen()
       case "kds":
         return renderKDS()
+      case "staff":
+        return renderStaff()
+      case "time-clock":
+        return renderTimeClock()
       case "payments":
         return renderPayments()
       case "pos":

@@ -542,11 +542,15 @@ export class FoodHospitalityOperationsService {
      * @throws ApiError
      */
     public static createStaffMemberApiV1FoodStaffPost(
+        businessId: string,
         requestBody: StaffMemberCreate,
     ): CancelablePromise<StaffMember> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/food/staff',
+            url: '/api/v1/food/staff/members',
+            query: {
+                'business_id': businessId,
+            },
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -570,7 +574,7 @@ export class FoodHospitalityOperationsService {
     ): CancelablePromise<Array<StaffMember>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/food/staff',
+            url: '/api/v1/food/staff/members',
             query: {
                 'business_id': businessId,
                 'status': status,

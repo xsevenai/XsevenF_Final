@@ -17,9 +17,14 @@ import {
   Loader2,
   AlertCircle,
   Calendar,
-  Timer
+  Timer,
+  
+  CheckCircle
+
 } from "lucide-react"
 import { useKDSPerformance } from "@/hooks/use-kds"
+import { Label } from "@/components/ui/Label" // Add this import
+import { Input } from "@/components/ui/Input" // Add this import
 
 interface KDSPerformanceDashboardProps {
   businessId: string
