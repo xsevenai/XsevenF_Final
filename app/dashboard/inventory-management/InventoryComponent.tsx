@@ -59,8 +59,23 @@ export default function InventoryComponent() {
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const buttonHoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
-  const tabActiveBg = isDark ? 'bg-[#2a2a2a] border-[#3a3a3a]' : 'bg-gray-100 border-gray-300'
-  const tabInactiveBg = isDark ? 'bg-[#1f1f1f] hover:bg-[#2a2a2a]' : 'bg-gray-50 hover:bg-gray-100'
+  
+  // Refresh button: white if dark, dark if light
+  const refreshButtonBg = isDark
+    ? 'bg-white text-gray-900 hover:bg-gray-100 border-gray-300'
+    : 'bg-gray-900 text-white hover:bg-gray-800 border-gray-700'
+
+  // Tab styling - selected: white/dark, unselected: theme-appropriate
+  const getTabStyles = (isActive: boolean) => {
+    if (isActive) {
+      return isDark
+        ? 'bg-white text-gray-900 border-gray-300 shadow-lg'
+        : 'bg-gray-900 text-white border-gray-700 shadow-lg'
+    }
+    return isDark
+      ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]'
+      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+  }
 
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Package },
@@ -293,7 +308,7 @@ export default function InventoryComponent() {
             </div>
             <button
               onClick={refreshAll}
-              className={`flex items-center gap-2 px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
+              className={`flex items-center gap-2 px-6 py-3 ${refreshButtonBg} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
             >
               <RefreshCw className="h-4 w-4" />
               Refresh All
@@ -309,11 +324,7 @@ export default function InventoryComponent() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    activeView === tab.id
-                      ? `${tabActiveBg} ${textPrimary} shadow-lg border scale-105`
-                      : `${tabInactiveBg} ${textSecondary} border hover:shadow-md hover:scale-105`
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${getTabStyles(activeView === tab.id)} hover:shadow-md`}
                 >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}

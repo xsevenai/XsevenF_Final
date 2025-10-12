@@ -33,7 +33,6 @@ export default function TableList({
 
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [updating, setUpdating] = useState<string | null>(null)
   
   // Customer assignment modal state
@@ -95,8 +94,6 @@ export default function TableList({
 
   const handleAssignmentSuccess = (orderId: string) => {
     console.log('Customer assigned successfully, order ID:', orderId)
-    // Don't refresh immediately - the assignTable function already updates local state
-    // onTableUpdate?.() // Removed to prevent overriding local state update
   }
 
   // Filter tables based on search and status
@@ -137,18 +134,17 @@ export default function TableList({
     }
   }
 
-   const handleReleaseTable = async (tableId: string) => {
+  const handleReleaseTable = async (tableId: string) => {
     try {
       setUpdating(tableId)
       await onReleaseTable(tableId)
-      // Don't refresh immediately - the releaseTable function already updates local state
-      // onTableUpdate?.() // Removed to prevent overriding local state update
     } catch (err) {
       console.error('Failed to release table:', err)
     } finally {
       setUpdating(null)
     }
   }
+
   const renderTableCard = (table: any) => (
     <Card
       key={table.id}
@@ -168,27 +164,26 @@ export default function TableList({
             <UserPlus className="h-4 w-4" />
           </button>
         )}
-        
 
-{(table.status === 'occupied' || table.status === 'reserved') && (
-  <button
-    onClick={() => handleReleaseTable(table.id)}
-    disabled={updating === table.id}
-    className={`p-2 ${
-      updating === table.id 
-        ? 'text-gray-400 cursor-not-allowed' 
-        : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
-    } transition-colors`}
-    style={{ borderRadius: '0.5rem' }}
-    title={updating === table.id ? 'Releasing...' : 'Release Table'}
-  >
-    {updating === table.id ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      <Users className="h-4 w-4" />
-    )}
-  </button>
-)}
+        {(table.status === 'occupied' || table.status === 'reserved') && (
+          <button
+            onClick={() => handleReleaseTable(table.id)}
+            disabled={updating === table.id}
+            className={`p-2 ${
+              updating === table.id 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
+            } transition-colors`}
+            style={{ borderRadius: '0.5rem' }}
+            title={updating === table.id ? 'Releasing...' : 'Release Table'}
+          >
+            {updating === table.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Users className="h-4 w-4" />
+            )}
+          </button>
+        )}
       </div>
 
       <div className="text-center space-y-4">
@@ -245,14 +240,20 @@ export default function TableList({
       style={{ borderRadius: '1rem' }}
     >
       <div className="flex items-center justify-between">
-        {/* ... existing content ... */}
+        <div>
+          <h3 className={`${textPrimary} font-bold`}>Table {table.table_number}</h3>
+          <p className={`${textSecondary} text-sm`}>{table.capacity} seats • {table.location?.name || 'No location'}</p>
+        </div>
         
         <div className="flex items-center gap-4">
-          {/* ... status badge and select ... */}
-          
+          <div className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium ${getStatusColor(table.status)}`}
+            style={{ borderRadius: '9999px' }}>
+            {getStatusIcon(table.status)}
+            <span className="capitalize">{table.status}</span>
+          </div>
+
           {/* Action Buttons for List View */}
           <div className="flex items-center gap-1">
-            {/* Assign Customer Button - only for available tables */}
             {table.status === 'available' && (
               <button
                 onClick={() => openAssignmentModal(table.id, table.table_number, table.capacity)}
@@ -264,27 +265,25 @@ export default function TableList({
               </button>
             )}
             
-            {/* Release Table Button - for occupied and reserved tables */}
-
-{(table.status === 'occupied' || table.status === 'reserved') && (
-  <button
-    onClick={() => handleReleaseTable(table.id)}
-    disabled={updating === table.id}
-    className={`p-2 ${
-      updating === table.id 
-        ? 'text-gray-400 cursor-not-allowed' 
-        : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
-    } transition-colors`}
-    style={{ borderRadius: '0.5rem' }}
-    title={updating === table.id ? 'Releasing...' : 'Release Table'}
-  >
-    {updating === table.id ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      <Users className="h-4 w-4" />
-    )}
-  </button>
-)}
+            {(table.status === 'occupied' || table.status === 'reserved') && (
+              <button
+                onClick={() => handleReleaseTable(table.id)}
+                disabled={updating === table.id}
+                className={`p-2 ${
+                  updating === table.id 
+                    ? 'text-gray-400 cursor-not-allowed' 
+                    : `${textTertiary} hover:text-green-400 hover:bg-green-500/10`
+                } transition-colors`}
+                style={{ borderRadius: '0.5rem' }}
+                title={updating === table.id ? 'Releasing...' : 'Release Table'}
+              >
+                {updating === table.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Users className="h-4 w-4" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -411,46 +410,13 @@ export default function TableList({
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-
-          {/* View Mode Toggle */}
-          <div className={`flex items-center ${innerCardBg} p-1`}
-            style={{ borderRadius: '0.5rem' }}>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 transition-colors ${
-                viewMode === "grid"
-                  ? "bg-purple-600 text-white"
-                  : `${textSecondary} hover:${textPrimary}`
-              }`}
-              style={{ borderRadius: '0.25rem' }}
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 transition-colors ${
-                viewMode === "list"
-                  ? "bg-purple-600 text-white"
-                  : `${textSecondary} hover:${textPrimary}`
-              }`}
-              style={{ borderRadius: '0.25rem' }}
-            >
-              <List className="h-4 w-4" />
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Tables Display */}
-      <div className={
-        viewMode === "grid"
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          : "space-y-4"
-      }>
+      {/* Tables Display - Grid View Only */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredTables.length > 0 ? (
-          filteredTables.map((table) =>
-            viewMode === "grid" ? renderTableCard(table) : renderTableList(table)
-          )
+          filteredTables.map((table) => renderTableCard(table))
         ) : (
           <div className="col-span-full">
             <Card className={`${cardBg} border shadow-lg p-12 text-center`}

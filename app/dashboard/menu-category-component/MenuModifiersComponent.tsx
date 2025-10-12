@@ -147,13 +147,10 @@ export default function MenuModifiersComponent() {
   const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
   const innerCardBg = isDark ? "bg-[#1f1f1f] border-[#2a2a2a]" : "bg-gray-50 border-gray-200"
 
-  const primaryButtonBg = isDark
-    ? "bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333] text-white border-[#444444]"
-    : "bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 hover:from-gray-100 hover:via-gray-200 hover:to-gray-300 text-gray-900 border-gray-300"
-
-  const activeTabBg = isDark
-    ? "bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white border-[#444444]"
-    : "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white border-blue-600"
+  // Add Modifier button: white if dark, dark if light
+  const addModifierButtonBg = isDark
+    ? "bg-white text-gray-900 hover:bg-gray-100 border-gray-300"
+    : "bg-gray-900 text-white hover:bg-gray-800 border-gray-700"
 
   const secondaryButtonBg = isDark
     ? "bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#2a2a2a] hover:from-[#222222] hover:via-[#2a2a2a] hover:to-[#333333] text-gray-300 border-[#333333]"
@@ -287,7 +284,7 @@ export default function MenuModifiersComponent() {
             <p className={`${textSecondary} transition-colors duration-300`}>Manage customization options for menu items</p>
           </div>
           <button
-            className={`${primaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
+            className={`${addModifierButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
             onClick={() => setIsCreating(true)}
           >
             <Plus className="h-4 w-4" />
@@ -297,7 +294,7 @@ export default function MenuModifiersComponent() {
       </div>
 
       {/* Modifier Tabs */}
-      <div className={`${cardBg} p-3 border shadow-lg flex gap-2 transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+      <div className={`${cardBg} p-2 border shadow-lg flex gap-2 transition-colors duration-300 w-fit`} style={{ borderRadius: "1.5rem" }}>
         {[
           { id: "all", label: "All Modifiers" },
           { id: "required", label: "Required" },
@@ -306,10 +303,13 @@ export default function MenuModifiersComponent() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
-              ${activeTab === tab.id ? `${activeTabBg} shadow-md` : `${secondaryButtonBg}`}
-              hover:shadow-md
-            `}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${
+              activeTab === tab.id
+                ? isDark 
+                  ? 'bg-white text-gray-900 border-gray-300 shadow-md'
+                  : 'bg-gray-900 text-white border-gray-700 shadow-md'
+                : isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200'
+            } hover:shadow-md`}
           >
             {tab.label} (
               {tab.id === "all"
@@ -362,15 +362,6 @@ export default function MenuModifiersComponent() {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Active Toggle */}
-                <button
-                  className={`${modifier.active ? "text-green-500" : "text-gray-400"}`}
-                  onClick={() => handleToggleActive(modifier)}
-                  title={modifier.active ? "Deactivate" : "Activate"}
-                >
-                  {modifier.active ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
-                </button>
-
                 {/* Action Buttons */}
                 <button
                   className={`${textSecondary} hover:text-purple-400 p-2 transition-colors duration-300`}

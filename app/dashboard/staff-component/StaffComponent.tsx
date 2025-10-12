@@ -178,9 +178,10 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const buttonTheme = isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'
 
   return (
-    <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`}>
+    <div className={`flex-1 ${mainPanelBg} transition-colors duration-300`}>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`}
@@ -197,27 +198,27 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
         </div>
 
         {/* Tab Navigation */}
-        <div className={`${cardBg} p-2 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-          <div className="flex space-x-2">
-            <Button
-              onClick={() => setActiveTab('staff')}
-              className={`flex-1 ${activeTab === 'staff' 
-                ? 'bg-blue-600 text-white' 
-                : `${innerCardBg} ${textPrimary} hover:bg-gray-100`}`}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Staff Members
-            </Button>
-            <Button
-              onClick={() => setActiveTab('schedules')}
-              className={`flex-1 ${activeTab === 'schedules' 
-                ? 'bg-blue-600 text-white' 
-                : `${innerCardBg} ${textPrimary} hover:bg-gray-100`}`}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedules
-            </Button>
-          </div>
+        <div className="flex justify-center gap-3">
+          <Button
+            onClick={() => setActiveTab('staff')}
+            className={`text-xs py-1.5 px-4 ${activeTab === 'staff' 
+              ? (isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800')
+              : `${innerCardBg} ${textPrimary} ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'}`}`}
+            style={{ borderRadius: '0.75rem' }}
+          >
+            <Users className="h-3 w-3 mr-1.5" />
+            Staff Members
+          </Button>
+          <Button
+            onClick={() => setActiveTab('schedules')}
+            className={`text-xs py-1.5 px-4 ${activeTab === 'schedules' 
+              ? (isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800')
+              : `${innerCardBg} ${textPrimary} ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'}`}`}
+            style={{ borderRadius: '0.75rem' }}
+          >
+            <Calendar className="h-3 w-3 mr-1.5" />
+            Schedules
+          </Button>
         </div>
 
         {/* Conditional Content */}
@@ -332,19 +333,10 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
                   setEditingStaff(null)
                   setShowCreateForm(true)
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+                className={`${buttonTheme} px-6 py-2 rounded-lg flex items-center gap-2`}
               >
                 <UserPlus className="h-4 w-4" />
                 Add Staff Member
-              </Button>
-              <Button
-                onClick={() => {
-                  setActiveTab('schedules')
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Calendar className="h-4 w-4" />
-                Schedule Staff
               </Button>
             </div>
           </div>
@@ -426,11 +418,10 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
                         e.stopPropagation()
                         handleEditClick(staff)
                       }}
-                      variant="outline"
+                      className={buttonTheme}
                       size="sm"
-                      className="flex items-center gap-1"
                     >
-                      <Edit className="h-3 w-3" />
+                      <Edit className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
                   </div>
@@ -567,7 +558,7 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
                 </Button>
                 <Button
                   onClick={editingStaff ? handleUpdateStaff : handleCreateStaff}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className={buttonTheme}
                   disabled={!formData.first_name || !formData.last_name || !formData.email || !formData.position}
                 >
                   {editingStaff ? 'Update Staff Member' : 'Add Staff Member'}

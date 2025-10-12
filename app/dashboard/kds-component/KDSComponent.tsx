@@ -18,7 +18,6 @@ import {
   RefreshCw,
   Filter,
   Plus,
-  Eye,
   Edit,
   BarChart3
 } from "lucide-react"
@@ -307,7 +306,6 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
                         {getStatusIcon(order.status)}
                       </div>
                       <div>
-                        <h3 className={`${textPrimary} font-semibold`}>Order #{order.order_id}</h3>
                         <p className={`${textSecondary} text-sm`}>Station: {order.station}</p>
                       </div>
                     </div>
@@ -374,13 +372,9 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Eye className="h-3 w-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
+                  {/* Action Button */}
+                  <div className="mt-4">
+                    <Button size="sm" className="w-full" onClick={() => handleViewOrder(order)}>
                       <Edit className="h-3 w-3 mr-1" />
                       Update
                     </Button>

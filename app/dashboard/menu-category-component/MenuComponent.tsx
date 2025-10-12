@@ -9,7 +9,7 @@ import MenuImportExportComponent from './MenuImportExportComponent'
 import MenuAnalyticsComponent from './MenuAnalyticsComponent'
 import MenuSearchComponent from './MenuSearchComponent'
 import { useTheme } from '@/hooks/useTheme'
-import { useMenu } from '@/hooks/use-menu' // Updated import
+import { useMenu } from '@/hooks/use-menu'
 import { configureAPI } from '@/lib/api-config'
 import type { MenuItem } from '@/src/api/generated/models/MenuItem'
 import type { MenuCategory } from '@/src/api/generated/models/MenuCategory'
@@ -31,10 +31,8 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItem | null>(null)
   
-  // Get businessId from localStorage
   const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
   
-  // Use the merged hook for operations
   const { deleteItem, deleteCategory, duplicateItem, modifiers, assignModifierToItem, removeModifierFromItem } = useMenu(businessId)
 
   const handleEditMenuItem = (item: MenuItem) => {
@@ -79,7 +77,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     }
   }
 
-  // Duplicate menu item handler
   const handleDuplicateMenuItem = async (item: MenuItem) => {
     try {
       configureAPI()
@@ -100,7 +97,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
   const handleToggleAvailability = async (itemId: string, currentAvailability: boolean) => {
     try {
       configureAPI()
-      const { updateItem } = useMenu('') // Get update function
+      const { updateItem } = useMenu('')
       await updateItem(itemId, {
         is_available: !currentAvailability
       })
@@ -111,7 +108,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     }
   }
 
-  // Handle form submissions
   const handleMenuItemCreated = () => {
     onRefresh()
     handleCloseEdit()
@@ -132,7 +128,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     handleCloseEdit()
   }
 
-  // Modifier management functions
   const handleManageModifiers = (item: MenuItem) => {
     setSelectedItemForModifiers(item)
     setExpandedView('manage-item-modifiers')
@@ -169,7 +164,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     setSelectedItemForModifiers(null)
   }
 
-  // Show loading while theme is being loaded
   if (!themeLoaded) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
@@ -178,26 +172,16 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     )
   }
 
-  // Theme-aware colors
   const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
   
-  // Theme-aware button styles
-  const primaryButtonBg = isDark 
-    ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333] text-white border-[#444444]' 
-    : 'bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 hover:from-gray-100 hover:via-gray-200 hover:to-gray-300 text-gray-900 border-gray-300'
-  
-  const secondaryButtonBg = isDark 
-    ? 'bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#2a2a2a] hover:from-[#222222] hover:via-[#2a2a2a] hover:to-[#333333] text-gray-300 border-[#333333]' 
-    : 'bg-gradient-to-r from-gray-100 via-gray-150 to-gray-200 hover:from-gray-150 hover:via-gray-200 hover:to-gray-250 text-gray-700 border-gray-400'
-  
-  const activeTabBg = isDark 
-    ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white border-[#444444]' 
-    : 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white border-blue-600'
+  // All 3 buttons: white if dark, dark if light
+  const topButtonBg = isDark 
+    ? 'bg-white text-gray-900 hover:bg-gray-100 border-gray-300' 
+    : 'bg-gray-900 text-white hover:bg-gray-800 border-gray-700'
 
-  // Filtered lists based on searchTerm
   const filteredMenuItems = menuItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -209,9 +193,7 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
     category.id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // If we have an expanded view, show the appropriate form
   if (expandedView) {
-    // Handle new component views
     if (expandedView === 'import-export') {
       return <MenuImportExportComponent onBack={handleCloseEdit} />
     }
@@ -220,15 +202,9 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
       return <MenuAnalyticsComponent onBack={handleCloseEdit} />
     }
     
-    if (expandedView === 'advanced-search') {
-      return <MenuSearchComponent onBack={handleCloseEdit} />
-    }
-    
-    // Handle modifier management views
     if (expandedView === 'manage-item-modifiers') {
       return (
         <div className="p-6 space-y-6">
-          {/* Header with Back Button */}
           <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
             <div className="flex items-center gap-4">
               <button
@@ -248,10 +224,8 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
             </div>
           </div>
 
-          {/* Modifier Management Content */}
           <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
             <div className="space-y-4">
-              {/* Available Modifiers */}
               <div>
                 <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Available Modifiers</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -281,7 +255,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                 </div>
               </div>
 
-              {/* Assigned Modifiers (placeholder) */}
               <div>
                 <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Assigned Modifiers</h4>
                 <div className={`${innerCardBg} p-4 border rounded-lg`}>
@@ -296,7 +269,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
       )
     }
 
-    // Handle other expanded views with MenuForms
     return (
       <MenuForms
         formType={expandedView as 'menu-item' | 'category' | 'edit-menu-item' | 'edit-category'}
@@ -313,7 +285,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
 
   return (
     <div className="p-6 space-y-6">
-      {/* Page Header Card */}
       <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
         <div className="flex justify-between items-center">
           <div>
@@ -321,106 +292,70 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
             <p className={`${textSecondary} transition-colors duration-300`}>Manage your restaurant menu items and categories</p>
           </div>
           <div className="flex gap-3 flex-wrap">
-            {/* Advanced Search Button */}
-            <button
-              onClick={() => setExpandedView('advanced-search')}
-              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
-            >
-              <Filter className="h-4 w-4" />
-              Advanced Search
-            </button>
-            {/* Analytics Button */}
-            <button
-              onClick={() => setExpandedView('analytics')}
-              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
-            >
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </button>
-            {/* Import/Export Button */}
             <button
               onClick={() => setExpandedView('import-export')}
-              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+              className={`${topButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
             >
               <Upload className="h-4 w-4" />
               Import/Export
             </button>
-            {/* Add Category Button */}
             <button
               onClick={() => setExpandedView('add-category')}
-              className={`${secondaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+              className={`${topButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-xl hover:scale-105 transition-all border font-medium`}
             >
               <Plus className="h-4 w-4" />
               Add Category
             </button>
-            {/* Add Menu Item Button */}
             <button
               onClick={() => setExpandedView('add-menu-item')}
-              className={`${primaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
+              className={`${topButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
             >
               <Plus className="h-4 w-4" />
               Add Menu Item
             </button>
           </div>
         </div>
-        {/* Search Bar */}
-        <div className="mt-6 flex items-center gap-2">
-          <div className="relative flex-1">
+        <div className="mt-6">
+          <div className="relative">
             <input
               type="text"
               placeholder={`Search ${activeTab === 'items' ? 'menu items' : 'categories'}...`}
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.currentTarget.value)}
               onKeyDown={e => e.key === 'Enter' && setSearchTerm(e.currentTarget.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-colors duration-300
-                ${isDark ? 'bg-[#222] text-white border-[#444] focus:border-purple-500' : 'bg-gray-100 text-gray-900 border-gray-300 focus:border-blue-500'}
+              className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 transition-all duration-300
+                ${isDark ? 'bg-[#222] text-white border-[#444] focus:border-purple-500 focus:ring-purple-500/50' : 'bg-gray-100 text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500/50'}
               `}
             />
-            <Search className={`absolute left-3 top-2.5 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            <Search className={`absolute left-3 top-3.5 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </div>
-          <button
-            onClick={() => setSearchTerm(searchTerm)}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium border transition-all
-              ${primaryButtonBg} shadow hover:shadow-lg hover:scale-105`}
-            title="Search"
-          >
-            <Search className="h-4 w-4" />
-            Search
-          </button>
         </div>
       </div>
-      {/* Tabs Navigation */}
-      <div className={`${cardBg} p-3 border shadow-lg flex gap-2 transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
-        {/* Menu Items Tab */}
+
+      <div className={`${cardBg} p-2 border shadow-lg flex gap-2 transition-colors duration-300 w-fit`} style={{ borderRadius: '1.5rem' }}>
         <button
           onClick={() => setActiveTab('items')}
-          className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
-            ${activeTab === 'items'
-              ? `${activeTabBg} shadow-md`
-              : `${secondaryButtonBg} ${isDark ? 'text-gray-300' : 'text-gray-600'}`
-            }
-            hover:shadow-md
-          `}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${
+            activeTab === 'items'
+              ? isDark ? 'bg-white text-gray-900 border-gray-300 shadow-md' : 'bg-gray-900 text-white border-gray-700 shadow-md'
+              : isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200'
+          } hover:shadow-md`}
         >
           Menu Items ({menuItems.length})
         </button>
 
-        {/* Categories Tab */}
         <button
           onClick={() => setActiveTab('categories')}
-          className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
-            ${activeTab === 'categories'
-              ? `${activeTabBg} shadow-md`
-              : `${secondaryButtonBg} ${isDark ? 'text-gray-300' : 'text-gray-600'}`
-            }
-            hover:shadow-md
-          `}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${
+            activeTab === 'categories'
+              ? isDark ? 'bg-white text-gray-900 border-gray-300 shadow-md' : 'bg-gray-900 text-white border-gray-700 shadow-md'
+              : isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200'
+          } hover:shadow-md`}
         >
           Categories ({categories.length})
         </button>
       </div>
 
-      {/* Content Based on Active Tab */}
       {activeTab === 'items' ? (
         <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
           <h2 className={`text-xl font-bold ${textPrimary} mb-6 transition-colors duration-300`}>All Menu Items</h2>
@@ -442,7 +377,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                         : '2.5rem',
                   }}
                 >
-                  {/* Image placeholder */}
                   <div className={`w-full h-36 mb-4 ${isDark ? 'bg-gray-800' : 'bg-gray-200'} rounded-xl overflow-hidden transition-colors duration-300`}>
                     {item.image_url && (
                       <img
@@ -454,7 +388,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                     )}
                   </div>
 
-                  {/* Name + price */}
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h4 className={`${textPrimary} font-semibold text-base mb-1 transition-colors duration-300`}>{item.name}</h4>
@@ -495,29 +428,10 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
                     </div>
                   </div>
 
-                  {/* Description */}
                   {item.description && (
                     <p className={`${textSecondary} text-sm mb-3 transition-colors duration-300`}>{item.description}</p>
                   )}
 
-                  {/* Availability toggle */}
-                  <div className="flex items-center justify-between mt-3">
-                    <span className={`text-xs font-medium ${item.is_available ? 'text-green-500' : 'text-red-500'}`}>
-                      {item.is_available ? 'Available' : 'Unavailable'}
-                    </span>
-                    <button
-                      onClick={() => handleToggleAvailability(item.id, item.is_available || false)}
-                      className={`text-xs px-2 py-1 rounded ${
-                        item.is_available 
-                          ? 'bg-red-500 hover:bg-red-600 text-white' 
-                          : 'bg-green-500 hover:bg-green-600 text-white'
-                      } transition-colors`}
-                    >
-                      {item.is_available ? 'Make Unavailable' : 'Make Available'}
-                    </button>
-                  </div>
-
-                  {/* Footer */}
                   <div className={`mt-3 pt-3 border-t ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'} transition-colors duration-300`}>
                     <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} transition-colors duration-300`}>
                       {category?.name || 'Uncategorized'}
@@ -529,7 +443,6 @@ export default function MenuComponent({ menuItems, categories, onRefresh }: Menu
           </div>
         </div>
       ) : (
-        /* Categories Section */
         <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
           <h2 className={`text-xl font-bold ${textPrimary} mb-6 transition-colors duration-300`}>All Categories</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
