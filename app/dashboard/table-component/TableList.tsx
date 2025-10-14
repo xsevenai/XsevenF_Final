@@ -193,11 +193,6 @@ export default function TableList({
           <span className={`${textSecondary} text-sm`}>{table.capacity} seats</span>
         </div>
 
-        {/* Table Visual */}
-        <div className={`w-20 h-20 mx-auto flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${getStatusColor(table.status)}`}
-          style={{ borderRadius: '0.75rem' }}>
-          {getStatusIcon(table.status)}
-        </div>
 
         {/* Location */}
         <p className={`${textSecondary} text-sm`}>{table.location?.name || 'No location'}</p>

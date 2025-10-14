@@ -3,7 +3,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Edit, Trash2, Loader2, ToggleLeft, ToggleRight, ArrowLeft, Settings, X } from "lucide-react"
+import { Plus, Edit, Trash2, Loader2, ToggleLeft, ToggleRight, ArrowLeft, Settings, X, ChevronDown, Users, Video, Mic, Wifi, Phone } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
 import { useMenuModifiers, useMenu } from "@/hooks/use-menu"
 import MenuModifierForm from "./MenuModifierForm"
@@ -322,122 +322,189 @@ export default function MenuModifiersComponent() {
         ))}
       </div>
 
-      {/* Modifiers List */}
-      <div className="space-y-4">
-        {filteredModifiers.map((modifier: any, index: number) => (
-          <div
-            key={modifier.id}
-            className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
-            style={{
-              borderRadius: index % 3 === 0 ? "1.5rem" : index % 3 === 1 ? "2rem" : "1rem",
-            }}
-          >
-            {/* Modifier Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className={`${textPrimary} font-semibold text-lg`}>{modifier.name}</h3>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      modifier.required ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {modifier.required ? "Required" : "Optional"}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      modifier.type === "single" ? "bg-green-100 text-green-800" : "bg-purple-100 text-purple-800"
-                    }`}
-                  >
-                    {modifier.type === "single" ? "Single Choice" : "Multiple Choice"}
-                  </span>
-                </div>
-                <p className={`${textSecondary} text-sm mb-2`}>{modifier.description}</p>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className={`${textSecondary}`}>Applied to {modifier.appliedToItems || 0} items</span>
-                  <span className={`${textSecondary}`}>
-                    {modifier.minSelections}-{modifier.maxSelections} selections
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Action Buttons */}
-                <button
-                  className={`${textSecondary} hover:text-purple-400 p-2 transition-colors duration-300`}
-                  title="Manage Menu Items"
-                  onClick={() => handleManageMenuItems(modifier)}
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-                <button
-                  className={`${textSecondary} ${isDark ? "hover:text-white" : "hover:text-gray-900"} p-2 transition-colors duration-300`}
-                  title="Edit Modifier"
-                  onClick={() => setIsEditing(modifier.id)}
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  className={`${textSecondary} hover:text-red-400 p-2 transition-colors duration-300`}
-                  title="Delete Modifier"
-                  disabled={isDeleting === modifier.id}
-                  onClick={() => handleDeleteModifier(modifier.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modifier Options */}
-            <div className={`${innerCardBg} p-4 border rounded-xl`}>
-              <h4 className={`${textPrimary} font-medium text-sm mb-3`}>Options ({modifier.options?.length || 0})</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {modifier.options?.map((option: any, idx: number) => (
-                  <div
-                    key={option.id ?? `${option.name}-${idx}`}
-                    className={`flex items-center justify-between p-3 ${isDark ? "bg-[#2a2a2a]" : "bg-white"} rounded-lg border`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`${textPrimary} text-sm font-medium`}>{option.name}</span>
-                      {option.isDefault && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Default</span>
-                      )}
-                    </div>
-                    <span className={`${isDark ? "text-green-400" : "text-green-600"} text-sm font-bold`}>
-                      {Number(option.price) > 0 ? `+${Number(option.price).toFixed(2)}` : "Free"}
-                    </span>
+      {/* Modifiers Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Modifier ID
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Modifier Name
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  <div className="flex items-center gap-1">
+                    Type
+                    <ChevronDown className="h-3 w-3" />
                   </div>
-                ))}
-              </div>
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  <div className="flex items-center gap-1">
+                    Required
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Options
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Applied Items
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  <div className="flex items-center gap-1">
+                    Status
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
+            <tbody>
+              {filteredModifiers.map((modifier: any, index: number) => (
+                <tr 
+                  key={modifier.id}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                >
+                  {/* Modifier ID */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      {modifier.type === "single" ? (
+                        <Video className="h-4 w-4 text-blue-500" />
+                      ) : (
+                        <Mic className="h-4 w-4 text-green-500" />
+                      )}
+                      <span className={`${textPrimary} font-medium text-sm`}>
+                        {modifier.id || `mod_${String(index + 1).padStart(3, '0')}`}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Modifier Name */}
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className={`${textPrimary} font-semibold text-sm`}>{modifier.name || "Unnamed Modifier"}</div>
+                      <div className={`${textSecondary} text-xs mt-1`}>{modifier.description || "No description"}</div>
+                    </div>
+                  </td>
+                  
+                  {/* Type */}
+                  <td className="py-4 px-6">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        modifier.type === "single" 
+                          ? isDark ? "bg-green-900 text-green-300" : "bg-green-100 text-green-800"
+                          : isDark ? "bg-purple-900 text-purple-300" : "bg-purple-100 text-purple-800"
+                      }`}
+                    >
+                      {modifier.type === "single" ? "Single Choice" : modifier.type === "multiple" ? "Multiple Choice" : "Unknown"}
+                    </span>
+                  </td>
+                  
+                  {/* Required */}
+                  <td className="py-4 px-6">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        modifier.required 
+                          ? isDark ? "bg-red-900 text-red-300" : "bg-red-100 text-red-800"
+                          : isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {modifier.required ? "Required" : "Optional"}
+                    </span>
+                  </td>
+                  
+                  {/* Options */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <span className={`${textPrimary} text-sm font-medium`}>
+                        {modifier.options?.length || 0}
+                      </span>
+                      <div className="flex gap-1">
+                        <Video className="h-3 w-3 text-gray-400" />
+                        <Mic className="h-3 w-3 text-gray-400" />
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Applied Items */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-400" />
+                      <span className={`${textPrimary} text-sm`}>
+                        {modifier.appliedToItems || modifier.menuItems?.length || 0}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Status */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${modifier.active !== false ? "bg-green-500" : "bg-gray-400"}`}></div>
+                      <span className={`${textPrimary} text-sm`}>
+                        {modifier.active !== false ? "Active" : "Inactive"}
+                      </span>
+                      <ChevronDown className="h-3 w-3 text-gray-400" />
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        className={`${textSecondary} hover:text-purple-400 p-1 transition-colors duration-300`}
+                        title="Manage Menu Items"
+                        onClick={() => handleManageMenuItems(modifier)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                      <button
+                        className={`${textSecondary} ${isDark ? "hover:text-white" : "hover:text-gray-900"} p-1 transition-colors duration-300`}
+                        title="Edit Modifier"
+                        onClick={() => setIsEditing(modifier.id)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                        title="Delete Modifier"
+                        disabled={isDeleting === modifier.id}
+                        onClick={() => handleDeleteModifier(modifier.id)}
+                      >
+                        {isDeleting === modifier.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Empty State */}
+        {filteredModifiers.length === 0 && (
+          <div className="text-center py-12">
+            <div className={`${textSecondary} text-lg mb-2`}>No modifiers found</div>
+            <div className={`${textSecondary} text-sm`}>
+              {activeTab === "all" 
+                ? "Create your first modifier to get started"
+                : `No ${activeTab} modifiers available`
+              }
             </div>
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Modifier Stats Overview */}
-      <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
-        <h2 className={`text-xl font-bold ${textPrimary} mb-4`}>Modifier Overview</h2>
-        <div className="grid grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className={`${textPrimary} text-2xl font-bold`}>{modifiers.length}</div>
-            <div className={`${textSecondary} text-sm`}>Total Modifiers</div>
-          </div>
-          <div className="text-center">
-            <div className={`${textPrimary} text-2xl font-bold`}>{modifiers.filter((m: any) => m.active).length}</div>
-            <div className={`${textSecondary} text-sm`}>Active</div>
-          </div>
-          <div className="text-center">
-            <div className={`${textPrimary} text-2xl font-bold`}>{modifiers.filter((m: any) => m.required).length}</div>
-            <div className={`${textSecondary} text-sm`}>Required</div>
-          </div>
-          <div className="text-center">
-            <div className={`${textPrimary} text-2xl font-bold`}>
-              {modifiers.reduce((sum: number, m: any) => sum + (m.options?.length || 0), 0)}
-            </div>
-            <div className={`${textSecondary} text-sm`}>Total Options</div>
-          </div>
-        </div>
-      </div>
 
     </div>
   )

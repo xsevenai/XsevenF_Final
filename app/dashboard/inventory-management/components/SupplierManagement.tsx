@@ -126,7 +126,7 @@ export default function SupplierManagement({
         <div className={`${textSecondary} mb-4`}>Error: {error}</div>
         <button
           onClick={onRefresh}
-          className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} rounded-xl font-medium transition-all duration-300`}
+          className={`px-6 py-3 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'} rounded-xl font-medium transition-all duration-300`}
         >
           Try Again
         </button>
@@ -169,7 +169,7 @@ export default function SupplierManagement({
           </div>
           <button
             onClick={() => setShowCreateForm(true)}
-            className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all duration-300`}
+            className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all duration-300`}
           >
             <Plus className="h-4 w-4" />
             Add Supplier
@@ -196,22 +196,6 @@ export default function SupplierManagement({
                     {supplier.is_active ? 'Active' : 'Inactive'}
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setEditingSupplier(supplier)}
-                  className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
-                  title="Edit Supplier"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteSupplier(supplier.id)}
-                  className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
-                  title="Delete Supplier"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
               </div>
             </div>
 
@@ -255,6 +239,26 @@ export default function SupplierManagement({
                 <p className={`${textSecondary} text-sm`}>{supplier.notes}</p>
               </div>
             )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setEditingSupplier(supplier)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
+                title="Edit Supplier"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteSupplier(supplier.id)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} text-red-500 hover:text-red-600`}
+                title="Delete Supplier"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -269,7 +273,7 @@ export default function SupplierManagement({
           {!searchTerm && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
+              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
             >
               Add Supplier
             </button>
@@ -285,15 +289,15 @@ export default function SupplierManagement({
               <h3 className={`text-xl font-bold ${textPrimary}`}>
                 {editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}
               </h3>
-              <button
-                onClick={() => {
-                  setShowCreateForm(false)
-                  setEditingSupplier(null)
-                }}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
+            <button
+              onClick={() => {
+                setShowCreateForm(false)
+                setEditingSupplier(null)
+              }}
+              className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
+            >
+              ×
+            </button>
             </div>
 
             <form
@@ -424,14 +428,14 @@ export default function SupplierManagement({
                     setShowCreateForm(false)
                     setEditingSupplier(null)
                   }}
-                  className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300`}
+                  className={`${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} px-4 py-2 rounded-lg font-medium transition-all duration-300 border`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50`}
+                  className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-blue-500 hover:bg-blue-600 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50`}
                 >
                   {isSubmitting ? 'Saving...' : (editingSupplier ? 'Update' : 'Create')}
                 </button>

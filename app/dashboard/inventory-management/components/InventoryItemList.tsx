@@ -18,7 +18,13 @@ import {
   MapPin,
   RefreshCw,
   ArrowLeft,
-  Loader2
+  Loader2,
+  ChevronDown,
+  Users,
+  Video,
+  Mic,
+  Wifi,
+  Phone
 } from "lucide-react"
 import type { InventoryItemWithMetrics } from '@/src/api/generated/models/InventoryItemWithMetrics'
 import type { InventoryItemCreate } from '@/src/api/generated/models/InventoryItemCreate'
@@ -58,11 +64,36 @@ export default function InventoryItemList({
   const [deletingItem, setDeletingItem] = useState<string | null>(null)
   const [itemToDelete, setItemToDelete] = useState<InventoryItemWithMetrics | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<string>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (activeDropdown && !(event.target as Element).closest('.dropdown-container')) {
+        setActiveDropdown(null)
+      }
+    }
+
+    // Prevent body scroll when dropdown is open
+    if (activeDropdown) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = 'unset'
+    }
+  }, [activeDropdown])
 
   if (!themeLoaded || !mounted) {
     return (
@@ -72,17 +103,25 @@ export default function InventoryItemList({
     )
   }
 
-  // Theme-based styling variables
+  // Theme-based styling variables - matching other components
   const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
-  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
-  const buttonHoverBg = isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-100'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+  const inputBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+
+  // Button styles matching other components
+  const primaryButtonBg = isDark
+    ? 'bg-white text-gray-900 hover:bg-gray-100 border-gray-300'
+    : 'bg-gray-900 text-white hover:bg-gray-800 border-gray-700'
+
+  const secondaryButtonBg = isDark
+    ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]'
+    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
 
   const statuses = ['all', 'in-stock', 'low-stock', 'out-of-stock']
 
-  // Filter items based on search and filters
+  // Filter and sort items based on search, filters, and sorting
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (item.category?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -96,6 +135,38 @@ export default function InventoryItemList({
     
     const matchesStatus = filterStatus === 'all' || itemStatus === filterStatus
     return matchesSearch && matchesStatus
+  }).sort((a, b) => {
+    let aValue: any, bValue: any
+    
+    switch (sortBy) {
+      case 'name':
+        aValue = a.name?.toLowerCase() || ''
+        bValue = b.name?.toLowerCase() || ''
+        break
+      case 'category':
+        aValue = a.category?.toLowerCase() || ''
+        bValue = b.category?.toLowerCase() || ''
+        break
+      case 'current_stock':
+        aValue = parseFloat(a.current_stock || '0')
+        bValue = parseFloat(b.current_stock || '0')
+        break
+      case 'status':
+        const aStock = parseFloat(a.current_stock || '0')
+        const aMinStock = parseFloat(a.min_stock || '0')
+        const bStock = parseFloat(b.current_stock || '0')
+        const bMinStock = parseFloat(b.min_stock || '0')
+        aValue = aStock === 0 ? 'out-of-stock' : aStock <= aMinStock ? 'low-stock' : 'in-stock'
+        bValue = bStock === 0 ? 'out-of-stock' : bStock <= bMinStock ? 'low-stock' : 'in-stock'
+        break
+      default:
+        aValue = a.name?.toLowerCase() || ''
+        bValue = b.name?.toLowerCase() || ''
+    }
+    
+    if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+    if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+    return 0
   })
 
   const getStatusColor = (status: string) => {
@@ -171,7 +242,7 @@ export default function InventoryItemList({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className={`flex items-center gap-3 ${textSecondary}`}>
+        <div className={`flex items-center gap-3 ${textSecondary} transition-colors duration-300`}>
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>Loading inventory items...</span>
         </div>
@@ -183,11 +254,11 @@ export default function InventoryItemList({
     return (
       <div className="text-center py-12">
         <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>Error Loading Items</h3>
-        <p className={`${textSecondary} mb-4`}>{error}</p>
+        <h3 className={`text-lg font-medium ${textPrimary} mb-2 transition-colors duration-300`}>Error Loading Items</h3>
+        <p className={`${textSecondary} mb-4 transition-colors duration-300`}>{error}</p>
         <button
           onClick={onRefresh}
-          className={`px-6 py-3 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
+          className={`${secondaryButtonBg} px-6 py-3 rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
         >
           Try Again
         </button>
@@ -198,23 +269,23 @@ export default function InventoryItemList({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`} style={{ borderRadius: '1.5rem' }}>
+      <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+              className={`${textSecondary} ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
             >
               <ArrowLeft className="h-6 w-6" />
             </button>
             <div>
-              <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>All Inventory Items</h1>
-              <p className={`${textSecondary}`}>View and manage all inventory items</p>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>All Inventory Items</h1>
+              <p className={`${textSecondary} transition-colors duration-300`}>View and manage all inventory items</p>
             </div>
           </div>
           <button
             onClick={() => setShowCreateForm(true)}
-            className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+            className={`${primaryButtonBg} px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 border shadow-lg hover:shadow-xl hover:scale-105`}
           >
             <Plus className="h-4 w-4" />
             Add Item
@@ -223,17 +294,17 @@ export default function InventoryItemList({
       </div>
 
       {/* Search and Filters */}
-      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+      <div className={`${cardBg} border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
         <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${textSecondary}`} />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${textSecondary} transition-colors duration-300`} />
               <input
                 type="text"
                 placeholder="Search items by name or category..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 ${inputBg} ${textPrimary} border rounded-xl placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                className={`w-full pl-10 pr-4 py-3 ${inputBg} ${textPrimary} border rounded-xl placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
               />
             </div>
             
@@ -241,7 +312,7 @@ export default function InventoryItemList({
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className={`px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                className={`px-4 py-3 ${inputBg} ${textPrimary} border rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
               >
                 {statuses.map(status => (
                   <option key={status} value={status}>
@@ -252,7 +323,7 @@ export default function InventoryItemList({
               
               <button
                 onClick={onRefresh}
-                className={`p-3 ${inputBg} ${textSecondary} border rounded-xl ${buttonHoverBg} transition-all duration-200 hover:scale-110`}
+                className={`${secondaryButtonBg} p-3 rounded-xl transition-all duration-200 hover:scale-110`}
               >
                 <RefreshCw className="h-4 w-4" />
               </button>
@@ -261,146 +332,279 @@ export default function InventoryItemList({
         </div>
       </div>
 
-      {/* Items Count */}
-      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <div className="p-6">
-          <p className={`${textSecondary}`}>
-            Showing {filteredItems.length} of {items.length} items
-          </p>
-        </div>
-      </div>
 
-      {/* Items Grid */}
-      <div className="space-y-4">
-        {filteredItems.map((item, index) => (
-          <div key={item.id} className={`${cardBg} border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
-            style={{ 
-              borderRadius: index % 3 === 0 ? '1.5rem' : index % 3 === 1 ? '2rem' : '1rem'
-            }}>
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className={`${textPrimary} font-semibold text-lg mb-1`}>{item.name}</h3>
-                  {item.category && (
-                    <p className={`${textSecondary} text-sm`}>{item.category}</p>
+      {/* Items Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Item ID
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Item Name
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm relative dropdown-container`}>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveDropdown(activeDropdown === 'category' ? null : 'category')}
+                      className="flex items-center gap-1 hover:text-white transition-colors"
+                    >
+                      Category
+                      <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === 'category' ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+                  {activeDropdown === 'category' && (
+                    <div className={`absolute top-full left-0 mt-1 ${cardBg} border shadow-lg rounded-lg z-[9999] min-w-[200px]`}>
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setSortBy('category')
+                            setSortOrder('asc')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Sort A-Z
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSortBy('category')
+                            setSortOrder('desc')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Sort Z-A
+                        </button>
+                      </div>
+                    </div>
                   )}
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                  parseFloat(item.current_stock || '0') === 0 ? 'out-of-stock' :
-                  parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'low-stock' : 'in-stock'
-                )}`}>
-                  {parseFloat(item.current_stock || '0') === 0 ? 'Out of Stock' :
-                   parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'Low Stock' : 'In Stock'}
-                </span>
-              </div>
-
-              <div className="space-y-3 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Current Stock:</span>
-                  <span className={`font-medium ${
-                    parseFloat(item.current_stock || '0') === 0 ? 'text-red-500' : 
-                    parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0') ? 'text-yellow-500' : textPrimary
-                  }`}>
-                    {item.current_stock} {item.unit || 'units'}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Min Threshold:</span>
-                  <span className="text-yellow-500">{item.min_stock} {item.unit || 'units'}</span>
-                </div>
-                
-                {item.updated_at && (
-                  <div className={`flex items-center gap-2 text-sm ${textSecondary}`}>
-                    <Calendar className="h-3 w-3" />
-                    <span>Updated: {new Date(item.updated_at).toLocaleDateString()}</span>
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  SKU
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm relative dropdown-container`}>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveDropdown(activeDropdown === 'current_stock' ? null : 'current_stock')}
+                      className="flex items-center gap-1 hover:text-white transition-colors"
+                    >
+                      Current Stock
+                      <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === 'current_stock' ? 'rotate-180' : ''}`} />
+                    </button>
                   </div>
-                )}
-
-                {item.location_id && (
-                  <div className={`flex items-center gap-2 text-sm ${textSecondary}`}>
-                    <MapPin className="h-3 w-3" />
-                    <span>Location: {item.location_id}</span>
+                  {activeDropdown === 'current_stock' && (
+                    <div className={`absolute top-full left-0 mt-1 ${cardBg} border shadow-lg rounded-lg z-[9999] min-w-[200px]`}>
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setSortBy('current_stock')
+                            setSortOrder('desc')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Sort High to Low
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSortBy('current_stock')
+                            setSortOrder('asc')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Sort Low to High
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Min Threshold
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm relative dropdown-container`}>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
+                      className="flex items-center gap-1 hover:text-white transition-colors"
+                    >
+                      Status
+                      <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === 'status' ? 'rotate-180' : ''}`} />
+                    </button>
                   </div>
-                )}
-              </div>
-
-              {/* Stock Level Indicator */}
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className={`${textSecondary}`}>Stock Level</span>
-                  <span className={`${textSecondary}`}>
-                    {parseFloat(item.min_stock || '0') > 0 ? Math.round((parseFloat(item.current_stock || '0') / parseFloat(item.min_stock || '0')) * 100) : 100}%
-                  </span>
-                </div>
-                <div className={`w-full ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full h-2`}>
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      parseFloat(item.current_stock || '0') === 0
-                        ? 'bg-red-500'
-                        : parseFloat(item.current_stock || '0') <= parseFloat(item.min_stock || '0')
-                        ? 'bg-yellow-500'
-                        : 'bg-green-500'
-                    }`}
-                    style={{ 
-                      width: `${parseFloat(item.min_stock || '0') > 0 ? 
-                        Math.min((parseFloat(item.current_stock || '0') / parseFloat(item.min_stock || '0')) * 100, 100) : 
-                        100}%` 
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => setEditingItem(item)}
-                    disabled={updatingStock === item.id}
-                    className={`p-2 ${buttonHoverBg} rounded-xl text-blue-500 transition-all duration-200 hover:scale-110 disabled:opacity-50`}
-                    title="Update Stock"
-                  >
-                    {updatingStock === item.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Edit3 className="h-4 w-4" />
-                    )}
-                  </button>
-                  <button 
-                    onClick={() => setItemToDelete(item)}
-                    disabled={deletingItem === item.id}
-                    className={`p-2 ${buttonHoverBg} rounded-xl text-red-500 transition-all duration-200 hover:scale-110 disabled:opacity-50`}
-                    title="Delete Item"
-                  >
-                    {deletingItem === item.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                  {activeDropdown === 'status' && (
+                    <div className={`absolute top-full left-0 mt-1 ${cardBg} border shadow-lg rounded-lg z-[9999] min-w-[200px]`}>
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setFilterStatus('in-stock')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          In Stock
+                        </button>
+                        <button
+                          onClick={() => {
+                            setFilterStatus('low-stock')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Low Stock
+                        </button>
+                        <button
+                          onClick={() => {
+                            setFilterStatus('out-of-stock')
+                            setActiveDropdown(null)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
+                        >
+                          Out of Stock
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
+            <tbody>
+              {filteredItems.map((item, index) => {
+                const currentStock = parseFloat(item.current_stock || '0')
+                const minStock = parseFloat(item.min_stock || '0')
+                const status = currentStock === 0 ? 'out-of-stock' : currentStock <= minStock ? 'low-stock' : 'in-stock'
                 
-                <p className={`text-xs ${textSecondary}`}>
-                  ID: {item.id}
-                </p>
-              </div>
+                return (
+                  <tr 
+                    key={item.id}
+                    className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                  >
+                    {/* Item ID */}
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-blue-500" />
+                        <span className={`${textPrimary} font-medium text-sm`}>
+                          {item.id || `item_${String(index + 1).padStart(3, '0')}`}
+                        </span>
+                      </div>
+                    </td>
+                    
+                    {/* Item Name */}
+                    <td className="py-4 px-6">
+                      <div>
+                        <div className={`${textPrimary} font-semibold text-sm`}>{item.name || "Unnamed Item"}</div>
+                        <div className={`${textSecondary} text-xs mt-1`}>{item.description || "No description"}</div>
+                      </div>
+                    </td>
+                    
+                    {/* Category */}
+                    <td className="py-4 px-6">
+                      <span className={`${textPrimary} text-sm`}>
+                        {item.category || "Uncategorized"}
+                      </span>
+                    </td>
+                    
+                    {/* SKU */}
+                    <td className="py-4 px-6">
+                      <span className={`${textSecondary} text-sm font-mono`}>
+                        {item.sku || "N/A"}
+                      </span>
+                    </td>
+                    
+                    {/* Current Stock */}
+                    <td className="py-4 px-6">
+                      <span className={`${textPrimary} text-sm font-medium ${
+                        status === 'out-of-stock' ? 'text-red-500' : 
+                        status === 'low-stock' ? 'text-yellow-500' : 'text-green-500'
+                      }`}>
+                        {item.current_stock} {item.unit || 'units'}
+                      </span>
+                    </td>
+                    
+                    {/* Min Threshold */}
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-400" />
+                        <span className={`${textPrimary} text-sm`}>
+                          {item.min_stock} {item.unit || 'units'}
+                        </span>
+                      </div>
+                    </td>
+                    
+                    {/* Status */}
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          status === 'in-stock' ? 'bg-green-500' : 
+                          status === 'low-stock' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}></div>
+                        <span className={`${textPrimary} text-sm`}>
+                          {status === 'in-stock' ? 'In Stock' : 
+                           status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
+                        </span>
+                        <ChevronDown className="h-3 w-3 text-gray-400" />
+                      </div>
+                    </td>
+                    
+                    {/* Actions */}
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <button
+                          className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                          title="Update Stock"
+                          onClick={() => setEditingItem(item)}
+                          disabled={updatingStock === item.id}
+                        >
+                          {updatingStock === item.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Edit3 className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                          title="Delete Item"
+                          onClick={() => setItemToDelete(item)}
+                          disabled={deletingItem === item.id}
+                        >
+                          {deletingItem === item.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Empty State */}
+        {filteredItems.length === 0 && (
+          <div className="text-center py-12">
+            <div className={`${textSecondary} text-lg mb-2`}>No items found</div>
+            <div className={`${textSecondary} text-sm`}>
+              {searchTerm || filterStatus !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'No inventory items available'
+              }
             </div>
           </div>
-        ))}
+        )}
       </div>
 
-      {filteredItems.length === 0 && (
-        <div className={`${cardBg} border shadow-lg text-center py-12`} style={{ borderRadius: '1.5rem' }}>
-          <Package className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
-          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Items Found</h3>
-          <p className={`${textSecondary} mb-4`}>
-            {searchTerm || filterStatus !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'No inventory items available'
-            }
-          </p>
-        </div>
-      )}
 
       {/* Update Stock Modal */}
       {editingItem && (
@@ -415,9 +619,9 @@ export default function InventoryItemList({
       {/* Create Item Modal */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
+          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto transition-colors duration-300`}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Create New Inventory Item</h3>
+              <h3 className={`text-xl font-bold ${textPrimary} transition-colors duration-300`}>Create New Inventory Item</h3>
               <button
                 onClick={() => setShowCreateForm(false)}
                 className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
@@ -436,28 +640,28 @@ export default function InventoryItemList({
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     Item Name *
                   </label>
                   <input
                     type="text"
                     name="name"
                     required
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     SKU
                   </label>
                   <input
                     type="text"
                     name="sku"
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     Unit *
                   </label>
                   <input
@@ -465,21 +669,21 @@ export default function InventoryItemList({
                     name="unit"
                     placeholder="e.g., kg, lbs, pieces"
                     required
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     Category
                   </label>
                   <input
                     type="text"
                     name="category"
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     Current Stock *
                   </label>
                   <input
@@ -489,11 +693,11 @@ export default function InventoryItemList({
                     step="0.01"
                     defaultValue="0"
                     required
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
                 <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
+                  <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                     Min Stock *
                   </label>
                   <input
@@ -503,43 +707,19 @@ export default function InventoryItemList({
                     step="0.01"
                     defaultValue="0"
                     required
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Max Stock
-                  </label>
-                  <input
-                    type="number"
-                    name="max_stock"
-                    min="0"
-                    step="0.01"
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Unit Cost
-                  </label>
-                  <input
-                    type="number"
-                    name="unit_cost"
-                    min="0"
-                    step="0.01"
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
               </div>
               
               <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>
+                <label className={`block ${textPrimary} font-medium mb-2 transition-colors duration-300`}>
                   Description
                 </label>
                 <textarea
                   name="description"
                   rows={3}
-                  className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                  className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                 />
               </div>
 
@@ -550,7 +730,7 @@ export default function InventoryItemList({
                   defaultChecked={true}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label className={`${textPrimary} font-medium`}>
+                <label className={`${textPrimary} font-medium transition-colors duration-300`}>
                   Track this item
                 </label>
               </div>
@@ -559,14 +739,14 @@ export default function InventoryItemList({
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300`}
+                  className={`${secondaryButtonBg} px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className={`${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 flex items-center gap-2`}
+                  className={`${primaryButtonBg} px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105`}
                 >
                   {isCreating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -584,9 +764,9 @@ export default function InventoryItemList({
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-md w-full mx-4`}>
+          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-md w-full mx-4 transition-colors duration-300`}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Confirm Deletion</h3>
+              <h3 className={`text-xl font-bold ${textPrimary} transition-colors duration-300`}>Confirm Deletion</h3>
               <button
                 onClick={() => setItemToDelete(null)}
                 className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
@@ -596,15 +776,15 @@ export default function InventoryItemList({
             </div>
             
             <div className="mb-6">
-              <p className={`${textSecondary} mb-4`}>
+              <p className={`${textSecondary} mb-4 transition-colors duration-300`}>
                 Are you sure you want to delete this inventory item? This action cannot be undone.
               </p>
-              <div className={`${innerCardBg} p-4 rounded-lg border`}>
-                <h4 className={`${textPrimary} font-medium mb-2`}>{itemToDelete.name}</h4>
-                <p className={`${textSecondary} text-sm`}>SKU: {itemToDelete.sku || 'N/A'}</p>
-                <p className={`${textSecondary} text-sm`}>Current Stock: {itemToDelete.current_stock} {itemToDelete.unit}</p>
+              <div className={`${innerCardBg} p-4 rounded-lg border transition-colors duration-300`}>
+                <h4 className={`${textPrimary} font-medium mb-2 transition-colors duration-300`}>{itemToDelete.name}</h4>
+                <p className={`${textSecondary} text-sm transition-colors duration-300`}>SKU: {itemToDelete.sku || 'N/A'}</p>
+                <p className={`${textSecondary} text-sm transition-colors duration-300`}>Current Stock: {itemToDelete.current_stock} {itemToDelete.unit}</p>
                 {itemToDelete.category && (
-                  <p className={`${textSecondary} text-sm`}>Category: {itemToDelete.category}</p>
+                  <p className={`${textSecondary} text-sm transition-colors duration-300`}>Category: {itemToDelete.category}</p>
                 )}
               </div>
             </div>
@@ -612,14 +792,14 @@ export default function InventoryItemList({
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setItemToDelete(null)}
-                className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300`}
+                className={`${secondaryButtonBg} px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105`}
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeleteItem(itemToDelete.id)}
                 disabled={deletingItem === itemToDelete.id}
-                className={`bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 flex items-center gap-2`}
+                className={`bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105`}
               >
                 {deletingItem === itemToDelete.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

@@ -184,20 +184,6 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
   return (
     <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`}>
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`}
-          style={{ borderRadius: '1.5rem' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Schedule Management</h1>
-              <p className={`${textSecondary}`}>Manage staff schedules and shifts</p>
-            </div>
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} p-4 rounded-2xl`}>
-              <Calendar className={`h-8 w-8 ${textPrimary}`} />
-            </div>
-          </div>
-        </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
@@ -321,20 +307,20 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
         </div>
 
         {/* Schedule List */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
-            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
           ) : error ? (
-            <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <div className="flex items-center gap-3 text-red-500">
                 <AlertCircle className="h-6 w-6" />
                 <p>Error loading schedules: {error}</p>
               </div>
             </div>
           ) : filteredSchedules.length === 0 ? (
-            <div className={`${cardBg} p-8 border shadow-lg text-center`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg text-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <Calendar className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
               <h3 className={`${textPrimary} text-lg font-semibold mb-2`}>No Schedules Found</h3>
               <p className={`${textSecondary}`}>
@@ -353,28 +339,27 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
                 <div
                   key={schedule.id}
                   className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
-                  style={{ 
-                    borderRadius: index % 3 === 0 ? '1.5rem' : index % 3 === 1 ? '2rem' : '1rem'
-                  }}
+                  style={{ borderRadius: '1.5rem' }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-16 h-16 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
-                        <Calendar className={`h-8 w-8 ${textPrimary}`} />
-                      </div>
-                      <div>
-                        <h3 className={`${textPrimary} font-semibold text-lg`}>
-                          {staffName}
-                        </h3>
-                        <p className={`${textSecondary} text-sm`}>
-                          {schedule.shift_date} • {schedule.shift_start} - {schedule.shift_end}
-                        </p>
-                        {schedule.notes && (
-                          <p className={`${textSecondary} text-xs mt-1`}>{schedule.notes}</p>
-                        )}
-                      </div>
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className={`w-20 h-20 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
+                      <Calendar className={`h-8 w-8 ${textPrimary}`} />
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="space-y-2">
+                      <h3 className={`${textPrimary} font-semibold text-lg`}>
+                        {staffName}
+                      </h3>
+                      <p className={`${textSecondary} text-sm`}>
+                        {schedule.shift_date}
+                      </p>
+                      <p className={`${textSecondary} text-sm`}>
+                        {schedule.shift_start} - {schedule.shift_end}
+                      </p>
+                      {schedule.notes && (
+                        <p className={`${textSecondary} text-xs mt-1`}>{schedule.notes}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 w-full">
                       <Button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -382,7 +367,7 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
                         }}
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-1"
+                        className="flex-1 flex items-center justify-center gap-1"
                       >
                         <Edit className="h-3 w-3" />
                         Edit
@@ -394,7 +379,7 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
                         }}
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                        className="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-3 w-3" />
                         Delete

@@ -179,14 +179,14 @@ export default function StockAdjustments({
           <div className="flex gap-2">
             <button
               onClick={() => setShowAdjustForm(true)}
-              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
             >
               <Edit className="h-4 w-4" />
               Adjust Stock
             </button>
             <button
               onClick={() => setShowCountForm(true)}
-              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
             >
               <Scale className="h-4 w-4" />
               Stock Count
@@ -196,65 +196,79 @@ export default function StockAdjustments({
       </div>
 
       {/* Transactions List */}
-      <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
-        <div className="space-y-4">
-          {filteredTransactions.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions</h3>
-              <p className={`${textSecondary}`}>Stock adjustments and counts will appear here</p>
-            </div>
-          ) : (
-            filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-6 border rounded-xl transition-all duration-300 hover:shadow-lg`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <h3 className={`${textPrimary} font-semibold text-lg`}>
-                        {transaction.inventory_item_id}
-                      </h3>
-                      <p className={`${textSecondary} text-sm`}>
-                        {transaction.reason || 'No reason provided'}
-                      </p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getTransactionTypeColor(transaction.transaction_type)}`}>
-                      {getTransactionIcon(transaction.transaction_type)}
-                      {transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)}
-                    </div>
+      {filteredTransactions.length === 0 ? (
+        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300 text-center py-12`} style={{ borderRadius: "1.5rem" }}>
+          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions</h3>
+          <p className={`${textSecondary}`}>Stock adjustments and counts will appear here</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTransactions.map((transaction) => (
+            <div
+              key={transaction.id}
+              className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
+              style={{ borderRadius: '1.5rem' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
+                    {getTransactionIcon(transaction.transaction_type)}
                   </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className={`${textPrimary} font-bold text-lg`}>
-                        {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
-                      </div>
-                      <div className={`${textSecondary} text-sm`}>
-                        {new Date(transaction.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setSelectedTransaction(transaction)}
-                      className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
-                      title="View Details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
+                  <div>
+                    <h3 className={`${textPrimary} font-semibold text-lg`}>
+                      {transaction.reason || 'Stock Adjustment'}
+                    </h3>
+                    <p className={`${textSecondary} text-sm`}>
+                      {transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)}
+                    </p>
                   </div>
                 </div>
-
-                {transaction.notes && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className={`${textSecondary} text-sm`}>{transaction.notes}</p>
-                  </div>
-                )}
+                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getTransactionTypeColor(transaction.transaction_type)}`}>
+                  {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
+                </div>
               </div>
-            ))
-          )}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className={`${textSecondary}`}>Item:</span>
+                  <span className={`${textPrimary}`}>{transaction.inventory_item_id}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className={`${textSecondary}`}>Date:</span>
+                  <span className={`${textPrimary}`}>
+                    {new Date(transaction.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm font-medium">
+                  <span className={`${textSecondary}`}>Change:</span>
+                  <span className={`${textPrimary} ${transaction.quantity_change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
+                  </span>
+                </div>
+              </div>
+
+              {transaction.notes && (
+                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className={`${textSecondary} text-sm`}>{transaction.notes}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setSelectedTransaction(transaction)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
+                  title="View Details"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Stock Adjustment Form Modal */}
       {showAdjustForm && (
@@ -264,7 +278,7 @@ export default function StockAdjustments({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Adjust Stock</h3>
               <button
                 onClick={() => setShowAdjustForm(false)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -272,10 +286,10 @@ export default function StockAdjustments({
             
             <div className="space-y-4">
               <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>Item ID</label>
+                <label className={`block ${textPrimary} font-medium mb-2`}>Item</label>
                 <input
                   type="text"
-                  placeholder="Enter item ID"
+                  placeholder="Enter item name"
                   className={`w-full px-3 py-2 ${inputBg} ${textPrimary} rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
                 />
               </div>
@@ -306,13 +320,13 @@ export default function StockAdjustments({
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowAdjustForm(false)}
-                  className={`flex-1 ${isDark ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-300 hover:bg-gray-400'} text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300`}
+                  className={`flex-1 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border px-4 py-2 rounded-lg font-medium transition-all duration-200`}
                 >
                   Cancel
                 </button>
                 <button
                   disabled={isProcessing}
-                  className={`flex-1 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300 disabled:opacity-50`}
+                  className={`flex-1 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50`}
                 >
                   {isProcessing ? 'Processing...' : 'Adjust Stock'}
                 </button>
@@ -330,7 +344,7 @@ export default function StockAdjustments({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Perform Stock Count</h3>
               <button
                 onClick={() => setShowCountForm(false)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -343,13 +357,13 @@ export default function StockAdjustments({
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowCountForm(false)}
-                  className={`flex-1 ${isDark ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-300 hover:bg-gray-400'} text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300`}
+                  className={`flex-1 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border px-4 py-2 rounded-lg font-medium transition-all duration-200`}
                 >
                   Cancel
                 </button>
                 <button
                   disabled={isProcessing}
-                  className={`flex-1 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300 disabled:opacity-50`}
+                  className={`flex-1 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50`}
                 >
                   {isProcessing ? 'Processing...' : 'Perform Count'}
                 </button>
@@ -367,7 +381,7 @@ export default function StockAdjustments({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Transaction Details</h3>
               <button
                 onClick={() => setSelectedTransaction(null)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -376,7 +390,7 @@ export default function StockAdjustments({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className={`${textSecondary} text-sm`}>Item ID:</span>
+                  <span className={`${textSecondary} text-sm`}>Item:</span>
                   <p className={`${textPrimary} font-medium`}>{selectedTransaction.inventory_item_id}</p>
                 </div>
                 <div>

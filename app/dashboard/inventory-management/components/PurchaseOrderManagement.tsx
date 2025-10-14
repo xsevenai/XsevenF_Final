@@ -221,7 +221,7 @@ export default function PurchaseOrderManagement({
 
           <button
             onClick={() => setShowCreateForm(true)}
-            className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+            className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
           >
             <Plus className="h-4 w-4" />
             Create PO
@@ -230,103 +230,110 @@ export default function PurchaseOrderManagement({
       </div>
 
       {/* Purchase Orders List */}
-      <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
-        <div className="space-y-4">
-          {filteredPOs.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Purchase Orders</h3>
-              <p className={`${textSecondary}`}>Create your first purchase order to get started</p>
-            </div>
-          ) : (
-            filteredPOs.map((po) => (
-              <div
-                key={po.id}
-                className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-6 border rounded-xl transition-all duration-300 hover:shadow-lg`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <h3 className={`${textPrimary} font-semibold text-lg`}>{po.order_number}</h3>
-                      <p className={`${textSecondary} text-sm`}>
-                        Supplier: {suppliers.find(s => s.id === po.supplier_id)?.name || 'Unknown'}
-                      </p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(po.status)}`}>
-                      {getStatusIcon(po.status)}
+      {filteredPOs.length === 0 ? (
+        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300 text-center py-12`} style={{ borderRadius: "1.5rem" }}>
+          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Purchase Orders</h3>
+          <p className={`${textSecondary}`}>Create your first purchase order to get started</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPOs.map((po) => (
+            <div
+              key={po.id}
+              className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
+              style={{ borderRadius: '1.5rem' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
+                    <Package className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className={`${textPrimary} font-semibold text-lg`}>{suppliers.find(s => s.id === po.supplier_id)?.name || 'Unknown Supplier'}</h3>
+                    <p className={`${textSecondary} text-sm`}>
                       {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className={`${textPrimary} font-bold text-lg`}>
-                      ${parseFloat(po.total_amount).toFixed(2)}
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleEditPO(po.id)}
-                        className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
-                        title="Edit Purchase Order"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setSelectedPO(po)}
-                        className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      {po.status === 'confirmed' && (
-                        <button
-                          onClick={() => handleReceivePO(po.id)}
-                          disabled={isReceiving === po.id}
-                          className={`${textSecondary} hover:text-green-400 p-2 transition-colors duration-300 disabled:opacity-50`}
-                          title="Receive Order"
-                        >
-                          {isReceiving === po.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4" />
-                          )}
-                        </button>
-                      )}
-                    </div>
+                    </p>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className={`${textSecondary}`}>Order Date:</span>
-                    <span className={`${textPrimary} ml-2`}>
-                      {new Date(po.order_date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={`${textSecondary}`}>Expected Delivery:</span>
-                    <span className={`${textPrimary} ml-2`}>
-                      {po.expected_delivery_date 
-                        ? new Date(po.expected_delivery_date).toLocaleDateString()
-                        : 'Not set'
-                      }
-                    </span>
-                  </div>
-                  <div>
-                    <span className={`${textSecondary}`}>Items:</span>
-                    <span className={`${textPrimary} ml-2`}>{po.items.length}</span>
-                  </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(po.status)}`}>
+                  {getStatusIcon(po.status)}
+                  {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
                 </div>
+              </div>
 
-                {po.notes && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className={`${textSecondary} text-sm`}>{po.notes}</p>
-                  </div>
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className={`${textSecondary}`}>Order Date:</span>
+                  <span className={`${textPrimary}`}>
+                    {new Date(po.order_date).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className={`${textSecondary}`}>Expected Delivery:</span>
+                  <span className={`${textPrimary}`}>
+                    {po.expected_delivery_date 
+                      ? new Date(po.expected_delivery_date).toLocaleDateString()
+                      : 'Not set'
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className={`${textSecondary}`}>Items:</span>
+                  <span className={`${textPrimary}`}>{po.items.length}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium">
+                  <span className={`${textSecondary}`}>Total Amount:</span>
+                  <span className={`${textPrimary}`}>
+                    ${parseFloat(po.total_amount).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {po.notes && (
+                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className={`${textSecondary} text-sm`}>{po.notes}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => handleEditPO(po.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
+                  title="Edit Purchase Order"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => setSelectedPO(po)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
+                  title="View Details"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </button>
+                {po.status === 'confirmed' && (
+                  <button
+                    onClick={() => handleReceivePO(po.id)}
+                    disabled={isReceiving === po.id}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} text-green-500 hover:text-green-600 disabled:opacity-50`}
+                    title="Receive Order"
+                  >
+                    {isReceiving === po.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
+                    Receive
+                  </button>
                 )}
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Create PO Form Modal */}
       {showCreateForm && (
@@ -336,7 +343,7 @@ export default function PurchaseOrderManagement({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Create Purchase Order</h3>
               <button
                 onClick={() => setShowCreateForm(false)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -361,7 +368,7 @@ export default function PurchaseOrderManagement({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Edit Purchase Order</h3>
               <button
                 onClick={() => setShowEditForm(null)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -385,7 +392,7 @@ export default function PurchaseOrderManagement({
               <h3 className={`text-xl font-bold ${textPrimary}`}>Purchase Order Details</h3>
               <button
                 onClick={() => setSelectedPO(null)}
-                className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
               >
                 ×
               </button>
@@ -415,20 +422,31 @@ export default function PurchaseOrderManagement({
 
               <div>
                 <h4 className={`${textPrimary} font-semibold mb-2`}>Items</h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {selectedPO.items.map((item, index) => {
                     const inventoryItem = inventoryItems.find(inv => inv.id === item.inventory_item_id)
-                    const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item ID: ${item.inventory_item_id}`
+                    const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item: ${item.inventory_item_id}`
                     
                     return (
-                      <div key={index} className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} p-3 rounded-lg`}>
-                        <div className="flex justify-between items-center">
-                          <span className={`${textPrimary} font-medium`}>
+                      <div key={index} className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} p-4 rounded-lg`}>
+                        <div className="space-y-2">
+                          <h5 className={`${textPrimary} font-medium`}>
                             {itemName}
-                          </span>
-                          <span className={`${textPrimary}`}>
-                            {item.quantity} × ${parseFloat(item.unit_cost).toFixed(2)}
-                          </span>
+                          </h5>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className={`${textSecondary}`}>Quantity:</span>
+                              <span className={`${textPrimary}`}>{item.quantity}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className={`${textSecondary}`}>Unit Cost:</span>
+                              <span className={`${textPrimary}`}>${parseFloat(item.unit_cost).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm font-medium">
+                              <span className={`${textSecondary}`}>Total:</span>
+                              <span className={`${textPrimary}`}>${parseFloat(item.unit_cost * item.quantity).toFixed(2)}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )
@@ -622,12 +640,12 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
                   value={newItem.inventory_item_id}
                   onChange={(e) => setNewItem(prev => ({ ...prev, inventory_item_id: e.target.value }))}
                   className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-                  placeholder="Enter item ID manually..."
+                  placeholder="Enter item name manually..."
                 />
               )}
               {inventoryItems.length === 0 && (
                 <p className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  ⚠️ Inventory items could not be loaded. Please enter item ID manually.
+                  ⚠️ Inventory items could not be loaded. Please enter item name manually.
                 </p>
               )}
             </div>
@@ -673,7 +691,7 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
           <div className="space-y-2">
             {formData.items.map((item, index) => {
               const inventoryItem = inventoryItems.find(inv => inv.id === item.inventory_item_id)
-              const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item ID: ${item.inventory_item_id}`
+              const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item: ${item.inventory_item_id}`
               
               return (
                 <div key={index} className={`${cardBg} p-3 border rounded-lg flex justify-between items-center`}>
@@ -701,14 +719,14 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
         <button
           type="button"
           onClick={onCancel}
-          className={`px-6 py-2 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} border rounded-lg font-medium transition-all duration-200`}
+          className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className={`px-6 py-2 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
+          className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Creating...' : 'Create Purchase Order'}
@@ -837,14 +855,14 @@ function PurchaseOrderUpdateForm({ purchaseOrder, onSubmit, onCancel, loading }:
         <button
           type="button"
           onClick={onCancel}
-          className={`px-6 py-2 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} border rounded-lg font-medium transition-all duration-200`}
+          className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className={`px-6 py-2 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
+          className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Updating...' : 'Update Purchase Order'}

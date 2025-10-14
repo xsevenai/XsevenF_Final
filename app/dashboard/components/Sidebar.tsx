@@ -53,7 +53,8 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
   const mainNavItems = [
     { id: "dashboard" as const, label: "Dashboard", icon: Home },
     { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
-    { id: "ai-chat" as const, label: "Assistant", icon: MessageSquare },
+    { id: "ai-chat" as const, label: "AI-Copilot", icon: MessageSquare },
+    { id: "xseven-deck" as const, label: "XSevenDeck", icon: Monitor },
     { 
       id: "catalog" as const, 
       label: "Catalog", 
@@ -72,7 +73,6 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
     { id: "food-qr" as const, label: "Food QR", icon: QrCode },
     { id: "tables" as const, label: "Tables", icon: Users },
     { id: "floorplans" as const, label: "Floor Plans", icon: Map },
-    { id: "kitchen" as const, label: "Kitchen", icon: Monitor },
     { id: "kds" as const, label: "KDS", icon: ChefHat },
     { 
       id: "customers" as const, 
@@ -109,11 +109,19 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
       {/* Header Section */}
       <div className={`p-6 ${isDark ? '' : 'border-b border-gray-200'}`}>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#B76E79] rounded flex items-center justify-center">
-            <span className="text-black font-bold text-lg">X</span>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <mask id="mask0_7_182" style={{maskType:"alpha"}} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                <rect width="100" height="100" fill="#D9D9D9"/>
+              </mask>
+              <g mask="url(#mask0_7_182)">
+                <path d="M199.939 7.77539C199.979 8.80162 200 9.83244 200 10.8672C200 60.0925 155.228 99.998 99.9998 99.998C76.1256 99.998 54.2058 92.54 37.0116 80.0967L56.3123 65.6543C68.6382 73.4766 83.7162 78.0771 99.9998 78.0771C141.645 78.0771 175.406 47.9874 175.407 10.8691H199.939V7.77539ZM24.6014 11.8418C24.7614 21.8758 27.389 31.3777 31.9666 39.8877L12.6707 54.3232C4.60097 41.4676 0.000196561 26.6472 -0.000152588 10.8691V0H24.5936V10.8691L24.6014 11.8418Z" fill="#E3D7D7"/>
+                <path d="M99.9998 0.00012207V25.1818L-0.000183105 100L-15.6848 83.3468L66.6639 21.7394H-0.000183105V21.7384H32.1727C31.4657 18.2104 31.0975 14.5775 31.0975 10.8683V0.00012207H99.9998Z" fill="#C1FD3A"/>
+              </g>
+            </svg>
           </div>
           <h1 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'} tracking-wide`}>
-            DEYBYNAVEEN
+            XsevenAI
           </h1>
         </div>
       </div>

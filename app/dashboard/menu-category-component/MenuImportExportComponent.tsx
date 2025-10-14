@@ -2,8 +2,8 @@
 
 "use client"
 
-import { useState, useRef } from 'react'
-import { Upload, Download, FileText, AlertCircle, CheckCircle, Loader2, ArrowLeft, FileSpreadsheet, FileImage } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Upload, Download, FileText, AlertCircle, CheckCircle, Loader2, ArrowLeft, FileSpreadsheet, FileImage, X } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
 import { useMenuImportExport } from '@/hooks/use-menu'
 import type { MenuImport } from '@/src/api/generated/models/MenuImport'
@@ -13,7 +13,7 @@ interface ImportExportProps {
 }
 
 export default function MenuImportExportComponent({ onBack }: ImportExportProps) {
-  const { theme, isLoaded: themeLoaded, isDark } = useTheme()
+  const { isLoaded: themeLoaded, isDark } = useTheme()
   const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
   const { importMenu, exportMenu, loading, error } = useMenuImportExport(businessId)
   
@@ -27,9 +27,18 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  if (!themeLoaded) {
+  // Simulate loading state like modifiers component
+  const [localLoading, setLocalLoading] = useState(true)
+
+  useEffect(() => {
+    if (themeLoaded) {
+      setLocalLoading(false)
+    }
+  }, [themeLoaded])
+
+  if (localLoading || loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen">
+      <div className={`flex-1 flex items-center justify-center min-h-screen ${isDark ? "bg-[#111]" : "bg-gray-50"}`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
     )
@@ -39,18 +48,15 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
-  
-  const primaryButtonBg = isDark 
-    ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] hover:from-[#1a1a1a] hover:via-[#222222] hover:to-[#333333] text-white border-[#444444]' 
-    : 'bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 hover:from-gray-100 hover:via-gray-200 hover:to-gray-300 text-gray-900 border-gray-300'
-  
-  const secondaryButtonBg = isDark 
-    ? 'bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#2a2a2a] hover:from-[#222222] hover:via-[#2a2a2a] hover:to-[#333333] text-gray-300 border-[#333333]' 
-    : 'bg-gradient-to-r from-gray-100 via-gray-150 to-gray-200 hover:from-gray-150 hover:via-gray-200 hover:to-gray-250 text-gray-700 border-gray-400'
-  
-  const activeTabBg = isDark 
-    ? 'bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] text-white border-[#444444]' 
-    : 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white border-blue-600'
+
+  // Button styles matching MenuModifiersComponent
+  const primaryButtonBg = isDark
+    ? 'bg-white text-gray-900 hover:bg-gray-100 border-gray-300'
+    : 'bg-gray-900 text-white hover:bg-gray-800 border-gray-700'
+
+  const secondaryButtonBg = isDark
+    ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]'
+    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -58,7 +64,6 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
 
     setImportFile(file)
     
-    // Parse file based on type
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
@@ -68,7 +73,6 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
         if (file.type === 'application/json' || file.name.endsWith('.json')) {
           parsedData = JSON.parse(content)
         } else if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-          // Simple CSV parsing - in production, use a proper CSV parser
           const lines = content.split('\n')
           const headers = lines[0].split(',')
           parsedData = lines.slice(1).map(line => {
@@ -85,7 +89,7 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
           business_id: businessId,
           source_type: file.type === 'application/json' || file.name.endsWith('.json') ? 'json' : 'csv',
           data: parsedData,
-          conflict_handling: 'skip' // Default to skip conflicts
+          conflict_handling: 'skip'
         })
       } catch (error) {
         console.error('Error parsing file:', error)
@@ -118,7 +122,6 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
       const result = await exportMenu(exportFormat, includeInactive)
       setExportResults(result)
       
-      // Download the file
       if (exportFormat === 'json') {
         const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
@@ -143,7 +146,7 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* Header with Back Button — matches MenuModifiersComponent */}
       <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
         <div className="flex items-center gap-4">
           <button
@@ -163,32 +166,32 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className={`${cardBg} p-3 border shadow-lg flex gap-2 transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
+      {/* Tabs — styled like MenuModifiersComponent */}
+      <div className={`${cardBg} p-2 border shadow-lg flex gap-2 transition-colors duration-300 w-fit`} style={{ borderRadius: '1.5rem' }}>
         <button
           onClick={() => setActiveTab('import')}
-          className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
-            ${activeTab === 'import'
-              ? `${activeTabBg} shadow-md`
-              : `${secondaryButtonBg} ${isDark ? 'text-gray-300' : 'text-gray-600'}`
-            }
-            hover:shadow-md
-          `}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border hover:shadow-md ${
+            activeTab === 'import'
+              ? isDark 
+                ? 'bg-white text-gray-900 border-gray-300 shadow-md'
+                : 'bg-gray-900 text-white border-gray-700 shadow-md'
+              : isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200'
+          }`}
         >
-          <Upload className="h-4 w-4 inline mr-2" />
+          <Upload className="h-4 w-4 inline mr-1" />
           Import Menu
         </button>
         <button
           onClick={() => setActiveTab('export')}
-          className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all border
-            ${activeTab === 'export'
-              ? `${activeTabBg} shadow-md`
-              : `${secondaryButtonBg} ${isDark ? 'text-gray-300' : 'text-gray-600'}`
-            }
-            hover:shadow-md
-          `}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border hover:shadow-md ${
+            activeTab === 'export'
+              ? isDark 
+                ? 'bg-white text-gray-900 border-gray-300 shadow-md'
+                : 'bg-gray-900 text-white border-gray-700 shadow-md'
+              : isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200'
+          }`}
         >
-          <Download className="h-4 w-4 inline mr-2" />
+          <Download className="h-4 w-4 inline mr-1" />
           Export Menu
         </button>
       </div>
@@ -198,7 +201,6 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
         <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
           <h2 className={`text-xl font-bold ${textPrimary} mb-6`}>Import Menu Items</h2>
           
-          {/* File Upload */}
           <div className="space-y-4">
             <div>
               <label className={`block ${textPrimary} font-medium mb-3`}>Select File</label>
@@ -212,7 +214,7 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all border font-medium`}
+                  className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
                 >
                   <Upload className="h-4 w-4" />
                   Choose File
@@ -226,7 +228,6 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
               </div>
             </div>
 
-            {/* Import Options */}
             {importData && (
               <div className={`${innerCardBg} p-4 border rounded-lg`}>
                 <h4 className={`${textPrimary} font-medium mb-3`}>Import Options</h4>
@@ -250,19 +251,17 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
               </div>
             )}
 
-            {/* Import Button */}
             {importData && (
               <button
                 onClick={handleImport}
                 disabled={loading}
-                className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all border font-medium disabled:opacity-50`}
+                className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium disabled:opacity-50`}
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                 {loading ? 'Importing...' : 'Import Menu Items'}
               </button>
             )}
 
-            {/* Import Results */}
             {importResults && (
               <div className={`${innerCardBg} p-4 border rounded-lg`}>
                 <h4 className={`${textPrimary} font-medium mb-3 flex items-center gap-2`}>
@@ -305,13 +304,12 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
           <h2 className={`text-xl font-bold ${textPrimary} mb-6`}>Export Menu Items</h2>
           
           <div className="space-y-4">
-            {/* Export Options */}
             <div className={`${innerCardBg} p-4 border rounded-lg`}>
               <h4 className={`${textPrimary} font-medium mb-3`}>Export Options</h4>
               <div className="space-y-4">
                 <div>
                   <label className={`block ${textPrimary} text-sm font-medium mb-2`}>Format</label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
                     {[
                       { value: 'json', label: 'JSON', icon: FileText },
                       { value: 'csv', label: 'CSV', icon: FileSpreadsheet },
@@ -320,12 +318,15 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
                       <button
                         key={value}
                         onClick={() => setExportFormat(value as any)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all
-                          ${exportFormat === value
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : `${secondaryButtonBg}`
-                          }
-                        `}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all font-medium ${
+                          exportFormat === value
+                            ? isDark
+                              ? 'bg-white text-gray-900 border-gray-300 shadow-md'
+                              : 'bg-gray-900 text-white border-gray-700 shadow-md'
+                            : isDark
+                              ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]'
+                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
                         <Icon className="h-4 w-4" />
                         {label}
@@ -349,17 +350,15 @@ export default function MenuImportExportComponent({ onBack }: ImportExportProps)
               </div>
             </div>
 
-            {/* Export Button */}
             <button
               onClick={handleExport}
               disabled={loading}
-              className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all border font-medium disabled:opacity-50`}
+              className={`${primaryButtonBg} px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium disabled:opacity-50`}
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? 'Exporting...' : 'Export Menu Items'}
             </button>
 
-            {/* Export Results */}
             {exportResults && (
               <div className={`${innerCardBg} p-4 border rounded-lg`}>
                 <h4 className={`${textPrimary} font-medium mb-3 flex items-center gap-2`}>

@@ -88,22 +88,6 @@ export default function KDSPerformanceDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className={`${textPrimary} text-2xl font-bold`}>Kitchen Performance</h2>
-          <p className={`${textSecondary}`}>Monitor kitchen efficiency and order processing metrics</p>
-        </div>
-        <Button 
-          onClick={handleRefresh}
-          disabled={loading}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
 
       {/* Date Range Selector */}
       <Card className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>

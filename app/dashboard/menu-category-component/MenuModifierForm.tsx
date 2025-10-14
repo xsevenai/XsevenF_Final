@@ -30,12 +30,21 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
   const [maxSelections, setMaxSelections] = useState(1)
   const [options, setOptions] = useState<ModifierOption[]>([{ name: "", price: 0, isDefault: false }])
 
-  // Theme-aware styles
+  // Theme-aware styles - matching MenuImportExportComponent
   const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
   const textPrimary = isDark ? "text-white" : "text-gray-900"
   const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
+  const innerCardBg = isDark ? "bg-[#1f1f1f] border-[#2a2a2a]" : "bg-gray-50 border-gray-200"
   const inputBg = isDark ? "bg-[#1f1f1f] border-[#2a2a2a]" : "bg-gray-50 border-gray-200"
-  const buttonHoverBg = isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
+
+  // Button styles matching MenuImportExportComponent
+  const primaryButtonBg = isDark
+    ? 'bg-white text-gray-900 hover:bg-gray-100 border-gray-300'
+    : 'bg-gray-900 text-white hover:bg-gray-800 border-gray-700'
+
+  const secondaryButtonBg = isDark
+    ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]'
+    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
 
   // Load modifier data if editing
   useEffect(() => {
@@ -116,7 +125,7 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className={`block ${textPrimary} font-medium mb-3`}>
+            <label className={`block ${textPrimary} font-medium mb-3 transition-colors duration-300`}>
               Modifier Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -124,17 +133,17 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
               placeholder="Enter modifier name"
             />
           </div>
           
           <div>
-            <label className={`block ${textPrimary} font-medium mb-3`}>Description</label>
+            <label className={`block ${textPrimary} font-medium mb-3 transition-colors duration-300`}>Description</label>
             <input
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
               placeholder="Enter description"
             />
           </div>
@@ -150,17 +159,17 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
               onChange={e => setRequired(e.target.checked)}
               className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
             />
-            <label htmlFor="required" className={`${textPrimary} font-medium`}>
+            <label htmlFor="required" className={`${textPrimary} font-medium transition-colors duration-300`}>
               Required
             </label>
           </div>
           
           <div>
-            <label className={`block ${textPrimary} font-medium mb-3`}>Selection Type</label>
+            <label className={`block ${textPrimary} font-medium mb-3 transition-colors duration-300`}>Selection Type</label>
             <select 
               value={type} 
               onChange={e => setType(e.target.value as "single" | "multiple")} 
-              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+              className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
             >
               <option value="single">Single Choice</option>
               <option value="multiple">Multiple Choice</option>
@@ -170,24 +179,24 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
           <div className="space-y-3">
             <div className="flex items-center gap-4">
               <div>
-                <label className={`block ${textPrimary} font-medium mb-2 text-sm`}>Min Selections</label>
+                <label className={`block ${textPrimary} font-medium mb-2 text-sm transition-colors duration-300`}>Min Selections</label>
                 <input 
                   type="number" 
                   min="0" 
                   max={maxSelections}
                   value={minSelections} 
                   onChange={e => setMinSelections(Number(e.target.value))} 
-                  className={`w-20 ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                  className={`w-20 ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                 />
               </div>
               <div>
-                <label className={`block ${textPrimary} font-medium mb-2 text-sm`}>Max Selections</label>
+                <label className={`block ${textPrimary} font-medium mb-2 text-sm transition-colors duration-300`}>Max Selections</label>
                 <input 
                   type="number" 
                   min={minSelections}
                   value={maxSelections} 
                   onChange={e => setMaxSelections(Number(e.target.value))} 
-                  className={`w-20 ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                  className={`w-20 ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                 />
               </div>
             </div>
@@ -197,13 +206,13 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
         {/* Options Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <label className={`block ${textPrimary} font-medium`}>
+            <label className={`block ${textPrimary} font-medium transition-colors duration-300`}>
               Options <span className="text-red-500">*</span>
             </label>
             <button
               type="button"
               onClick={addOption}
-              className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+              className={`${secondaryButtonBg} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105`}
             >
               <Plus className="h-4 w-4" />
               Add Option
@@ -212,20 +221,20 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
           
           <div className="space-y-3">
             {options.map((opt, idx) => (
-              <div key={idx} className="flex gap-3 items-start p-4 rounded-xl border" style={{ backgroundColor: isDark ? '#1f1f1f' : '#f9fafb' }}>
+              <div key={idx} className={`flex gap-3 items-start p-4 rounded-xl border transition-colors duration-300 ${innerCardBg}`}>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className={`block ${textSecondary} text-sm mb-2`}>Option Name</label>
+                    <label className={`block ${textSecondary} text-sm mb-2 transition-colors duration-300`}>Option Name</label>
                     <input
                       placeholder="Option name"
                       value={opt.name}
                       onChange={e => handleOptionChange(idx, "name", e.target.value)}
                       required
-                      className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                      className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                     />
                   </div>
                   <div>
-                    <label className={`block ${textSecondary} text-sm mb-2`}>Price</label>
+                    <label className={`block ${textSecondary} text-sm mb-2 transition-colors duration-300`}>Price</label>
                     <input
                       type="number"
                       step="0.01"
@@ -233,7 +242,7 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
                       placeholder="0.00"
                       value={opt.price}
                       onChange={e => handleOptionChange(idx, "price", Number(e.target.value))}
-                      className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
+                      className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                     />
                   </div>
                   <div className="flex items-center gap-3 pt-6">
@@ -244,7 +253,7 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
                       onChange={e => handleOptionChange(idx, "isDefault", e.target.checked)}
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor={`default-${idx}`} className={`${textSecondary} text-sm`}>
+                    <label htmlFor={`default-${idx}`} className={`${textSecondary} text-sm transition-colors duration-300`}>
                       Default Option
                     </label>
                   </div>
@@ -268,7 +277,7 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
           <button
             type="submit"
             disabled={loading}
-            className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535] border-[#3a3a3a]' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'} ${textPrimary} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border shadow-lg hover:shadow-xl hover:scale-105`}
+            className={`${primaryButtonBg} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border shadow-lg hover:shadow-xl hover:scale-105`}
           >
             {loading ? "Saving..." : (modifierId ? "Update Modifier" : "Create Modifier")}
           </button>
@@ -276,7 +285,7 @@ export default function MenuModifierForm({ onSave, onCancel, loading, modifierId
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className={`${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-200 hover:bg-gray-300'} ${textPrimary} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:scale-105`}
+            className={`${secondaryButtonBg} px-8 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:scale-105`}
           >
             Cancel
           </button>

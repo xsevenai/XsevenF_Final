@@ -146,7 +146,7 @@ export const useInventoryItems = (businessId: string) => {
     if (businessId) {
       fetchItems({ low_stock_only: false })
     }
-  }, [businessId, fetchItems])
+  }, [businessId])
 
   const fetchAllItems = useCallback(async () => {
     return fetchItems({ low_stock_only: false })
@@ -271,7 +271,7 @@ export const useLowStockItems = (businessId: string) => {
     if (businessId) {
       fetchLowStockItems()
     }
-  }, [businessId, fetchLowStockItems])
+  }, [businessId])
 
   return {
     lowStockItems,
@@ -418,7 +418,7 @@ export const useSuppliers = (businessId: string) => {
     if (businessId) {
       fetchSuppliers()
     }
-  }, [businessId, fetchSuppliers])
+  }, [businessId])
 
   return {
     suppliers,
@@ -539,7 +539,7 @@ export const usePurchaseOrders = (businessId: string) => {
     if (businessId) {
       fetchPurchaseOrders()
     }
-  }, [businessId, fetchPurchaseOrders])
+  }, [businessId])
 
   return {
     purchaseOrders,
@@ -594,7 +594,7 @@ export const useInventoryTransactions = (businessId: string) => {
     if (businessId) {
       fetchTransactions()
     }
-  }, [businessId, fetchTransactions])
+  }, [businessId])
 
   return {
     transactions,

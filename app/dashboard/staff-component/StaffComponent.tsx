@@ -343,20 +343,20 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
         </div>
 
         {/* Staff List */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
-            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
           ) : error ? (
-            <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <div className="flex items-center gap-3 text-red-500">
                 <AlertCircle className="h-6 w-6" />
                 <p>Error loading staff members: {error}</p>
               </div>
             </div>
           ) : filteredStaff.length === 0 ? (
-            <div className={`${cardBg} p-8 border shadow-lg text-center`} style={{ borderRadius: '1.5rem' }}>
+            <div className={`${cardBg} p-8 border shadow-lg text-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
               <Users className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
               <h3 className={`${textPrimary} text-lg font-semibold mb-2`}>No Staff Members Found</h3>
               <p className={`${textSecondary}`}>
@@ -371,60 +371,54 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
               <div
                 key={staff.id}
                 className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
-                style={{ 
-                  borderRadius: index % 3 === 0 ? '1.5rem' : index % 3 === 1 ? '2rem' : '1rem'
-                }}
+                style={{ borderRadius: '1.5rem' }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
-                      <span className={`${textPrimary} font-bold text-xl`}>
-                        {(staff.first_name?.charAt(0) || '')}{(staff.last_name?.charAt(0) || '')}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className={`${textPrimary} font-semibold text-lg`}>
-                        {staff.first_name} {staff.last_name}
-                      </h3>
-                      <p className={`${textSecondary} text-sm`}>{staff.position || 'No position'}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          <span className={`${textSecondary} text-xs`}>{staff.email}</span>
-                        </div>
-                        {staff.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            <span className={`${textSecondary} text-xs`}>{staff.phone}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          <span className={`${textSecondary} text-xs`}>${staff.hourly_rate ? parseFloat(staff.hourly_rate) : 0}/hr</span>
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-20 h-20 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
+                    <span className={`${textPrimary} font-bold text-2xl`}>
+                      {(staff.first_name?.charAt(0) || '')}{(staff.last_name?.charAt(0) || '')}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <div className="space-y-2">
+                    <h3 className={`${textPrimary} font-semibold text-lg`}>
+                      {staff.first_name} {staff.last_name}
+                    </h3>
+                    <p className={`${textSecondary} text-sm`}>{staff.position || 'No position'}</p>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${
                       staff.status === 'active' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
                       {staff.status === 'active' ? 'Active' : 'Inactive'}
                     </div>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleEditClick(staff)
-                      }}
-                      className={buttonTheme}
-                      size="sm"
-                    >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
                   </div>
+                  <div className="space-y-2 w-full">
+                    <div className="flex items-center justify-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      <span className={`${textSecondary} text-xs`}>{staff.email}</span>
+                    </div>
+                    {staff.phone && (
+                      <div className="flex items-center justify-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        <span className={`${textSecondary} text-xs`}>{staff.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      <span className={`${textSecondary} text-xs`}>${staff.hourly_rate ? parseFloat(staff.hourly_rate) : 0}/hr</span>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditClick(staff)
+                    }}
+                    className={`${buttonTheme} w-full`}
+                    size="sm"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
                 </div>
               </div>
             ))

@@ -398,14 +398,14 @@ export default function MainPanel({
     <FloorPlanComponent businessId={businessId} />
   )
 
-  const renderKitchen = () => (
+  const renderXSevenDeck = () => (
     <div className="p-6 space-y-6">
       <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Kitchen Display</h1>
-        <p className={`${textSecondary}`}>Monitor kitchen operations and order status</p>
+        <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>XSevenDeck</h1>
+        <p className={`${textSecondary}`}>Advanced AI-powered dashboard and analytics platform</p>
       </div>
       <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <p className={`${textPrimary}`}>Kitchen display system coming soon...</p>
+        <p className={`${textPrimary}`}>XSevenDeck features coming soon...</p>
       </div>
     </div>
   )
@@ -449,6 +449,8 @@ export default function MainPanel({
         return renderAnalytics()
       case "ai-chat":
         return renderAIChat()
+      case "xseven-deck":
+        return renderXSevenDeck()
       
       // Main catalog section - shows placeholder
       case "catalog":
@@ -502,8 +504,6 @@ export default function MainPanel({
         return renderWorkingHours()
       case "floorplans":
         return renderFloorplans()
-      case "kitchen":
-        return renderKitchen()
       case "kds":
         return renderKDS()
       case "staff":
