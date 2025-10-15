@@ -120,7 +120,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
               </g>
             </svg>
           </div>
-          <h1 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'} tracking-wide`}>
+          <h1 className="text-xl font-semibold text-white tracking-wide">
             XsevenAI
           </h1>
         </div>
@@ -148,10 +148,10 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
                   activeSection === item.id
                     ? isDark 
                       ? 'bg-[#2a2a2a] text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-gray-100 text-white'
                     : isDark
-                      ? 'text-gray-400 hover:text-white hover:bg-[#222222]'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'text-white hover:text-white hover:bg-[#222222]'
+                      : 'text-white hover:text-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -178,10 +178,10 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
                         activeSection === subItem.id
                           ? isDark 
                             ? 'bg-[#2a2a2a] text-white'
-                            : 'bg-gray-100 text-gray-900'
+                            : 'bg-gray-100 text-white'
                           : isDark
-                            ? 'text-gray-400 hover:text-white hover:bg-[#222222]'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                            ? 'text-white hover:text-white hover:bg-[#222222]'
+                            : 'text-white hover:text-white hover:bg-gray-50'
                       }`}
                     >
                       <subItem.icon className="h-4 w-4" />
@@ -196,7 +196,7 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
 
         {/* Quick Actions Section - Fixed at bottom */}
         <div className="mt-4 pb-4 border-t border-opacity-20 pt-4" style={{ borderColor: isDark ? '#2a2a2a' : '#e5e7eb' }}>
-          <h3 className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'} mb-3 px-4 uppercase tracking-wider`}>
+          <h3 className="text-xs font-medium text-white mb-3 px-4 uppercase tracking-wider">
             Quick Actions
           </h3>
           <nav className="space-y-1">
@@ -206,8 +206,8 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
                 onClick={item.action}
                 className={`w-full flex items-center space-x-3 px-4 py-2 text-left transition-all duration-200 rounded-lg group ${
                   isDark 
-                    ? 'text-gray-400 hover:text-white hover:bg-[#222222]'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'text-white hover:text-white hover:bg-[#222222]'
+                    : 'text-white hover:text-white hover:bg-gray-50'
                 }`}
               >
                 <item.icon className="h-4 w-4" />

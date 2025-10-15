@@ -1,380 +1,262 @@
-// app/dashboard/analytics-component/OrdersAnalytics.tsx
-
 "use client"
 
-import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts"
-import { ShoppingCart, TrendingUp, DollarSign, Clock, Package, Filter, Search } from "lucide-react"
-import { useOrdersAnalytics } from "@/hooks/use-analytics"
-
-// Define interfaces for type safety
-interface OrderItem {
-  id?: string
-  name?: string
-  quantity?: number
-  price?: number
-  category?: string
-}
-
-interface Order {
-  id: string
-  orderId?: string
-  order_id?: string  // Backend might use snake_case
-  customerId?: string
-  customer_id?: string
-  totalAmount?: number
-  total_amount?: number  // Backend might use snake_case
-  status?: string
-  items?: OrderItem[]
-  createdAt?: string
-  created_at?: string  // Backend might use snake_case
-  updatedAt?: string
-  updated_at?: string
-}
-
-interface OrdersSummary {
-  total_orders: number
-  total_revenue: number
-  average_order_value: number
-  status_distribution?: Record<string, number>
-}
-
-interface OrdersData {
-  summary: OrdersSummary
-  orders: Order[]
-  daily_breakdown?: Record<string, any>
-}
-
-interface ChartDataPoint {
-  date: string
-  orders: number
-  revenue: number
-  avgOrderValue: number
-}
-
-interface StatusDataPoint {
-  status: string
-  count: number
-  percentage: string
-}
+import { useState, useEffect } from 'react'
+import { useTheme } from '@/hooks/useTheme'
+import { 
+  ShoppingCart, 
+  CheckCircle, 
+  Clock, 
+  XCircle,
+  TrendingUp,
+  DollarSign,
+  Users,
+  Calendar
+} from 'lucide-react'
+import MetricCard from './components/MetricCard'
+import ChartContainer from './components/ChartContainer'
+import SectionHeader from './components/SectionHeader'
+import ModernBarChart from './components/ModernBarChart'
+import ModernLineChart from './components/ModernLineChart'
+import ModernPieChart from './components/ModernPieChart'
 
 interface OrdersAnalyticsProps {
   timeRange: string
 }
 
 export default function OrdersAnalytics({ timeRange }: OrdersAnalyticsProps) {
-  const [statusFilter, setStatusFilter] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  
-  const { 
-    ordersData, 
-    loading, 
-    error, 
-    refetch 
-  } = useOrdersAnalytics(timeRange, statusFilter)
+  const { isDark } = useTheme()
+  const [loading, setLoading] = useState(true)
 
-  const orderStatuses = [
-    { value: "", label: "All Orders" },
-    { value: "pending", label: "Pending" },
-    { value: "confirmed", label: "Confirmed" },
-    { value: "preparing", label: "Preparing" },
-    { value: "ready", label: "Ready" },
-    { value: "delivered", label: "Delivered" },
-    { value: "cancelled", label: "Cancelled" }
-  ]
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-      </div>
-    )
+  // Mock data for demonstration
+  const mockData = {
+    totalOrders: 1247,
+    completedOrders: 856,
+    pendingOrders: 234,
+    cancelledOrders: 157,
+    totalRevenue: 45230.50,
+    averageOrderValue: 36.28,
+    ordersGrowth: 8.3,
+    revenueGrowth: 12.5,
+    completionRate: 68.7,
+    cancellationRate: 12.6,
+    ordersByDay: [
+      { day: 'Mon', orders: 45, revenue: 1200 },
+      { day: 'Tue', orders: 52, revenue: 1900 },
+      { day: 'Wed', orders: 78, revenue: 3000 },
+      { day: 'Thu', orders: 65, revenue: 2800 },
+      { day: 'Fri', orders: 89, revenue: 1890 },
+      { day: 'Sat', orders: 95, revenue: 2390 },
+      { day: 'Sun', orders: 112, revenue: 3490 }
+    ],
+    ordersByHour: [
+      { hour: '6AM', orders: 5 },
+      { hour: '9AM', orders: 15 },
+      { hour: '12PM', orders: 45 },
+      { hour: '3PM', orders: 25 },
+      { hour: '6PM', orders: 65 },
+      { hour: '9PM', orders: 35 }
+    ],
+    orderStatusData: [
+      { status: 'Completed', count: 856, percentage: 68.7 },
+      { status: 'Pending', count: 234, percentage: 18.8 },
+      { status: 'Cancelled', count: 157, percentage: 12.6 }
+    ],
+    topItems: [
+      { name: 'Margherita Pizza', quantity: 145, revenue: 2175 },
+      { name: 'Caesar Salad', quantity: 98, revenue: 1470 },
+      { name: 'Chicken Burger', quantity: 87, revenue: 1305 },
+      { name: 'Pasta Carbonara', quantity: 76, revenue: 1520 },
+      { name: 'Fish & Chips', quantity: 65, revenue: 1300 }
+    ],
+    orderTypes: [
+      { type: 'Dine-in', count: 456, percentage: 36.6 },
+      { type: 'Takeout', count: 523, percentage: 41.9 },
+      { type: 'Delivery', count: 268, percentage: 21.5 }
+    ]
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-400">Error loading orders analytics</p>
-        <button 
-          onClick={refetch}
-          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          Retry
-        </button>
-      </div>
-    )
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 100)
+    return () => clearTimeout(timer)
+  }, [timeRange])
 
-  const summary: OrdersSummary = ordersData?.summary || {
-    total_orders: 0,
-    total_revenue: 0,
-    average_order_value: 0
-  }
-
-  const orders: Order[] = ordersData?.orders || []
-
-  // Helper function to safely get order ID
-  const getOrderId = (order: Order): string => {
-    return order.orderId || order.order_id || order.id || 'N/A'
-  }
-
-  // Helper function to safely get total amount
-  const getTotalAmount = (order: Order): number => {
-    return order.totalAmount || order.total_amount || 0
-  }
-
-  // Helper function to safely get created date
-  const getCreatedAt = (order: Order): string => {
-    return order.createdAt || order.created_at || ''
-  }
-
-  // Filter orders based on search term
-  const filteredOrders = orders.filter((order: Order) => {
-    const orderId = getOrderId(order).toLowerCase()
-    const hasOrderIdMatch = orderId.includes(searchTerm.toLowerCase())
-    
-    const hasItemMatch = order.items && Array.isArray(order.items) 
-      ? order.items.some((item: OrderItem) => 
-          item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : false
-    
-    return hasOrderIdMatch || hasItemMatch
-  })
-
-  // Generate chart data for order trends
-  const chartData: ChartDataPoint[] = []
-  const days = timeRange === "1d" ? 1 : timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    const dateStr = date.toISOString().split('T')[0]
-    
-    const dayOrders = orders.filter((order: Order) => {
-      const orderDate = getCreatedAt(order)
-      return orderDate.split('T')[0] === dateStr
-    })
-    
-    const dayRevenue = dayOrders.reduce((sum: number, order: Order) => sum + getTotalAmount(order), 0)
-    
-    chartData.push({
-      date: dateStr,
-      orders: dayOrders.length,
-      revenue: dayRevenue,
-      avgOrderValue: dayOrders.length > 0 ? dayRevenue / dayOrders.length : 0
-    })
-  }
-
-  // Status distribution
-  const statusCounts: Record<string, number> = {}
-  orders.forEach((order: Order) => {
-    const status = order.status || 'unknown'
-    statusCounts[status] = (statusCounts[status] || 0) + 1
-  })
-
-  const statusData: StatusDataPoint[] = Object.entries(statusCounts).map(([status, count]: [string, number]) => ({
-    status: status.charAt(0).toUpperCase() + status.slice(1),
-    count,
-    percentage: orders.length > 0 ? ((count / orders.length) * 100).toFixed(1) : '0'
-  }))
+  const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`
+  const formatNumber = (num: number) => num.toLocaleString()
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Total Orders</p>
-              <p className="text-2xl font-bold text-white">{summary.total_orders}</p>
-            </div>
-            <ShoppingCart className="h-8 w-8 text-blue-400" />
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Total Revenue</p>
-              <p className="text-2xl font-bold text-white">${summary.total_revenue.toFixed(2)}</p>
-            </div>
-            <DollarSign className="h-8 w-8 text-green-400" />
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Avg Order Value</p>
-              <p className="text-2xl font-bold text-white">${summary.average_order_value.toFixed(2)}</p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-purple-400" />
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Completion Rate</p>
-              <p className="text-2xl font-bold text-white">
-                {orders.length > 0 ? ((orders.filter((o: Order) => o.status === 'delivered').length / orders.length) * 100).toFixed(1) : 0}%
-              </p>
-            </div>
-            <Clock className="h-8 w-8 text-orange-400" />
-          </div>
-        </Card>
+      {/* Order Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Total Orders"
+          value={formatNumber(mockData.totalOrders)}
+          icon={<ShoppingCart className="h-6 w-6 text-blue-500" />}
+          trend={{ value: mockData.ordersGrowth, isPositive: mockData.ordersGrowth > 0 }}
+          isLoading={loading}
+          isDark={isDark}
+        />
+        
+        <MetricCard
+          title="Completed Orders"
+          value={formatNumber(mockData.completedOrders)}
+          icon={<CheckCircle className="h-6 w-6 text-green-500" />}
+          subtitle={`${mockData.completionRate}% completion rate`}
+          isLoading={loading}
+          isDark={isDark}
+        />
+        
+        <MetricCard
+          title="Pending Orders"
+          value={formatNumber(mockData.pendingOrders)}
+          icon={<Clock className="h-6 w-6 text-yellow-500" />}
+          subtitle="Awaiting fulfillment"
+          isLoading={loading}
+          isDark={isDark}
+        />
+        
+        <MetricCard
+          title="Cancelled Orders"
+          value={formatNumber(mockData.cancelledOrders)}
+          icon={<XCircle className="h-6 w-6 text-red-500" />}
+          subtitle={`${mockData.cancellationRate}% cancellation rate`}
+          isLoading={loading}
+          isDark={isDark}
+        />
       </div>
 
-      {/* Filters */}
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-gray-700/50 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              {orderStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2 flex-1">
-            <Search className="h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search orders by ID or item name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-gray-700/50 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+      {/* Revenue Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <MetricCard
+          title="Total Revenue"
+          value={formatCurrency(mockData.totalRevenue)}
+          icon={<DollarSign className="h-6 w-6 text-green-500" />}
+          trend={{ value: mockData.revenueGrowth, isPositive: mockData.revenueGrowth > 0 }}
+          isLoading={loading}
+          isDark={isDark}
+        />
+        
+        <MetricCard
+          title="Average Order Value"
+          value={formatCurrency(mockData.averageOrderValue)}
+          icon={<TrendingUp className="h-6 w-6 text-purple-500" />}
+          subtitle="Per order"
+          isLoading={loading}
+          isDark={isDark}
+        />
+        
+        <MetricCard
+          title="Peak Hour"
+          value="6PM"
+          icon={<Clock className="h-6 w-6 text-orange-500" />}
+          subtitle="Most active time"
+          isLoading={loading}
+          isDark={isDark}
             />
           </div>
-        </div>
-      </Card>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Orders Trend */}
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Orders Trend</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#9CA3AF"
-                  fontSize={12}
-                  tickFormatter={(value: string) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis stroke="#9CA3AF" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#F9FAFB'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="orders" 
-                  stroke="#3B82F6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#3B82F6', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        <ChartContainer
+          title="Orders Trend"
+          subtitle="Daily order volume and revenue"
+          isDark={isDark}
+        >
+          <ModernLineChart
+            data={mockData.ordersByDay}
+            dataKey="orders"
+            nameKey="day"
+            isDark={isDark}
+            color="#3b82f6"
+            type="line"
+          />
+        </ChartContainer>
 
-        {/* Status Distribution */}
-        <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Order Status Distribution</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="status" stroke="#9CA3AF" fontSize={12} />
-                <YAxis stroke="#9CA3AF" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#F9FAFB'
-                  }}
-                />
-                <Bar dataKey="count" fill="#8B5CF6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        {/* Order Status Distribution */}
+        <ChartContainer
+          title="Order Status Distribution"
+          subtitle="Current order status breakdown"
+          isDark={isDark}
+        >
+          <ModernPieChart
+            data={mockData.orderStatusData}
+            dataKey="count"
+            nameKey="status"
+            isDark={isDark}
+            colors={['#10b981', '#f59e0b', '#ef4444']}
+          />
+        </ChartContainer>
       </div>
 
-      {/* Recent Orders Table */}
-      <Card className="bg-gradient-to-br from-[#1a1b2e] to-[#0f172a] border-gray-700/50 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Recent Orders</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left text-gray-400 font-medium py-3">Order ID</th>
-                <th className="text-left text-gray-400 font-medium py-3">Items</th>
-                <th className="text-left text-gray-400 font-medium py-3">Amount</th>
-                <th className="text-left text-gray-400 font-medium py-3">Status</th>
-                <th className="text-left text-gray-400 font-medium py-3">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.slice(0, 10).map((order: Order) => (
-                <tr key={order.id} className="border-b border-gray-700/30 hover:bg-gray-700/20">
-                  <td className="py-3 text-white">{getOrderId(order)}</td>
-                  <td className="py-3 text-gray-300">
-                    {order.items && Array.isArray(order.items) && order.items.length > 0 
-                      ? order.items
-                          .slice(0, 2)
-                          .map((item: OrderItem) => item.name || 'Unknown Item')
-                          .join(', ') +
-                        (order.items.length > 2 ? `... +${order.items.length - 2} more` : '')
-                      : 'No items'
-                    }
-                  </td>
-                  <td className="py-3 text-white">${getTotalAmount(order).toFixed(2)}</td>
-                  <td className="py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      order.status === 'delivered' ? 'bg-green-500/20 text-green-400' :
-                      order.status === 'preparing' ? 'bg-yellow-500/20 text-yellow-400' :
-                      order.status === 'pending' ? 'bg-red-500/20 text-red-400' :
-                      order.status === 'ready' ? 'bg-blue-500/20 text-blue-400' :
-                      order.status === 'cancelled' ? 'bg-gray-500/20 text-gray-400' :
-                      'bg-purple-500/20 text-purple-400'
-                    }`}>
-                      {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="py-3 text-gray-400">
-                    {getCreatedAt(order)
-                      ? new Date(getCreatedAt(order)).toLocaleDateString()
-                      : 'N/A'
-                    }
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              No orders found matching your criteria
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Orders by Hour */}
+        <ChartContainer
+          title="Orders by Hour"
+          subtitle="Peak ordering hours throughout the day"
+          isDark={isDark}
+        >
+          <ModernBarChart
+            data={mockData.ordersByHour}
+                  dataKey="orders" 
+            nameKey="hour"
+            isDark={isDark}
+            colors={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']}
+          />
+        </ChartContainer>
+
+        {/* Order Types */}
+        <ChartContainer
+          title="Order Types"
+          subtitle="Distribution of order types"
+          isDark={isDark}
+        >
+          <ModernPieChart
+            data={mockData.orderTypes}
+            dataKey="count"
+            nameKey="type"
+            isDark={isDark}
+            colors={['#3b82f6', '#8b5cf6', '#06b6d4']}
+          />
+        </ChartContainer>
+      </div>
+
+      {/* Top Selling Items */}
+      <ChartContainer
+        title="Top Selling Items"
+        subtitle="Best performing menu items by quantity sold"
+        isDark={isDark}
+      >
+        <div className="space-y-4">
+          {mockData.topItems.map((item, index) => (
+            <div key={index} className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-4 rounded-lg border ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm
+                    ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-500' : 'bg-blue-500'}
+                  `}>
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h5 className={`${isDark ? 'text-white' : 'text-gray-900'} font-medium`}>{item.name}</h5>
+                    <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                      {formatNumber(item.quantity)} sold
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`${isDark ? 'text-white' : 'text-gray-900'} font-bold`}>
+                    {formatCurrency(item.revenue)}
+                  </div>
+                  <div className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                    Revenue
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
-      </Card>
+      </ChartContainer>
     </div>
   )
 }

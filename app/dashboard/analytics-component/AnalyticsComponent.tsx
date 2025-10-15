@@ -1,238 +1,239 @@
-// app/dashboard/analytics-component/AnalyticsComponent.tsx
-
 "use client"
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
+import { useState, useEffect, useMemo, useCallback, Suspense, lazy, useRef } from 'react'
+import { useTheme } from '@/hooks/useTheme'
 import { 
   BarChart3, 
   TrendingUp, 
   DollarSign, 
-  ShoppingCart, 
+  Users, 
   MessageSquare, 
-  Users,
-  Calendar,
-  Download,
-  Filter,
-  RefreshCw
-} from "lucide-react"
-import OrdersAnalytics from "./OrdersAnalytics"
-import MessagesAnalytics from "./MessagesAnalytics"
-import RevenueAnalytics from "./RevenueAnalytics"
-import CustomerAnalytics from "./CustomerAnalytics"
-import ExportData from "./ExportData"
-import AnalyticsOverview from "./AnalyticsOverview"
-import MenuAnalyticsComponent from "../menu-category-component/MenuAnalyticsComponent" // Import your MenuAnalyticsComponent
+  ShoppingCart,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  ChevronDown
+} from 'lucide-react'
 
-type AnalyticsView = 
-  | "overview" 
-  | "analytics" 
-  | "orders" 
-  | "messages" 
-  | "revenue" 
-  | "customers" 
-  | "export"
-  | "menu-analytics" // Add this new view
+// Lazy load components for better performance
+const OverviewAnalytics = lazy(() => import('./OverviewAnalytics'))
+const OrdersAnalytics = lazy(() => import('./OrdersAnalytics'))
+const MessagesAnalytics = lazy(() => import('./MessagesAnalytics'))
+const RevenueAnalytics = lazy(() => import('./RevenueAnalytics'))
 
 interface AnalyticsComponentProps {
-  onBack?: () => void // Optional prop for navigation
+  businessId: string
 }
 
-export default function AnalyticsComponent({ onBack }: AnalyticsComponentProps) {
-  const [activeView, setActiveView] = useState<AnalyticsView>("overview")
-  const [timeRange, setTimeRange] = useState("7d")
-  const [isRefreshing, setIsRefreshing] = useState(false)
+export default function AnalyticsComponent({ businessId }: AnalyticsComponentProps) {
+  const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'messages' | 'revenue'>('overview')
+  const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const analyticsViews = [
-    { 
-      id: "overview" as const, 
-      label: "Overview", 
-      icon: BarChart3,
-      description: "Key metrics and insights"
-    },
-    { 
-      id: "analytics" as const, 
-      label: "Analytics", 
-      icon: TrendingUp,
-      description: "Detailed analytics and trends"
-    },
-    { 
-      id: "menu-analytics" as const, // New tab for menu analytics
-      label: "Menu Analytics", 
-      icon: BarChart3,
-      description: "Menu performance and profitability"
-    },
-    { 
-      id: "orders" as const, 
-      label: "Orders", 
-      icon: ShoppingCart,
-      description: "Order analytics and trends"
-    },
-    { 
-      id: "messages" as const, 
-      label: "Messages", 
-      icon: MessageSquare,
-      description: "Customer communication insights"
-    },
-    { 
-      id: "revenue" as const, 
-      label: "Revenue", 
-      icon: DollarSign,
-      description: "Financial performance analysis"
-    },
-    { 
-      id: "customers" as const, 
-      label: "Customers", 
-      icon: Users,
-      description: "Customer behavior and patterns"
-    },
-    { 
-      id: "export" as const, 
-      label: "Export", 
-      icon: Download,
-      description: "Export data for analysis"
-    },
-  ]
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  const timeRanges = [
-    { value: "1d", label: "Today" },
-    { value: "7d", label: "7 Days" },
-    { value: "30d", label: "30 Days" },
-    { value: "90d", label: "90 Days" },
-  ]
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    // Simulate refresh delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsRefreshing(false)
-  }
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack()
-    } else {
-      setActiveView("overview") // Fallback to overview if no onBack provided
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowTimeDropdown(false)
+      }
     }
-  }
 
-  const renderActiveView = () => {
-    switch (activeView) {
-      case "overview":
-        return <AnalyticsOverview timeRange={timeRange} />
-      case "analytics":
-        return (
-          <div className="space-y-6">
-            {/* Your existing analytics content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/20">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Total Orders</p>
-                    <p className="text-2xl font-bold text-white mt-2">1,247</p>
-                  </div>
-                  <ShoppingCart className="h-8 w-8 text-purple-400" />
-                </div>
-                <p className="text-xs text-green-400 mt-2">↑ 12% from last period</p>
-              </Card>
-              {/* ... other cards */}
-            </div>
-          </div>
-        )
-      case "menu-analytics":
-        // This will render your MenuAnalyticsComponent
-        return <MenuAnalyticsComponent onBack={handleBack} />
-      case "orders":
-        return <OrdersAnalytics timeRange={timeRange} />
-      case "messages":
-        return <MessagesAnalytics timeRange={timeRange} />
-      case "revenue":
-        return <RevenueAnalytics timeRange={timeRange} />
-      case "customers":
-        return <CustomerAnalytics timeRange={timeRange} />
-      case "export":
-        return <ExportData />
+    if (showTimeDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showTimeDropdown])
+
+  useEffect(() => {
+    setLastUpdated(new Date())
+  }, [activeTab, timeRange])
+
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    // Reduced refresh delay for better UX
+    setTimeout(() => {
+      setLoading(false)
+      setLastUpdated(new Date())
+    }, 300)
+  }, [])
+
+  // Memoized theme-based styling variables with white text
+  const themeStyles = useMemo(() => ({
+    mainPanelBg: isDark ? 'bg-[#111111]' : 'bg-gray-50',
+    cardBg: isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200',
+    textPrimary: 'text-white',
+    textSecondary: 'text-white',
+    buttonTheme: isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800',
+    activeTabBg: isDark ? 'bg-white text-white' : 'bg-black text-white',
+    inactiveTabBg: isDark ? 'bg-[#2a2a2a] text-white hover:bg-[#353535]' : 'bg-gray-100 text-white hover:bg-gray-200'
+  }), [isDark])
+
+  const renderActiveTab = useCallback(() => {
+    const commonProps = { timeRange }
+    
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewAnalytics {...commonProps} />
+      case 'orders':
+        return <OrdersAnalytics {...commonProps} />
+      case 'messages':
+        return <MessagesAnalytics {...commonProps} />
+      case 'revenue':
+        return <RevenueAnalytics {...commonProps} />
       default:
-        return <AnalyticsOverview timeRange={timeRange} />
+        return <OverviewAnalytics {...commonProps} />
     }
-  }
+  }, [activeTab, timeRange])
 
-  const getActiveViewInfo = () => {
-    return analyticsViews.find(view => view.id === activeView) || analyticsViews[0]
+  if (!themeLoaded || !mounted) {
+    return (
+      <div className={`flex-1 ${isDark ? 'bg-[#111111]' : 'bg-gray-50'} flex items-center justify-center transition-all duration-300`}>
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    )
   }
-
-  const activeViewInfo = getActiveViewInfo()
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              Analytics Dashboard
-            </h2>
-            <p className="text-gray-400">
-              {activeViewInfo.description} • {timeRanges.find(t => t.value === timeRange)?.label}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Time Range Selector - Only show for relevant views */}
-            {activeView !== "menu-analytics" && (
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(e.target.value)}
-                  className="bg-gray-700/50 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+    <div className={`flex-1 ${themeStyles.mainPanelBg} transition-colors duration-300`}>
+      <div className="p-6 space-y-4">
+        {/* Header with Box */}
+        <div className={`${themeStyles.cardBg} border p-8 mb-4`} style={{ borderRadius: '1.5rem' }}>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className={`text-3xl font-bold ${themeStyles.textPrimary} mb-1`}>Analytics Dashboard</h1>
+              <p className={`${themeStyles.textSecondary} text-sm`}>Comprehensive insights into your business performance</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Time Period Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${themeStyles.inactiveTabBg}`}
                 >
-                  {timeRanges.map((range) => (
-                    <option key={range.value} value={range.value}>
-                      {range.label}
-                    </option>
-                  ))}
-                </select>
+                  {timeRange === '1d' ? '1 Day' : 
+                   timeRange === '7d' ? '7 Days' : 
+                   timeRange === '30d' ? '30 Days' : '90 Days'}
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                
+                {showTimeDropdown && (
+                  <div className={`absolute top-full left-0 mt-1 w-32 ${themeStyles.cardBg} border rounded-lg shadow-lg z-50`}>
+                    {[
+                      { value: '1d', label: '1 Day' },
+                      { value: '7d', label: '7 Days' },
+                      { value: '30d', label: '30 Days' },
+                      { value: '90d', label: '90 Days' }
+                    ].map(({ value, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => {
+                          setTimeRange(value as any)
+                          setShowTimeDropdown(false)
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                          timeRange === value
+                            ? 'bg-blue-500 text-white'
+                            : `${themeStyles.textPrimary} hover:bg-gray-100`
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Refresh Button - Only show for non-menu-analytics views */}
-            {activeView !== "menu-analytics" && (
+              
+              {lastUpdated && (
+                <span className={`${themeStyles.textSecondary} text-xs`}>
+                  {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
               <button
                 onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-lg transition-all duration-200 disabled:opacity-50"
+                disabled={loading}
+                className={`${themeStyles.buttonTheme} px-3 py-1.5 rounded-lg flex items-center gap-1 text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50`}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
               </button>
-            )}
+            </div>
+          </div>
+
+          {/* Tab Navigation - Inside Header Box */}
+          <div className="flex justify-start mt-4 gap-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
+                activeTab === 'overview' 
+                  ? `${themeStyles.textPrimary} border-b-2 border-blue-500` 
+                  : `${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
+              }`}
+            >
+              <BarChart3 className="h-5 w-5 mr-3" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
+                activeTab === 'orders' 
+                  ? `${themeStyles.textPrimary} border-b-2 border-blue-500` 
+                  : `${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
+              }`}
+            >
+              <ShoppingCart className="h-5 w-5 mr-3" />
+              Orders
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
+                activeTab === 'messages' 
+                  ? `${themeStyles.textPrimary} border-b-2 border-blue-500` 
+                  : `${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
+              }`}
+            >
+              <MessageSquare className="h-5 w-5 mr-3" />
+              Messages
+            </button>
+            <button
+              onClick={() => setActiveTab('revenue')}
+              className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
+                activeTab === 'revenue' 
+                  ? `${themeStyles.textPrimary} border-b-2 border-blue-500` 
+                  : `${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
+              }`}
+            >
+              <DollarSign className="h-5 w-5 mr-3" />
+              Revenue
+            </button>
           </div>
         </div>
 
-        {/* Navigation Tabs - Only show when not in menu-analytics view */}
-        {activeView !== "menu-analytics" && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {analyticsViews.map((view) => (
-              <button
-                key={view.id}
-                onClick={() => setActiveView(view.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap ${
-                  activeView === view.id
-                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/25"
-                    : "bg-gray-700/30 text-gray-300 hover:bg-gray-600/30 hover:text-white"
-                }`}
-              >
-                <view.icon className="h-4 w-4" />
-                {view.label}
-              </button>
-            ))}
+        {/* Content with Suspense for lazy loading */}
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
           </div>
-        )}
-      </div>
-
-      {/* Main Content */}
-      <div className="min-h-[600px]">
-        {renderActiveView()}
+        }>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+            </div>
+          ) : (
+            renderActiveTab()
+          )}
+        </Suspense>
       </div>
     </div>
   )

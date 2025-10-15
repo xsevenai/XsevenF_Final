@@ -37,13 +37,13 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
     tableTurnover: "1.2x"
   }
 
-  // Theme-aware colors
+  // Theme-aware colors with white text
   const sidebarBg = isDark ? 'bg-[#171717]' : 'bg-white'
   const borderColor = isDark ? 'border-[#2a2a2a]' : 'border-gray-200'
   const cardBg = isDark ? 'bg-[#171717]' : 'bg-white'
   const innerCardBg = isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'
-  const textPrimary = isDark ? 'text-white' : 'text-gray-900'
-  const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
+  const textPrimary = 'text-white'
+  const textSecondary = 'text-white'
   const dropdownBg = isDark ? 'bg-[#1f1f1f]' : 'bg-white'
 
   // Close dropdown when clicking outside
@@ -142,8 +142,8 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
                   onClick={handleProfileSettings}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                     isDark 
-                      ? 'hover:bg-[#2a2a2a] text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                      ? 'hover:bg-[#2a2a2a] text-white hover:text-white'
+                      : 'hover:bg-gray-50 text-white hover:text-white'
                   }`}
                 >
                   <Settings className="h-5 w-5" />
@@ -154,8 +154,8 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
                   onClick={handleThemeToggle}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                     isDark 
-                      ? 'hover:bg-[#2a2a2a] text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                      ? 'hover:bg-[#2a2a2a] text-white hover:text-white'
+                      : 'hover:bg-gray-50 text-white hover:text-white'
                   }`}
                 >
                   {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -163,7 +163,7 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
                     <span className="font-medium text-sm">
                       {isDark ? 'Light Mode' : 'Dark Mode'}
                     </span>
-                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <span className="text-xs text-white">
                       Switch to {isDark ? 'light' : 'dark'} theme
                     </span>
                   </div>
@@ -175,8 +175,8 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
                   onClick={handleSignOut}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                     isDark 
-                      ? 'hover:bg-red-600/10 text-gray-300 hover:text-red-400'
-                      : 'hover:bg-red-50 text-gray-700 hover:text-red-600'
+                      ? 'hover:bg-red-600/10 text-white hover:text-white'
+                      : 'hover:bg-red-50 text-white hover:text-white'
                   }`}
                 >
                   <LogOut className="h-5 w-5" />
