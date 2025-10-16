@@ -41,14 +41,14 @@ export const useInventoryItems = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching inventory items with params:', params)
-      const data = await FoodHospitalityInventoryService.listInventoryItemsApiV1FoodInventoryItemsGet(
+      const data = await FoodHospitalityInventoryService.listInventoryItemsApiV1FoodInventoryItemsGet({
         businessId,
-        params?.location_id || null,
-        params?.category || null,
-        params?.low_stock_only || false,
-        params?.limit || 50,
-        params?.offset || 0
-      )
+        locationId: params?.location_id || null,
+        category: params?.category || null,
+        lowStockOnly: params?.low_stock_only || false,
+        limit: params?.limit || 50,
+        offset: params?.offset || 0
+      })
       console.log('Fetched inventory items:', data.length, 'items')
       setItems(data)
     } catch (err: any) {
@@ -64,7 +64,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newItem = await FoodHospitalityInventoryService.createInventoryItemApiV1FoodInventoryItemsPost(data)
+      const newItem = await FoodHospitalityInventoryService.createInventoryItemApiV1FoodInventoryItemsPost({ requestBody: data })
       setItems(prev => [newItem, ...prev])
       return newItem
     } catch (err: any) {
@@ -79,7 +79,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedItem = await FoodHospitalityInventoryService.updateInventoryItemApiV1FoodInventoryItemsItemIdPut(itemId, data)
+      const updatedItem = await FoodHospitalityInventoryService.updateInventoryItemApiV1FoodInventoryItemsItemIdPut({ itemId, requestBody: data })
       setItems(prev => prev.map(item => item.id === itemId ? updatedItem : item))
       return updatedItem
     } catch (err: any) {
@@ -94,7 +94,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      await FoodHospitalityInventoryService.deleteInventoryItemApiV1FoodInventoryItemsItemIdDelete(itemId)
+      await FoodHospitalityInventoryService.deleteInventoryItemApiV1FoodInventoryItemsItemIdDelete({ itemId })
       setItems(prev => prev.filter(item => item.id !== itemId))
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to delete inventory item'
@@ -116,7 +116,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const item = await FoodHospitalityInventoryService.getInventoryItemApiV1FoodInventoryItemsItemIdGet(itemId)
+      const item = await FoodHospitalityInventoryService.getInventoryItemApiV1FoodInventoryItemsItemIdGet({ itemId })
       return item
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get inventory item'
@@ -131,7 +131,7 @@ export const useInventoryItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const data = await FoodHospitalityInventoryService.searchInventoryItemsApiV1FoodInventoryItemsSearchPost(searchParams)
+      const data = await FoodHospitalityInventoryService.searchInventoryItemsApiV1FoodInventoryItemsSearchPost({ requestBody: searchParams })
       setItems(data)
       return data
     } catch (err: any) {
@@ -181,18 +181,18 @@ export const useLowStockItems = (businessId: string) => {
       configureAPI()
       
       // Fetch low stock items
-      const lowStockData = await FoodHospitalityInventoryService.listInventoryItemsApiV1FoodInventoryItemsGet(
+      const lowStockData = await FoodHospitalityInventoryService.listInventoryItemsApiV1FoodInventoryItemsGet({
         businessId,
-        null, // location_id
-        null, // category
-        true, // low_stock_only
-        50,   // limit
-        0     // offset
-      )
+        locationId: null,
+        category: null,
+        lowStockOnly: true,
+        limit: 50,
+        offset: 0
+      })
       setLowStockItems(lowStockData)
 
       // Fetch active alerts
-      const alertsData = await FoodHospitalityInventoryService.getActiveAlertsApiV1FoodInventoryAlertsActiveGet(businessId)
+      const alertsData = await FoodHospitalityInventoryService.getActiveAlertsApiV1FoodInventoryAlertsActiveGet({ businessId })
       setActiveAlerts(alertsData)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch low stock items')
@@ -206,7 +206,7 @@ export const useLowStockItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newAlert = await FoodHospitalityInventoryService.createStockAlertApiV1FoodInventoryAlertsPost(alertData)
+      const newAlert = await FoodHospitalityInventoryService.createStockAlertApiV1FoodInventoryAlertsPost({ requestBody: alertData })
       await fetchLowStockItems() // Refresh data
       return newAlert
     } catch (err: any) {
@@ -222,11 +222,11 @@ export const useLowStockItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const alerts = await FoodHospitalityInventoryService.listStockAlertsApiV1FoodInventoryAlertsGet(
+      const alerts = await FoodHospitalityInventoryService.listStockAlertsApiV1FoodInventoryAlertsGet({
         businessId,
         isActive,
         alertType
-      )
+      })
       return alerts
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to list stock alerts'
@@ -242,7 +242,7 @@ export const useLowStockItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedAlert = await FoodHospitalityInventoryService.updateStockAlertApiV1FoodInventoryAlertsAlertIdPut(alertId, isActive)
+      const updatedAlert = await FoodHospitalityInventoryService.updateStockAlertApiV1FoodInventoryAlertsAlertIdPut({ alertId, isActive })
       await fetchLowStockItems() // Refresh data
       return updatedAlert
     } catch (err: any) {
@@ -257,7 +257,7 @@ export const useLowStockItems = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.deleteStockAlertApiV1FoodInventoryAlertsAlertIdDelete(alertId)
+      const result = await FoodHospitalityInventoryService.deleteStockAlertApiV1FoodInventoryAlertsAlertIdDelete({ alertId })
       await fetchLowStockItems() // Refresh data
       return result
     } catch (err: any) {
@@ -297,7 +297,7 @@ export const useStockAdjustments = () => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.adjustStockApiV1FoodInventoryAdjustmentsPost(adjustment, performedBy)
+      const result = await FoodHospitalityInventoryService.adjustStockApiV1FoodInventoryAdjustmentsPost({ requestBody: adjustment, performedBy })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to adjust stock'
@@ -314,7 +314,7 @@ export const useStockAdjustments = () => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.performStockCountApiV1FoodInventoryCountPost(businessId, locationId, counts)
+      const result = await FoodHospitalityInventoryService.performStockCountApiV1FoodInventoryCountPost({ businessId, locationId, requestBody: counts })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to perform stock count'
@@ -346,7 +346,7 @@ export const useSuppliers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const data = await FoodHospitalityInventoryService.listSuppliersApiV1FoodInventorySuppliersGet(businessId, isActive)
+      const data = await FoodHospitalityInventoryService.listSuppliersApiV1FoodInventorySuppliersGet({ businessId, isActive })
       setSuppliers(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch suppliers')
@@ -361,7 +361,7 @@ export const useSuppliers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newSupplier = await FoodHospitalityInventoryService.createSupplierApiV1FoodInventorySuppliersPost(data)
+      const newSupplier = await FoodHospitalityInventoryService.createSupplierApiV1FoodInventorySuppliersPost({ requestBody: data })
       setSuppliers(prev => [newSupplier, ...prev])
       return newSupplier
     } catch (err: any) {
@@ -376,7 +376,7 @@ export const useSuppliers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedSupplier = await FoodHospitalityInventoryService.updateSupplierApiV1FoodInventorySuppliersSupplierIdPut(supplierId, data)
+      const updatedSupplier = await FoodHospitalityInventoryService.updateSupplierApiV1FoodInventorySuppliersSupplierIdPut({ supplierId, requestBody: data })
       setSuppliers(prev => prev.map(supplier => supplier.id === supplierId ? updatedSupplier : supplier))
       return updatedSupplier
     } catch (err: any) {
@@ -391,7 +391,7 @@ export const useSuppliers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const supplier = await FoodHospitalityInventoryService.getSupplierApiV1FoodInventorySuppliersSupplierIdGet(supplierId)
+      const supplier = await FoodHospitalityInventoryService.getSupplierApiV1FoodInventorySuppliersSupplierIdGet({ supplierId })
       return supplier
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get supplier'
@@ -405,7 +405,7 @@ export const useSuppliers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      await FoodHospitalityInventoryService.deleteSupplierApiV1FoodInventorySuppliersSupplierIdDelete(supplierId)
+      await FoodHospitalityInventoryService.deleteSupplierApiV1FoodInventorySuppliersSupplierIdDelete({ supplierId })
       setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId))
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to delete supplier'
@@ -449,13 +449,13 @@ export const usePurchaseOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const data = await FoodHospitalityInventoryService.listPurchaseOrdersApiV1FoodInventoryPurchaseOrdersGet(
+      const data = await FoodHospitalityInventoryService.listPurchaseOrdersApiV1FoodInventoryPurchaseOrdersGet({
         businessId,
-        filters?.supplier_id,
-        filters?.status,
-        filters?.start_date,
-        filters?.end_date
-      )
+        supplierId: filters?.supplier_id,
+        status: filters?.status,
+        startDate: filters?.start_date,
+        endDate: filters?.end_date
+      })
       setPurchaseOrders(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch purchase orders')
@@ -472,7 +472,7 @@ export const usePurchaseOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newPO = await FoodHospitalityInventoryService.createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost(data, createdBy)
+      const newPO = await FoodHospitalityInventoryService.createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost({ requestBody: data, createdBy })
       console.log('API: Purchase order created successfully:', newPO)
       setPurchaseOrders(prev => [newPO, ...prev])
       return newPO
@@ -496,7 +496,7 @@ export const usePurchaseOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedPO = await FoodHospitalityInventoryService.updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut(poId, data)
+      const updatedPO = await FoodHospitalityInventoryService.updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut({ poId, requestBody: data })
       setPurchaseOrders(prev => prev.map(po => po.id === poId ? updatedPO : po))
       return updatedPO
     } catch (err: any) {
@@ -511,7 +511,7 @@ export const usePurchaseOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const purchaseOrder = await FoodHospitalityInventoryService.getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet(poId)
+      const purchaseOrder = await FoodHospitalityInventoryService.getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet({ poId })
       return purchaseOrder
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get purchase order'
@@ -525,7 +525,7 @@ export const usePurchaseOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.receivePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdReceivePost(poId, receivedItems)
+      const result = await FoodHospitalityInventoryService.receivePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdReceivePost({ poId, requestBody: receivedItems })
       await fetchPurchaseOrders() // Refresh data
       return result
     } catch (err: any) {
@@ -572,15 +572,15 @@ export const useInventoryTransactions = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const data = await FoodHospitalityInventoryService.listInventoryTransactionsApiV1FoodInventoryTransactionsGet(
+      const data = await FoodHospitalityInventoryService.listInventoryTransactionsApiV1FoodInventoryTransactionsGet({
         businessId,
-        filters?.inventory_item_id,
-        filters?.transaction_type,
-        filters?.start_date,
-        filters?.end_date,
-        filters?.limit || 50,
-        filters?.offset || 0
-      )
+        inventoryItemId: filters?.inventory_item_id,
+        transactionType: filters?.transaction_type,
+        startDate: filters?.start_date,
+        endDate: filters?.end_date,
+        limit: filters?.limit || 50,
+        offset: filters?.offset || 0
+      })
       setTransactions(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch inventory transactions')
@@ -615,7 +615,7 @@ export const useInventoryReports = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const summary = await FoodHospitalityInventoryService.getInventorySummaryApiV1FoodInventoryReportsSummaryGet(businessId, locationId)
+      const summary = await FoodHospitalityInventoryService.getInventorySummaryApiV1FoodInventoryReportsSummaryGet({ businessId, locationId })
       return summary
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get inventory summary'
@@ -632,11 +632,11 @@ export const useInventoryReports = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const valuation = await FoodHospitalityInventoryService.getInventoryValuationApiV1FoodInventoryReportsValuationGet(
+      const valuation = await FoodHospitalityInventoryService.getInventoryValuationApiV1FoodInventoryReportsValuationGet({
         businessId,
         locationId,
         asOfDate
-      )
+      })
       return valuation
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get inventory valuation'
@@ -653,7 +653,7 @@ export const useInventoryReports = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const turnover = await FoodHospitalityInventoryService.getInventoryTurnoverApiV1FoodInventoryReportsTurnoverGet(businessId, periodDays)
+      const turnover = await FoodHospitalityInventoryService.getInventoryTurnoverApiV1FoodInventoryReportsTurnoverGet({ businessId, periodDays })
       return turnover
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get inventory turnover'
@@ -670,11 +670,11 @@ export const useInventoryReports = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const wasteReport = await FoodHospitalityInventoryService.getWasteReportApiV1FoodInventoryReportsWasteGet(
+      const wasteReport = await FoodHospitalityInventoryService.getWasteReportApiV1FoodInventoryReportsWasteGet({
         businessId,
         startDate,
         endDate
-      )
+      })
       return wasteReport
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get waste report'
@@ -785,7 +785,7 @@ export const useAutoReorder = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.triggerAutoReorderApiV1FoodInventoryAutoReorderPost(businessId, dryRun)
+      const result = await FoodHospitalityInventoryService.triggerAutoReorderApiV1FoodInventoryAutoReorderPost({ businessId, dryRun })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to trigger auto-reorder'
@@ -815,7 +815,7 @@ export const usePosSync = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const result = await FoodHospitalityInventoryService.syncFromPosApiV1FoodInventorySyncFromPosPost(businessId, posSystem)
+      const result = await FoodHospitalityInventoryService.syncFromPosApiV1FoodInventorySyncFromPosPost({ businessId, posSystem })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to sync from POS'

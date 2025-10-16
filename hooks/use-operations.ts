@@ -45,10 +45,10 @@ export const useLocations = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching locations for business:', businessId)
-      const data = await FoodHospitalityOperationsService.listLocationsApiV1FoodLocationsGet(
+      const data = await FoodHospitalityOperationsService.listLocationsApiV1FoodLocationsGet({
         businessId,
         isActive
-      )
+      })
       console.log('Fetched locations:', data.length, 'locations')
       setLocations(data)
     } catch (err: any) {
@@ -64,7 +64,9 @@ export const useLocations = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newLocation = await FoodHospitalityOperationsService.createLocationApiV1FoodLocationsPost(data)
+      const newLocation = await FoodHospitalityOperationsService.createLocationApiV1FoodLocationsPost({
+        requestBody: data
+      })
       setLocations(prev => [newLocation, ...prev])
       return newLocation
     } catch (err: any) {
@@ -79,7 +81,10 @@ export const useLocations = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedLocation = await FoodHospitalityOperationsService.updateLocationApiV1FoodLocationsLocationIdPut(locationId, data)
+      const updatedLocation = await FoodHospitalityOperationsService.updateLocationApiV1FoodLocationsLocationIdPut({
+        locationId,
+        requestBody: data
+      })
       setLocations(prev => prev.map(location => location.id === locationId ? updatedLocation : location))
       return updatedLocation
     } catch (err: any) {
@@ -94,7 +99,9 @@ export const useLocations = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const location = await FoodHospitalityOperationsService.getLocationApiV1FoodLocationsLocationIdGet(locationId)
+      const location = await FoodHospitalityOperationsService.getLocationApiV1FoodLocationsLocationIdGet({
+        locationId
+      })
       return location
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get location'
@@ -133,10 +140,10 @@ export const useFloorPlans = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching floor plans for business:', businessId, 'location:', locationId)
-      const data = await FoodHospitalityOperationsService.listFloorPlansApiV1FoodFloorPlansGet(
+      const data = await FoodHospitalityOperationsService.listFloorPlansApiV1FoodFloorPlansGet({
         businessId,
-        locationId || null
-      )
+        locationId: locationId || null
+      })
       console.log('Fetched floor plans:', data.length, 'plans')
       setFloorPlans(data)
     } catch (err: any) {
@@ -152,7 +159,9 @@ export const useFloorPlans = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newFloorPlan = await FoodHospitalityOperationsService.createFloorPlanApiV1FoodFloorPlansPost(data)
+      const newFloorPlan = await FoodHospitalityOperationsService.createFloorPlanApiV1FoodFloorPlansPost({
+        requestBody: data
+      })
       setFloorPlans(prev => [newFloorPlan, ...prev])
       return newFloorPlan
     } catch (err: any) {
@@ -167,7 +176,10 @@ export const useFloorPlans = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedFloorPlan = await FoodHospitalityOperationsService.updateFloorPlanApiV1FoodFloorPlansPlanIdPut(planId, data)
+      const updatedFloorPlan = await FoodHospitalityOperationsService.updateFloorPlanApiV1FoodFloorPlansPlanIdPut({
+        planId,
+        requestBody: data
+      })
       setFloorPlans(prev => prev.map(plan => plan.id === planId ? updatedFloorPlan : plan))
       return updatedFloorPlan
     } catch (err: any) {
@@ -182,7 +194,9 @@ export const useFloorPlans = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const floorPlan = await FoodHospitalityOperationsService.getFloorPlanApiV1FoodFloorPlansPlanIdGet(planId)
+      const floorPlan = await FoodHospitalityOperationsService.getFloorPlanApiV1FoodFloorPlansPlanIdGet({
+        planId
+      })
       return floorPlan
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get floor plan'
@@ -226,12 +240,12 @@ export const useTables = (businessId: string) => {
       
       console.log('Fetching tables with params:', params)
       console.log('Business ID:', businessId)
-      const data = await FoodHospitalityOperationsService.listTablesApiV1FoodTablesGet(
+      const data = await FoodHospitalityOperationsService.listTablesApiV1FoodTablesGet({
         businessId,
-        params?.location_id || null,
-        params?.status || null,
-        params?.include_details !== false
-      )
+        locationId: params?.location_id || null,
+        status: params?.status || null,
+        includeDetails: params?.include_details !== false
+      })
       console.log('Fetched tables:', data.length, 'tables')
       console.log('Tables data:', data)
       setTables(data)
@@ -260,14 +274,14 @@ export const useTables = (businessId: string) => {
       const requestData = {
         ...data,
         business_id: businessId, // Add business_id to the request body
-        table_number: parseInt(data.table_number.toString()),
+        table_number: data.table_number.toString(), // Convert to string
     }
       
       console.log('Request data with business_id:', requestData)
       
-      const newTable = await FoodHospitalityOperationsService.createTableApiV1FoodTablesPost(
-        requestData  // ← Only pass one argument - the complete data object
-      )
+      const newTable = await FoodHospitalityOperationsService.createTableApiV1FoodTablesPost({
+        requestBody: requestData
+      })
       
       console.log('Create table response:', newTable)
       setTables(prev => [newTable, ...prev])
@@ -288,7 +302,10 @@ export const useTables = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedTable = await FoodHospitalityOperationsService.updateTableApiV1FoodTablesTableIdPut(tableId, data)
+      const updatedTable = await FoodHospitalityOperationsService.updateTableApiV1FoodTablesTableIdPut({
+        tableId,
+        requestBody: data
+      })
       setTables(prev => prev.map(table => table.id === tableId ? updatedTable : table))
       return updatedTable
     } catch (err: any) {
@@ -303,14 +320,24 @@ export const useTables = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const table = await FoodHospitalityOperationsService.getTableApiV1FoodTablesTableIdGet(tableId)
+      // Since there's no individual getTable method, we'll fetch all tables and filter
+      const tables = await FoodHospitalityOperationsService.listTablesApiV1FoodTablesGet({
+        businessId,
+        locationId: null,
+        status: null,
+        includeDetails: true
+      })
+      const table = tables.find(t => t.id === tableId)
+      if (!table) {
+        throw new Error('Table not found')
+      }
       return table
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get table'
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [])
+  }, [businessId])
 
   const assignTable = useCallback(async (assignment: TableAssignment) => {
     try {
@@ -327,7 +354,9 @@ export const useTables = (businessId: string) => {
       
       console.log('🎯 Sending assignment data:', formattedAssignment)
       
-      const result = await FoodHospitalityOperationsService.assignTableApiV1FoodTablesAssignPost(formattedAssignment)
+      const result = await FoodHospitalityOperationsService.assignTableApiV1FoodTablesAssignPost({
+        requestBody: formattedAssignment
+      })
       
       // Immediately update the table status to "occupied" in the frontend state
       setTables(prev => prev.map(table => 
@@ -357,7 +386,9 @@ export const useTables = (businessId: string) => {
       configureAPI()
       
       console.log('🔄 Releasing table:', tableId)
-      const result = await FoodHospitalityOperationsService.releaseTableApiV1FoodTablesTableIdReleasePost(tableId)
+      const result = await FoodHospitalityOperationsService.releaseTableApiV1FoodTablesTableIdReleasePost({
+        tableId
+      })
       
       // Immediately update the table status to "available" in the frontend state
       setTables(prev => prev.map(table => 
@@ -393,12 +424,12 @@ export const useTables = (businessId: string) => {
       console.log('Business ID:', businessId)
       console.log('Party size type:', typeof params.party_size, 'value:', params.party_size)
       
-      const availableTables = await FoodHospitalityOperationsService.checkTableAvailabilityApiV1FoodTablesAvailabilityGet(
+      const availableTables = await FoodHospitalityOperationsService.checkTableAvailabilityApiV1FoodTablesAvailabilityGet({
         businessId,
-        params.party_size.toString() as any,
-        params.location_id || null,
-        params.time_slot || null
-      )
+        partySize: params.party_size.toString() as any,
+        locationId: params.location_id || null,
+        timeSlot: params.time_slot || null
+      })
       console.log('Available tables:', availableTables)
       return availableTables
     } catch (err: any) {
@@ -456,12 +487,12 @@ export const useKDSOrders = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching KDS orders with params:', params)
-      const data = await FoodHospitalityOperationsService.listKdsOrdersApiV1FoodKdsOrdersGet(
+      const data = await FoodHospitalityOperationsService.listKdsOrdersApiV1FoodKdsOrdersGet({
         businessId,
-        params?.station || null,
-        params?.status || null,
-        params?.active_only !== false
-      )
+        station: params?.station || null,
+        status: params?.status || null,
+        activeOnly: params?.active_only !== false
+      })
       console.log('Fetched KDS orders:', data.length, 'orders')
       setKdsOrders(data)
     } catch (err: any) {
@@ -477,7 +508,9 @@ export const useKDSOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newKDSOrder = await FoodHospitalityOperationsService.createKdsOrderApiV1FoodKdsOrdersPost(data)
+      const newKDSOrder = await FoodHospitalityOperationsService.createKdsOrderApiV1FoodKdsOrdersPost({
+        requestBody: data
+      })
       setKdsOrders(prev => [newKDSOrder, ...prev])
       return newKDSOrder
     } catch (err: any) {
@@ -492,7 +525,10 @@ export const useKDSOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedKDSOrder = await FoodHospitalityOperationsService.updateKdsOrderApiV1FoodKdsOrdersOrderIdPut(orderId, data)
+      const updatedKDSOrder = await FoodHospitalityOperationsService.updateKdsOrderApiV1FoodKdsOrdersOrderIdPut({
+        orderId,
+        requestBody: data
+      })
       setKdsOrders(prev => prev.map(order => order.id === orderId ? updatedKDSOrder : order))
       return updatedKDSOrder
     } catch (err: any) {
@@ -507,7 +543,9 @@ export const useKDSOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const kdsOrder = await FoodHospitalityOperationsService.getKdsOrderApiV1FoodKdsOrdersOrderIdGet(orderId)
+      const kdsOrder = await FoodHospitalityOperationsService.getKdsOrderApiV1FoodKdsOrdersOrderIdGet({
+        orderId
+      })
       return kdsOrder
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get KDS order'
@@ -521,11 +559,11 @@ export const useKDSOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const performance = await FoodHospitalityOperationsService.getKitchenPerformanceApiV1FoodKdsPerformanceGet(
+      const performance = await FoodHospitalityOperationsService.getKitchenPerformanceApiV1FoodKdsPerformanceGet({
         businessId,
-        startDate || null,
-        endDate || null
-      )
+        startDate: startDate || null,
+        endDate: endDate || null
+      })
       return performance
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get kitchen performance'
@@ -568,11 +606,11 @@ export const useStaffMembers = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching staff members with params:', params)
-      const data = await FoodHospitalityOperationsService.listStaffMembersApiV1FoodStaffGet(
+      const data = await FoodHospitalityOperationsService.listStaffMembersApiV1FoodStaffMembersGet({
         businessId,
-        params?.status || null,
-        params?.position || null
-      )
+        status: params?.status || null,
+        position: params?.position || null
+      })
       console.log('Fetched staff members:', data.length, 'members')
       setStaffMembers(data)
     } catch (err: any) {
@@ -591,7 +629,9 @@ export const useStaffMembers = (businessId: string) => {
       console.log('🔄 Sending staff creation request:', data)
       
       // Use the new endpoint
-      const newStaffMember = await FoodHospitalityOperationsService.createStaffMemberApiV1FoodStaffPost(businessId, data)
+      const newStaffMember = await FoodHospitalityOperationsService.createStaffMemberApiV1FoodStaffMembersPost({
+        requestBody: data
+      })
       
       setStaffMembers(prev => [newStaffMember, ...prev])
       return newStaffMember
@@ -608,7 +648,10 @@ export const useStaffMembers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedStaffMember = await FoodHospitalityOperationsService.updateStaffMemberApiV1FoodStaffStaffIdPut(staffId, data)
+      const updatedStaffMember = await FoodHospitalityOperationsService.updateStaffMemberApiV1FoodStaffStaffIdPut({
+        staffId,
+        requestBody: data
+      })
       setStaffMembers(prev => prev.map(staff => staff.id === staffId ? updatedStaffMember : staff))
       return updatedStaffMember
     } catch (err: any) {
@@ -623,7 +666,9 @@ export const useStaffMembers = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const staffMember = await FoodHospitalityOperationsService.getStaffMemberApiV1FoodStaffStaffIdGet(staffId)
+      const staffMember = await FoodHospitalityOperationsService.getStaffMemberApiV1FoodStaffStaffIdGet({
+        staffId
+      })
       return staffMember
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get staff member'
@@ -666,12 +711,12 @@ export const useStaffSchedules = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching schedules with params:', params)
-      const data = await FoodHospitalityOperationsService.listSchedulesApiV1FoodSchedulesGet(
+      const data = await FoodHospitalityOperationsService.listSchedulesApiV1FoodSchedulesGet({
         businessId,
-        params?.staff_id || null,
-        params?.start_date || null,
-        params?.end_date || null
-      )
+        staffId: params?.staff_id || null,
+        startDate: params?.start_date || null,
+        endDate: params?.end_date || null
+      })
       console.log('Fetched schedules:', data.length, 'schedules')
       setSchedules(data)
     } catch (err: any) {
@@ -687,7 +732,9 @@ export const useStaffSchedules = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const newSchedule = await FoodHospitalityOperationsService.createScheduleApiV1FoodSchedulesPost(data)
+      const newSchedule = await FoodHospitalityOperationsService.createScheduleApiV1FoodSchedulesPost({
+        requestBody: data
+      })
       setSchedules(prev => [newSchedule, ...prev])
       return newSchedule
     } catch (err: any) {
@@ -702,7 +749,10 @@ export const useStaffSchedules = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const updatedSchedule = await FoodHospitalityOperationsService.updateScheduleApiV1FoodSchedulesScheduleIdPut(scheduleId, data)
+      const updatedSchedule = await FoodHospitalityOperationsService.updateScheduleApiV1FoodSchedulesScheduleIdPut({
+        scheduleId,
+        requestBody: data
+      })
       setSchedules(prev => prev.map(schedule => schedule.id === scheduleId ? updatedSchedule : schedule))
       return updatedSchedule
     } catch (err: any) {
@@ -717,7 +767,9 @@ export const useStaffSchedules = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      await FoodHospitalityOperationsService.deleteScheduleApiV1FoodSchedulesScheduleIdDelete(scheduleId)
+      await FoodHospitalityOperationsService.deleteScheduleApiV1FoodSchedulesScheduleIdDelete({
+        scheduleId
+      })
       setSchedules(prev => prev.filter(schedule => schedule.id !== scheduleId))
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to delete schedule'
@@ -761,12 +813,12 @@ export const useTimeClock = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching time clock entries with params:', params)
-      const data = await FoodHospitalityOperationsService.listTimeClockEntriesApiV1FoodTimeClockGet(
+      const data = await FoodHospitalityOperationsService.listTimeClockEntriesApiV1FoodTimeClockGet({
         businessId,
-        params?.staff_id || null,
-        params?.start_date || null,
-        params?.end_date || null
-      )
+        staffId: params?.staff_id || null,
+        startDate: params?.start_date || null,
+        endDate: params?.end_date || null
+      })
       console.log('Fetched time clock entries:', data.length, 'entries')
       setTimeClockEntries(data)
     } catch (err: any) {
@@ -782,7 +834,9 @@ export const useTimeClock = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const data = await FoodHospitalityOperationsService.getClockedInStaffApiV1FoodTimeClockActiveGet(businessId)
+      const data = await FoodHospitalityOperationsService.getClockedInStaffApiV1FoodTimeClockActiveGet({
+        businessId
+      })
       console.log('Fetched clocked-in staff:', data.length, 'staff')
       setClockedInStaff(data)
     } catch (err: any) {
@@ -796,7 +850,9 @@ export const useTimeClock = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const clockInEntry = await FoodHospitalityOperationsService.clockInApiV1FoodTimeClockClockInPost(data)
+      const clockInEntry = await FoodHospitalityOperationsService.clockInApiV1FoodTimeClockClockInPost({
+        requestBody: data
+      })
       await fetchClockedInStaff() // Refresh clocked-in staff
       return clockInEntry
     } catch (err: any) {
@@ -811,10 +867,10 @@ export const useTimeClock = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const clockOutEntry = await FoodHospitalityOperationsService.clockOutApiV1FoodTimeClockClockIdClockOutPut(
+      const clockOutEntry = await FoodHospitalityOperationsService.clockOutApiV1FoodTimeClockClockIdClockOutPut({
         clockId,
-        clockOutTime || null
-      )
+        clockOutTime: clockOutTime || null
+      })
       await fetchClockedInStaff() // Refresh clocked-in staff
       return clockOutEntry
     } catch (err: any) {
@@ -856,10 +912,10 @@ export const useOperationsDashboard = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching operations dashboard for business:', businessId, 'location:', locationId)
-      const data = await FoodHospitalityOperationsService.getOperationsDashboardApiV1FoodDashboardBusinessIdGet(
+      const data = await FoodHospitalityOperationsService.getOperationsDashboardApiV1FoodDashboardBusinessIdGet({
         businessId,
-        locationId || null
-      )
+        locationId: locationId || null
+      })
       console.log('Fetched operations dashboard:', data)
       setDashboard(data)
     } catch (err: any) {
@@ -895,11 +951,11 @@ export const useOperationsAnalytics = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const turnoverData = await FoodHospitalityOperationsService.analyzeTableTurnoverApiV1FoodAnalyticsTableTurnoverGet(
+      const turnoverData = await FoodHospitalityOperationsService.analyzeTableTurnoverApiV1FoodAnalyticsTableTurnoverGet({
         businessId,
         startDate,
         endDate
-      )
+      })
       return turnoverData
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to analyze table turnover'
@@ -916,11 +972,11 @@ export const useOperationsAnalytics = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const laborData = await FoodHospitalityOperationsService.analyzeLaborCostsApiV1FoodAnalyticsLaborCostsGet(
+      const laborData = await FoodHospitalityOperationsService.analyzeLaborCostsApiV1FoodAnalyticsLaborCostsGet({
         businessId,
         startDate,
         endDate
-      )
+      })
       return laborData
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to analyze labor costs'

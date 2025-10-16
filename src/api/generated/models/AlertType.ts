@@ -5,9 +5,4 @@
 /**
  * Stock alert types
  */
-export enum AlertType {
-    LOW_STOCK = 'low_stock',
-    OUT_OF_STOCK = 'out_of_stock',
-    EXPIRING = 'expiring',
-    OVERSTOCKED = 'overstocked',
-}
+export type AlertType = 'low_stock' | 'out_of_stock' | 'expiring' | 'overstocked';

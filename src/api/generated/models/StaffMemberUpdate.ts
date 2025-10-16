@@ -13,7 +13,7 @@ export type StaffMemberUpdate = {
     phone?: (string | null);
     position?: (string | null);
     department?: (string | null);
-    hourly_rate?: (number | string | null);
+    hourly_rate?: (string | number | null);
     hire_date?: (string | null);
     status?: (string | null);
     permissions?: (Array<string> | null);

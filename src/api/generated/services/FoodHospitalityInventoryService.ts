@@ -29,13 +29,14 @@ export class FoodHospitalityInventoryService {
      * - **Stock tracking**: Real-time stock levels
      * - **Reorder points**: Automatic low-stock alerts
      * - **Multi-location**: Track inventory per location
-     * @param requestBody
      * @returns InventoryItem Successful Response
      * @throws ApiError
      */
-    public static createInventoryItemApiV1FoodInventoryItemsPost(
+    public static createInventoryItemApiV1FoodInventoryItemsPost({
+        requestBody,
+    }: {
         requestBody: InventoryItemCreate,
-    ): CancelablePromise<InventoryItem> {
+    }): CancelablePromise<InventoryItem> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/items',
@@ -52,23 +53,27 @@ export class FoodHospitalityInventoryService {
      *
      * - **Metrics**: Stock percentage, value, reorder status
      * - **Filtering**: By location, category, stock level
-     * @param businessId Business ID
-     * @param locationId
-     * @param category
-     * @param lowStockOnly
-     * @param limit
-     * @param offset
      * @returns InventoryItemWithMetrics Successful Response
      * @throws ApiError
      */
-    public static listInventoryItemsApiV1FoodInventoryItemsGet(
+    public static listInventoryItemsApiV1FoodInventoryItemsGet({
+        businessId,
+        locationId,
+        category,
+        lowStockOnly = false,
+        limit = 50,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
         locationId?: (string | null),
         category?: (string | null),
-        lowStockOnly: boolean = false,
-        limit: number = 50,
+        lowStockOnly?: boolean,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<InventoryItemWithMetrics>> {
+    }): CancelablePromise<Array<InventoryItemWithMetrics>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/items',
@@ -88,13 +93,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Search Inventory Items
      * Advanced inventory search with multiple filters
-     * @param requestBody
      * @returns InventoryItemWithMetrics Successful Response
      * @throws ApiError
      */
-    public static searchInventoryItemsApiV1FoodInventoryItemsSearchPost(
+    public static searchInventoryItemsApiV1FoodInventoryItemsSearchPost({
+        requestBody,
+    }: {
         requestBody: InventorySearch,
-    ): CancelablePromise<Array<InventoryItemWithMetrics>> {
+    }): CancelablePromise<Array<InventoryItemWithMetrics>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/items/search',
@@ -108,13 +114,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Get Inventory Item
      * Get inventory item with full metrics
-     * @param itemId
      * @returns InventoryItemWithMetrics Successful Response
      * @throws ApiError
      */
-    public static getInventoryItemApiV1FoodInventoryItemsItemIdGet(
+    public static getInventoryItemApiV1FoodInventoryItemsItemIdGet({
+        itemId,
+    }: {
         itemId: string,
-    ): CancelablePromise<InventoryItemWithMetrics> {
+    }): CancelablePromise<InventoryItemWithMetrics> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/items/{item_id}',
@@ -129,15 +136,16 @@ export class FoodHospitalityInventoryService {
     /**
      * Update Inventory Item
      * Update inventory item
-     * @param itemId
-     * @param requestBody
      * @returns InventoryItem Successful Response
      * @throws ApiError
      */
-    public static updateInventoryItemApiV1FoodInventoryItemsItemIdPut(
+    public static updateInventoryItemApiV1FoodInventoryItemsItemIdPut({
+        itemId,
+        requestBody,
+    }: {
         itemId: string,
         requestBody: InventoryItemUpdate,
-    ): CancelablePromise<InventoryItem> {
+    }): CancelablePromise<InventoryItem> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/inventory/items/{item_id}',
@@ -154,13 +162,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Delete Inventory Item
      * Delete inventory item
-     * @param itemId
      * @returns void
      * @throws ApiError
      */
-    public static deleteInventoryItemApiV1FoodInventoryItemsItemIdDelete(
+    public static deleteInventoryItemApiV1FoodInventoryItemsItemIdDelete({
+        itemId,
+    }: {
         itemId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/food/inventory/items/{item_id}',
@@ -179,15 +188,16 @@ export class FoodHospitalityInventoryService {
      * - **Audit trail**: All adjustments logged
      * - **Reasons**: Track why stock was adjusted
      * - **Real-time**: Immediate stock level update
-     * @param requestBody
-     * @param performedBy
      * @returns InventoryTransaction Successful Response
      * @throws ApiError
      */
-    public static adjustStockApiV1FoodInventoryAdjustmentsPost(
+    public static adjustStockApiV1FoodInventoryAdjustmentsPost({
+        requestBody,
+        performedBy,
+    }: {
         requestBody: StockAdjustment,
         performedBy?: (string | null),
-    ): CancelablePromise<InventoryTransaction> {
+    }): CancelablePromise<InventoryTransaction> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/adjustments',
@@ -208,25 +218,26 @@ export class FoodHospitalityInventoryService {
      * - **Complete history**: All stock movements
      * - **Filtering**: By item, type, date range
      * - **Compliance**: Full audit trail for accounting
-     * @param businessId
-     * @param inventoryItemId
-     * @param transactionType
-     * @param startDate
-     * @param endDate
-     * @param limit
-     * @param offset
      * @returns InventoryTransaction Successful Response
      * @throws ApiError
      */
-    public static listInventoryTransactionsApiV1FoodInventoryTransactionsGet(
+    public static listInventoryTransactionsApiV1FoodInventoryTransactionsGet({
+        businessId,
+        inventoryItemId,
+        transactionType,
+        startDate,
+        endDate,
+        limit = 50,
+        offset,
+    }: {
         businessId: string,
         inventoryItemId?: (string | null),
         transactionType?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-        limit: number = 50,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<InventoryTransaction>> {
+    }): CancelablePromise<Array<InventoryTransaction>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/transactions',
@@ -251,17 +262,18 @@ export class FoodHospitalityInventoryService {
      * - **Reconciliation**: Compare counted vs. system stock
      * - **Discrepancies**: Identify and log differences
      * - **Adjustments**: Auto-create adjustment transactions
-     * @param businessId
-     * @param locationId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static performStockCountApiV1FoodInventoryCountPost(
+    public static performStockCountApiV1FoodInventoryCountPost({
+        businessId,
+        locationId,
+        requestBody,
+    }: {
         businessId: string,
         locationId?: (string | null),
         requestBody?: Array<Record<string, any>>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/count',
@@ -283,13 +295,14 @@ export class FoodHospitalityInventoryService {
      * - **Alert types**: Low stock, out of stock, expiring
      * - **Thresholds**: Customizable per item
      * - **Notifications**: Email/SMS when triggered
-     * @param requestBody
      * @returns StockAlert Successful Response
      * @throws ApiError
      */
-    public static createStockAlertApiV1FoodInventoryAlertsPost(
+    public static createStockAlertApiV1FoodInventoryAlertsPost({
+        requestBody,
+    }: {
         requestBody: StockAlertCreate,
-    ): CancelablePromise<StockAlert> {
+    }): CancelablePromise<StockAlert> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/alerts',
@@ -303,17 +316,18 @@ export class FoodHospitalityInventoryService {
     /**
      * List Stock Alerts
      * List all stock alerts
-     * @param businessId
-     * @param isActive
-     * @param alertType
      * @returns StockAlert Successful Response
      * @throws ApiError
      */
-    public static listStockAlertsApiV1FoodInventoryAlertsGet(
+    public static listStockAlertsApiV1FoodInventoryAlertsGet({
+        businessId,
+        isActive,
+        alertType,
+    }: {
         businessId: string,
         isActive?: (boolean | null),
         alertType?: (string | null),
-    ): CancelablePromise<Array<StockAlert>> {
+    }): CancelablePromise<Array<StockAlert>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/alerts',
@@ -334,13 +348,14 @@ export class FoodHospitalityInventoryService {
      * - **Real-time**: Items currently below threshold
      * - **Priority**: Sorted by severity
      * - **Actionable**: Direct links to reorder
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getActiveAlertsApiV1FoodInventoryAlertsActiveGet(
+    public static getActiveAlertsApiV1FoodInventoryAlertsActiveGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Array<Record<string, any>>> {
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/alerts/active',
@@ -355,15 +370,16 @@ export class FoodHospitalityInventoryService {
     /**
      * Update Stock Alert
      * Enable/disable stock alert
-     * @param alertId
-     * @param isActive
      * @returns StockAlert Successful Response
      * @throws ApiError
      */
-    public static updateStockAlertApiV1FoodInventoryAlertsAlertIdPut(
+    public static updateStockAlertApiV1FoodInventoryAlertsAlertIdPut({
+        alertId,
+        isActive,
+    }: {
         alertId: string,
         isActive: boolean,
-    ): CancelablePromise<StockAlert> {
+    }): CancelablePromise<StockAlert> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/inventory/alerts/{alert_id}',
@@ -381,13 +397,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Delete Stock Alert
      * Delete stock alert
-     * @param alertId
      * @returns void
      * @throws ApiError
      */
-    public static deleteStockAlertApiV1FoodInventoryAlertsAlertIdDelete(
+    public static deleteStockAlertApiV1FoodInventoryAlertsAlertIdDelete({
+        alertId,
+    }: {
         alertId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/food/inventory/alerts/{alert_id}',
@@ -402,13 +419,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Create Supplier
      * Create new supplier
-     * @param requestBody
      * @returns Supplier Successful Response
      * @throws ApiError
      */
-    public static createSupplierApiV1FoodInventorySuppliersPost(
+    public static createSupplierApiV1FoodInventorySuppliersPost({
+        requestBody,
+    }: {
         requestBody: SupplierCreate,
-    ): CancelablePromise<Supplier> {
+    }): CancelablePromise<Supplier> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/suppliers',
@@ -422,15 +440,16 @@ export class FoodHospitalityInventoryService {
     /**
      * List Suppliers
      * List all suppliers
-     * @param businessId
-     * @param isActive
      * @returns Supplier Successful Response
      * @throws ApiError
      */
-    public static listSuppliersApiV1FoodInventorySuppliersGet(
+    public static listSuppliersApiV1FoodInventorySuppliersGet({
+        businessId,
+        isActive,
+    }: {
         businessId: string,
         isActive?: (boolean | null),
-    ): CancelablePromise<Array<Supplier>> {
+    }): CancelablePromise<Array<Supplier>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/suppliers',
@@ -446,13 +465,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Get Supplier
      * Get supplier details
-     * @param supplierId
      * @returns Supplier Successful Response
      * @throws ApiError
      */
-    public static getSupplierApiV1FoodInventorySuppliersSupplierIdGet(
+    public static getSupplierApiV1FoodInventorySuppliersSupplierIdGet({
+        supplierId,
+    }: {
         supplierId: string,
-    ): CancelablePromise<Supplier> {
+    }): CancelablePromise<Supplier> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/suppliers/{supplier_id}',
@@ -467,15 +487,16 @@ export class FoodHospitalityInventoryService {
     /**
      * Update Supplier
      * Update supplier
-     * @param supplierId
-     * @param requestBody
      * @returns Supplier Successful Response
      * @throws ApiError
      */
-    public static updateSupplierApiV1FoodInventorySuppliersSupplierIdPut(
+    public static updateSupplierApiV1FoodInventorySuppliersSupplierIdPut({
+        supplierId,
+        requestBody,
+    }: {
         supplierId: string,
         requestBody: SupplierUpdate,
-    ): CancelablePromise<Supplier> {
+    }): CancelablePromise<Supplier> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/inventory/suppliers/{supplier_id}',
@@ -492,13 +513,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Delete Supplier
      * Delete supplier
-     * @param supplierId
      * @returns void
      * @throws ApiError
      */
-    public static deleteSupplierApiV1FoodInventorySuppliersSupplierIdDelete(
+    public static deleteSupplierApiV1FoodInventorySuppliersSupplierIdDelete({
+        supplierId,
+    }: {
         supplierId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/food/inventory/suppliers/{supplier_id}',
@@ -517,15 +539,16 @@ export class FoodHospitalityInventoryService {
      * - **Supplier integration**: Send to supplier via email/API
      * - **Tracking**: Monitor delivery status
      * - **Auto-receive**: Update inventory on delivery
-     * @param requestBody
-     * @param createdBy
      * @returns PurchaseOrder Successful Response
      * @throws ApiError
      */
-    public static createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost(
+    public static createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost({
+        requestBody,
+        createdBy = '',
+    }: {
         requestBody: PurchaseOrderCreate,
-        createdBy?: (string | null),
-    ): CancelablePromise<PurchaseOrder> {
+        createdBy?: string,
+    }): CancelablePromise<PurchaseOrder> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/purchase-orders',
@@ -542,21 +565,22 @@ export class FoodHospitalityInventoryService {
     /**
      * List Purchase Orders
      * List purchase orders with filtering
-     * @param businessId
-     * @param supplierId
-     * @param status
-     * @param startDate
-     * @param endDate
      * @returns PurchaseOrder Successful Response
      * @throws ApiError
      */
-    public static listPurchaseOrdersApiV1FoodInventoryPurchaseOrdersGet(
+    public static listPurchaseOrdersApiV1FoodInventoryPurchaseOrdersGet({
+        businessId,
+        supplierId,
+        status,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         supplierId?: (string | null),
         status?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Array<PurchaseOrder>> {
+    }): CancelablePromise<Array<PurchaseOrder>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/purchase-orders',
@@ -575,13 +599,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Get Purchase Order
      * Get purchase order details
-     * @param poId
      * @returns PurchaseOrder Successful Response
      * @throws ApiError
      */
-    public static getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet(
+    public static getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet({
+        poId,
+    }: {
         poId: string,
-    ): CancelablePromise<PurchaseOrder> {
+    }): CancelablePromise<PurchaseOrder> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/purchase-orders/{po_id}',
@@ -596,15 +621,16 @@ export class FoodHospitalityInventoryService {
     /**
      * Update Purchase Order
      * Update purchase order status
-     * @param poId
-     * @param requestBody
      * @returns PurchaseOrder Successful Response
      * @throws ApiError
      */
-    public static updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut(
+    public static updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut({
+        poId,
+        requestBody,
+    }: {
         poId: string,
         requestBody: PurchaseOrderUpdate,
-    ): CancelablePromise<PurchaseOrder> {
+    }): CancelablePromise<PurchaseOrder> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/inventory/purchase-orders/{po_id}',
@@ -625,15 +651,16 @@ export class FoodHospitalityInventoryService {
      * - **Auto-update**: Increase inventory levels
      * - **Partial receives**: Support partial deliveries
      * - **Cost tracking**: Update unit costs
-     * @param poId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static receivePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdReceivePost(
+    public static receivePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdReceivePost({
+        poId,
+        requestBody,
+    }: {
         poId: string,
         requestBody: Array<Record<string, any>>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/purchase-orders/{po_id}/receive',
@@ -654,15 +681,16 @@ export class FoodHospitalityInventoryService {
      * - **Overview**: Total items, value, alerts
      * - **Categories**: Breakdown by category
      * - **Top items**: Highest value items
-     * @param businessId
-     * @param locationId
      * @returns InventoryReport Successful Response
      * @throws ApiError
      */
-    public static getInventorySummaryApiV1FoodInventoryReportsSummaryGet(
+    public static getInventorySummaryApiV1FoodInventoryReportsSummaryGet({
+        businessId,
+        locationId,
+    }: {
         businessId: string,
         locationId?: (string | null),
-    ): CancelablePromise<InventoryReport> {
+    }): CancelablePromise<InventoryReport> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/reports/summary',
@@ -682,17 +710,18 @@ export class FoodHospitalityInventoryService {
      * - **Total value**: Current inventory worth
      * - **By category**: Value breakdown
      * - **Historical**: Point-in-time valuation
-     * @param businessId
-     * @param locationId
-     * @param asOfDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInventoryValuationApiV1FoodInventoryReportsValuationGet(
+    public static getInventoryValuationApiV1FoodInventoryReportsValuationGet({
+        businessId,
+        locationId,
+        asOfDate,
+    }: {
         businessId: string,
         locationId?: (string | null),
         asOfDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/reports/valuation',
@@ -713,15 +742,16 @@ export class FoodHospitalityInventoryService {
      * - **Turnover rate**: How quickly inventory moves
      * - **Slow movers**: Items with low turnover
      * - **Fast movers**: High turnover items
-     * @param businessId
-     * @param periodDays
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInventoryTurnoverApiV1FoodInventoryReportsTurnoverGet(
+    public static getInventoryTurnoverApiV1FoodInventoryReportsTurnoverGet({
+        businessId,
+        periodDays = 30,
+    }: {
         businessId: string,
-        periodDays: number = 30,
-    ): CancelablePromise<Record<string, any>> {
+        periodDays?: number,
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/reports/turnover',
@@ -741,17 +771,18 @@ export class FoodHospitalityInventoryService {
      * - **Waste tracking**: Items marked as waste
      * - **Cost impact**: Total waste cost
      * - **Trends**: Waste patterns over time
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getWasteReportApiV1FoodInventoryReportsWasteGet(
+    public static getWasteReportApiV1FoodInventoryReportsWasteGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate: string,
         endDate: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/reports/waste',
@@ -772,15 +803,16 @@ export class FoodHospitalityInventoryService {
      * - **Smart reordering**: Based on usage patterns
      * - **Supplier selection**: Choose best supplier
      * - **PO generation**: Auto-create purchase orders
-     * @param businessId
-     * @param dryRun
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static triggerAutoReorderApiV1FoodInventoryAutoReorderPost(
+    public static triggerAutoReorderApiV1FoodInventoryAutoReorderPost({
+        businessId,
+        dryRun = false,
+    }: {
         businessId: string,
-        dryRun: boolean = false,
-    ): CancelablePromise<Record<string, any>> {
+        dryRun?: boolean,
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/auto-reorder',
@@ -800,15 +832,16 @@ export class FoodHospitalityInventoryService {
      * - **Integrations**: Square, Toast, Clover
      * - **Real-time**: Keep inventory in sync
      * - **Reconciliation**: Handle discrepancies
-     * @param businessId
-     * @param posSystem
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static syncFromPosApiV1FoodInventorySyncFromPosPost(
+    public static syncFromPosApiV1FoodInventorySyncFromPosPost({
+        businessId,
+        posSystem,
+    }: {
         businessId: string,
         posSystem: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/inventory/sync-from-pos',

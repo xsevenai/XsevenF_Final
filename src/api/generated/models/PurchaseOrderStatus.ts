@@ -5,10 +5,4 @@
 /**
  * Purchase order statuses
  */
-export enum PurchaseOrderStatus {
-    DRAFT = 'draft',
-    SENT = 'sent',
-    CONFIRMED = 'confirmed',
-    RECEIVED = 'received',
-    CANCELLED = 'cancelled',
-}
+export type PurchaseOrderStatus = 'draft' | 'pending' | 'sent' | 'confirmed' | 'received' | 'cancelled';

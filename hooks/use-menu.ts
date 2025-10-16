@@ -35,14 +35,14 @@ export function useMenuItems(businessId: string, filters?: MenuItemFilters) {
       
       configureAPI()
       
-      const data = await MenuManagementService.listMenuItemsApiV1MenuItemsGet(
+      const data = await MenuManagementService.listMenuItemsApiV1MenuItemsGet({
         businessId,
-        filters?.categoryId || null,
-        filters?.isAvailable !== undefined ? filters.isAvailable : null,
-        filters?.search || null,
-        50, // limit
-        0   // offset
-      )
+        categoryId: filters?.categoryId || null,
+        isAvailable: filters?.isAvailable !== undefined ? filters.isAvailable : null,
+        search: filters?.search || null,
+        limit: 50,
+        offset: 0
+      })
       
       setItems(data)
     } catch (err: any) {
@@ -71,7 +71,9 @@ export function useMenuItems(businessId: string, filters?: MenuItemFilters) {
       setError(null)
       configureAPI()
       
-      const newItem = await MenuManagementService.createMenuItemApiV1MenuItemsPost(data)
+      const newItem = await MenuManagementService.createMenuItemApiV1MenuItemsPost({
+        requestBody: data
+      })
       setItems(prev => [newItem, ...prev])
       return newItem
     } catch (err: any) {
@@ -89,10 +91,10 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
     
     console.log('🔄 Updating menu item:', { itemId, data })
     
-    const updatedItem = await MenuManagementService.updateMenuItemApiV1MenuItemsItemIdPut(
+    const updatedItem = await MenuManagementService.updateMenuItemApiV1MenuItemsItemIdPut({
       itemId,
-      data
-    )
+      requestBody: data
+    })
     
     console.log('✅ Menu item updated successfully:', updatedItem)
     
@@ -118,7 +120,10 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
       setError(null)
       configureAPI()
       
-      await MenuManagementService.deleteMenuItemApiV1MenuItemsItemIdDelete(itemId, softDelete)
+      await MenuManagementService.deleteMenuItemApiV1MenuItemsItemIdDelete({
+        itemId,
+        softDelete
+      })
       setItems(prev => prev.filter(item => item.id !== itemId))
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to delete menu item'
@@ -130,10 +135,10 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
   const getItem = async (itemId: string, includeModifiers: boolean = true) => {
     try {
       configureAPI()
-      return await MenuManagementService.getMenuItemApiV1MenuItemsItemIdGet(
+      return await MenuManagementService.getMenuItemApiV1MenuItemsItemIdGet({
         itemId,
         includeModifiers
-      )
+      })
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get menu item'
       throw new Error(errorMessage)
@@ -145,10 +150,10 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
       setError(null)
       configureAPI()
       
-      const duplicated = await MenuManagementService.duplicateMenuItemApiV1MenuItemsItemIdDuplicatePost(
+      const duplicated = await MenuManagementService.duplicateMenuItemApiV1MenuItemsItemIdDuplicatePost({
         itemId,
-        newName || null
-      )
+        newName: newName || null
+      })
       
       setItems(prev => [duplicated, ...prev])
       return duplicated
@@ -164,7 +169,9 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
       setError(null)
       configureAPI()
       
-      const results = await MenuManagementService.searchMenuItemsApiV1MenuItemsSearchPost(searchCriteria)
+      const results = await MenuManagementService.searchMenuItemsApiV1MenuItemsSearchPost({
+        requestBody: searchCriteria
+      })
       return results
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to search menu items'
@@ -178,7 +185,9 @@ const updateItem = async (itemId: string, data: MenuItemUpdate) => {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.bulkUpdateMenuItemsApiV1MenuItemsBulkUpdatePost(bulkUpdate)
+      const result = await MenuManagementService.bulkUpdateMenuItemsApiV1MenuItemsBulkUpdatePost({
+        requestBody: bulkUpdate
+      })
       
       // Refresh items to get updated data
       refresh()
@@ -218,11 +227,11 @@ export function useMenuCategories(businessId: string) {
       
       configureAPI()
       
-      const data = await MenuManagementService.listMenuCategoriesApiV1MenuCategoriesGet(
+      const data = await MenuManagementService.listMenuCategoriesApiV1MenuCategoriesGet({
         businessId,
-        null, // parent_id
-        true  // is_active (only active categories)
-      )
+        parentId: null,
+        isActive: true
+      })
       
       setCategories(data)
     } catch (err: any) {
@@ -252,7 +261,9 @@ export function useMenuCategories(businessId: string) {
       setError(null)
       configureAPI()
       
-      const newCategory = await MenuManagementService.createMenuCategoryApiV1MenuCategoriesPost(data)
+      const newCategory = await MenuManagementService.createMenuCategoryApiV1MenuCategoriesPost({
+        requestBody: data
+      })
       setCategories(prev => [newCategory, ...prev])
       return newCategory
     } catch (err: any) {
@@ -267,10 +278,10 @@ export function useMenuCategories(businessId: string) {
       setError(null)
       configureAPI()
       
-      const updatedCategory = await MenuManagementService.updateMenuCategoryApiV1MenuCategoriesCategoryIdPut(
+      const updatedCategory = await MenuManagementService.updateMenuCategoryApiV1MenuCategoriesCategoryIdPut({
         categoryId,
-        data
-      )
+        requestBody: data
+      })
       
       setCategories(prev => prev.map(cat => 
         cat.id === categoryId ? updatedCategory : cat
@@ -288,7 +299,9 @@ export function useMenuCategories(businessId: string) {
       setError(null)
       configureAPI()
       
-      await MenuManagementService.deleteMenuCategoryApiV1MenuCategoriesCategoryIdDelete(categoryId)
+      await MenuManagementService.deleteMenuCategoryApiV1MenuCategoriesCategoryIdDelete({
+        categoryId
+      })
       setCategories(prev => prev.filter(cat => cat.id !== categoryId))
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to delete category'
@@ -300,7 +313,9 @@ export function useMenuCategories(businessId: string) {
   const getCategory = async (categoryId: string) => {
     try {
       configureAPI()
-      return await MenuManagementService.getMenuCategoryApiV1MenuCategoriesCategoryIdGet(categoryId)
+      return await MenuManagementService.getMenuCategoryApiV1MenuCategoriesCategoryIdGet({
+        categoryId
+      })
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get category'
       throw new Error(errorMessage)
@@ -330,10 +345,10 @@ export function useMenuModifiers(businessId: string) {
       setLoading(true)
       setError(null)
       configureAPI()
-      const data = await MenuManagementService.listItemModifiersApiV1MenuModifiersGet(
+      const data = await MenuManagementService.listItemModifiersApiV1MenuModifiersGet({
         businessId,
-        null // modifier_type
-      )
+        modifierType: null
+      })
       setModifiers(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch modifiers')
@@ -351,7 +366,9 @@ export function useMenuModifiers(businessId: string) {
     try {
       setError(null)
       configureAPI()
-      const newModifier = await MenuManagementService.createItemModifierApiV1MenuModifiersPost(data)
+      const newModifier = await MenuManagementService.createItemModifierApiV1MenuModifiersPost({
+        requestBody: data
+      })
       setModifiers(prev => [newModifier, ...prev])
       return newModifier
     } catch (err: any) {
@@ -364,10 +381,10 @@ export function useMenuModifiers(businessId: string) {
     try {
       setError(null)
       configureAPI()
-      const updated = await MenuManagementService.updateItemModifierApiV1MenuModifiersModifierIdPut(
+      const updated = await MenuManagementService.updateItemModifierApiV1MenuModifiersModifierIdPut({
         modifierId,
-        data
-      )
+        requestBody: data
+      })
       setModifiers(prev => prev.map(m => m.id === modifierId ? updated : m))
       return updated
     } catch (err: any) {
@@ -380,7 +397,9 @@ export function useMenuModifiers(businessId: string) {
     try {
       setError(null)
       configureAPI()
-      await MenuManagementService.deleteItemModifierApiV1MenuModifiersModifierIdDelete(modifierId)
+      await MenuManagementService.deleteItemModifierApiV1MenuModifiersModifierIdDelete({
+        modifierId
+      })
       setModifiers(prev => prev.filter(m => m.id !== modifierId))
     } catch (err: any) {
       setError(err.message || 'Failed to delete modifier')
@@ -391,7 +410,9 @@ export function useMenuModifiers(businessId: string) {
   const getModifier = async (modifierId: string) => {
     try {
       configureAPI()
-      return await MenuManagementService.getItemModifierApiV1MenuModifiersModifierIdGet(modifierId)
+      return await MenuManagementService.getItemModifierApiV1MenuModifiersModifierIdGet({
+        modifierId
+      })
     } catch (err: any) {
       throw err
     }
@@ -403,11 +424,11 @@ export function useMenuModifiers(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.assignModifierToItemApiV1MenuItemsItemIdModifiersModifierIdPost(
+      const result = await MenuManagementService.assignModifierToItemApiV1MenuItemsItemIdModifiersModifierIdPost({
         itemId,
         modifierId,
         displayOrder
-      )
+      })
       
       // Refresh modifiers to get updated data
       fetchModifiers()
@@ -425,10 +446,10 @@ export function useMenuModifiers(businessId: string) {
       setError(null)
       configureAPI()
       
-      await MenuManagementService.removeModifierFromItemApiV1MenuItemsItemIdModifiersModifierIdDelete(
+      await MenuManagementService.removeModifierFromItemApiV1MenuItemsItemIdModifiersModifierIdDelete({
         itemId,
         modifierId
-      )
+      })
       
       // Refresh modifiers to get updated data
       fetchModifiers()
@@ -521,7 +542,9 @@ export function useMenuImportExport(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.importMenuApiV1MenuImportPost(menuImport)
+      const result = await MenuManagementService.importMenuApiV1MenuImportPost({
+        requestBody: menuImport
+      })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to import menu'
@@ -538,11 +561,11 @@ export function useMenuImportExport(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.exportMenuApiV1MenuExportBusinessIdGet(
+      const result = await MenuManagementService.exportMenuApiV1MenuExportBusinessIdGet({
         businessId,
         format,
         includeInactive
-      )
+      })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to export menu'
@@ -572,11 +595,11 @@ export function useMenuAnalytics(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.getTopMenuItemsApiV1MenuAnalyticsBusinessIdTopItemsGet(
+      const result = await MenuManagementService.getTopMenuItemsApiV1MenuAnalyticsBusinessIdTopItemsGet({
         businessId,
         period,
         limit
-      )
+      })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get top menu items'
@@ -593,10 +616,10 @@ export function useMenuAnalytics(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.getCategoryPerformanceApiV1MenuAnalyticsBusinessIdCategoryPerformanceGet(
+      const result = await MenuManagementService.getCategoryPerformanceApiV1MenuAnalyticsBusinessIdCategoryPerformanceGet({
         businessId,
         period
-      )
+      })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get category performance'
@@ -613,9 +636,9 @@ export function useMenuAnalytics(businessId: string) {
       setError(null)
       configureAPI()
       
-      const result = await MenuManagementService.analyzeProfitMarginsApiV1MenuAnalyticsBusinessIdProfitMarginsGet(
+      const result = await MenuManagementService.analyzeProfitMarginsApiV1MenuAnalyticsBusinessIdProfitMarginsGet({
         businessId
-      )
+      })
       return result
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to analyze profit margins'

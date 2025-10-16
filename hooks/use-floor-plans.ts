@@ -23,10 +23,10 @@ export const useFloorPlans = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching floor plans with businessId:', businessId, 'locationId:', locationId)
-      const data = await FoodHospitalityOperationsService.listFloorPlansApiV1FoodFloorPlansGet(
+      const data = await FoodHospitalityOperationsService.listFloorPlansApiV1FoodFloorPlansGet({
         businessId,
-        locationId || null
-      )
+        locationId: locationId || null
+      })
       console.log('Fetched floor plans:', data.length, 'plans')
       setFloorPlans(data)
     } catch (err: any) {
@@ -43,7 +43,7 @@ export const useFloorPlans = (businessId: string) => {
       configureAPI()
       
       console.log('Creating floor plan with data:', data)
-      const newFloorPlan = await FoodHospitalityOperationsService.createFloorPlanApiV1FoodFloorPlansPost(data)
+      const newFloorPlan = await FoodHospitalityOperationsService.createFloorPlanApiV1FoodFloorPlansPost({ requestBody: data })
       console.log('Floor plan created successfully:', newFloorPlan)
       setFloorPlans(prev => [newFloorPlan, ...prev])
       return newFloorPlan
@@ -61,7 +61,7 @@ export const useFloorPlans = (businessId: string) => {
       configureAPI()
       
       console.log('Updating floor plan:', planId, 'with data:', data)
-      const updatedFloorPlan = await FoodHospitalityOperationsService.updateFloorPlanApiV1FoodFloorPlansPlanIdPut(planId, data)
+      const updatedFloorPlan = await FoodHospitalityOperationsService.updateFloorPlanApiV1FoodFloorPlansPlanIdPut({ planId, requestBody: data })
       console.log('Floor plan updated successfully:', updatedFloorPlan)
       setFloorPlans(prev => prev.map(plan => plan.id === planId ? updatedFloorPlan : plan))
       return updatedFloorPlan
@@ -79,7 +79,7 @@ export const useFloorPlans = (businessId: string) => {
       configureAPI()
       
       console.log('Getting floor plan:', planId)
-      const floorPlan = await FoodHospitalityOperationsService.getFloorPlanApiV1FoodFloorPlansPlanIdGet(planId)
+      const floorPlan = await FoodHospitalityOperationsService.getFloorPlanApiV1FoodFloorPlansPlanIdGet({ planId })
       console.log('Floor plan retrieved:', floorPlan)
       return floorPlan
     } catch (err: any) {

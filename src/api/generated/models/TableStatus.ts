@@ -5,10 +5,4 @@
 /**
  * Table statuses
  */
-export enum TableStatus {
-    AVAILABLE = 'available',
-    OCCUPIED = 'occupied',
-    RESERVED = 'reserved',
-    CLEANING = 'cleaning',
-    MAINTENANCE = 'maintenance',
-}
+export type TableStatus = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance';

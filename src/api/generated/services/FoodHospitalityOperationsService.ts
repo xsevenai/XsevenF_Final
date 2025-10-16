@@ -33,13 +33,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Create Location
      * Create new location for multi-location businesses
-     * @param requestBody
      * @returns Location Successful Response
      * @throws ApiError
      */
-    public static createLocationApiV1FoodLocationsPost(
+    public static createLocationApiV1FoodLocationsPost({
+        requestBody,
+    }: {
         requestBody: LocationCreate,
-    ): CancelablePromise<Location> {
+    }): CancelablePromise<Location> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/locations',
@@ -53,15 +54,16 @@ export class FoodHospitalityOperationsService {
     /**
      * List Locations
      * List all locations
-     * @param businessId
-     * @param isActive
      * @returns Location Successful Response
      * @throws ApiError
      */
-    public static listLocationsApiV1FoodLocationsGet(
+    public static listLocationsApiV1FoodLocationsGet({
+        businessId,
+        isActive,
+    }: {
         businessId: string,
         isActive?: (boolean | null),
-    ): CancelablePromise<Array<Location>> {
+    }): CancelablePromise<Array<Location>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/locations',
@@ -77,13 +79,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Get Location
      * Get location details
-     * @param locationId
      * @returns Location Successful Response
      * @throws ApiError
      */
-    public static getLocationApiV1FoodLocationsLocationIdGet(
+    public static getLocationApiV1FoodLocationsLocationIdGet({
+        locationId,
+    }: {
         locationId: string,
-    ): CancelablePromise<Location> {
+    }): CancelablePromise<Location> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/locations/{location_id}',
@@ -98,15 +101,16 @@ export class FoodHospitalityOperationsService {
     /**
      * Update Location
      * Update location
-     * @param locationId
-     * @param requestBody
      * @returns Location Successful Response
      * @throws ApiError
      */
-    public static updateLocationApiV1FoodLocationsLocationIdPut(
+    public static updateLocationApiV1FoodLocationsLocationIdPut({
+        locationId,
+        requestBody,
+    }: {
         locationId: string,
         requestBody: LocationUpdate,
-    ): CancelablePromise<Location> {
+    }): CancelablePromise<Location> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/locations/{location_id}',
@@ -126,13 +130,14 @@ export class FoodHospitalityOperationsService {
      *
      * - **Visual designer**: Drag-and-drop table placement
      * - **Multiple plans**: Different layouts for different times
-     * @param requestBody
      * @returns FloorPlan Successful Response
      * @throws ApiError
      */
-    public static createFloorPlanApiV1FoodFloorPlansPost(
+    public static createFloorPlanApiV1FoodFloorPlansPost({
+        requestBody,
+    }: {
         requestBody: FloorPlanCreate,
-    ): CancelablePromise<FloorPlan> {
+    }): CancelablePromise<FloorPlan> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/floor-plans',
@@ -146,15 +151,16 @@ export class FoodHospitalityOperationsService {
     /**
      * List Floor Plans
      * List floor plans
-     * @param businessId
-     * @param locationId
      * @returns FloorPlan Successful Response
      * @throws ApiError
      */
-    public static listFloorPlansApiV1FoodFloorPlansGet(
+    public static listFloorPlansApiV1FoodFloorPlansGet({
+        businessId,
+        locationId,
+    }: {
         businessId: string,
         locationId?: (string | null),
-    ): CancelablePromise<Array<FloorPlan>> {
+    }): CancelablePromise<Array<FloorPlan>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/floor-plans',
@@ -170,13 +176,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Get Floor Plan
      * Get floor plan with layout data
-     * @param planId
      * @returns FloorPlan Successful Response
      * @throws ApiError
      */
-    public static getFloorPlanApiV1FoodFloorPlansPlanIdGet(
+    public static getFloorPlanApiV1FoodFloorPlansPlanIdGet({
+        planId,
+    }: {
         planId: string,
-    ): CancelablePromise<FloorPlan> {
+    }): CancelablePromise<FloorPlan> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/floor-plans/{plan_id}',
@@ -191,15 +198,16 @@ export class FoodHospitalityOperationsService {
     /**
      * Update Floor Plan
      * Update floor plan layout
-     * @param planId
-     * @param requestBody
      * @returns FloorPlan Successful Response
      * @throws ApiError
      */
-    public static updateFloorPlanApiV1FoodFloorPlansPlanIdPut(
+    public static updateFloorPlanApiV1FoodFloorPlansPlanIdPut({
+        planId,
+        requestBody,
+    }: {
         planId: string,
         requestBody: FloorPlanUpdate,
-    ): CancelablePromise<FloorPlan> {
+    }): CancelablePromise<FloorPlan> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/floor-plans/{plan_id}',
@@ -216,13 +224,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Create Table
      * Create new table
-     * @param requestBody
      * @returns Table Successful Response
      * @throws ApiError
      */
-    public static createTableApiV1FoodTablesPost(
+    public static createTableApiV1FoodTablesPost({
+        requestBody,
+    }: {
         requestBody: TableCreate,
-    ): CancelablePromise<Table> {
+    }): CancelablePromise<Table> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/tables',
@@ -240,19 +249,20 @@ export class FoodHospitalityOperationsService {
      * - **Live status**: Available, occupied, reserved
      * - **Occupancy**: Current order and duration
      * - **Filtering**: By location and status
-     * @param businessId
-     * @param locationId
-     * @param status
-     * @param includeDetails
      * @returns TableWithDetails Successful Response
      * @throws ApiError
      */
-    public static listTablesApiV1FoodTablesGet(
+    public static listTablesApiV1FoodTablesGet({
+        businessId,
+        locationId,
+        status,
+        includeDetails = true,
+    }: {
         businessId: string,
         locationId?: (string | null),
         status?: (string | null),
-        includeDetails: boolean = true,
-    ): CancelablePromise<Array<TableWithDetails>> {
+        includeDetails?: boolean,
+    }): CancelablePromise<Array<TableWithDetails>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/tables',
@@ -268,38 +278,18 @@ export class FoodHospitalityOperationsService {
         });
     }
     /**
-     * Get Table
-     * Get table with full details
-     * @param tableId
-     * @returns TableWithDetails Successful Response
-     * @throws ApiError
-     */
-    public static getTableApiV1FoodTablesTableIdGet(
-        tableId: string,
-    ): CancelablePromise<TableWithDetails> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/food/tables/{table_id}',
-            path: {
-                'table_id': tableId,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
      * Update Table
      * Update table details or status
-     * @param tableId
-     * @param requestBody
      * @returns Table Successful Response
      * @throws ApiError
      */
-    public static updateTableApiV1FoodTablesTableIdPut(
+    public static updateTableApiV1FoodTablesTableIdPut({
+        tableId,
+        requestBody,
+    }: {
         tableId: string,
         requestBody: TableUpdate,
-    ): CancelablePromise<Table> {
+    }): CancelablePromise<Table> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/tables/{table_id}',
@@ -314,19 +304,58 @@ export class FoodHospitalityOperationsService {
         });
     }
     /**
-     * Assign Table
-     * Assign table to order
+     * Assign Table By Id
+     * Assign table to order (alternative endpoint)
      *
      * - **Capacity check**: Validate party size
      * - **Status update**: Mark table as occupied
      * - **Tracking**: Start occupancy timer
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static assignTableApiV1FoodTablesAssignPost(
+    public static assignTableByIdApiV1FoodTablesTableIdAssignPut({
+        tableId,
+        requestBody,
+    }: {
+        tableId: string,
         requestBody: TableAssignment,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/food/tables/{table_id}/assign',
+            path: {
+                'table_id': tableId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Test Tables Connection
+     * Test endpoint to check database connection and tables table
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static testTablesConnectionApiV1FoodTablesTestGet(): CancelablePromise<Record<string, any>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/food/tables/test',
+        });
+    }
+    /**
+     * Assign Table
+     * Debug version - minimal operations
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static assignTableApiV1FoodTablesAssignPost({
+        requestBody,
+    }: {
+        requestBody: TableAssignment,
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/tables/assign',
@@ -343,13 +372,14 @@ export class FoodHospitalityOperationsService {
      *
      * - **Status update**: Mark as cleaning or available
      * - **Metrics**: Calculate table turnover time
-     * @param tableId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static releaseTableApiV1FoodTablesTableIdReleasePost(
+    public static releaseTableApiV1FoodTablesTableIdReleasePost({
+        tableId,
+    }: {
         tableId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/tables/{table_id}/release',
@@ -368,19 +398,20 @@ export class FoodHospitalityOperationsService {
      * - **Capacity matching**: Find suitable tables
      * - **Time-based**: Check future availability
      * - **Combining tables**: Suggest table combinations
-     * @param businessId
-     * @param partySize
-     * @param locationId
-     * @param timeSlot
-     * @returns Table Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
-    public static checkTableAvailabilityApiV1FoodTablesAvailabilityGet(
+    public static checkTableAvailabilityApiV1FoodTablesAvailabilityGet({
+        businessId,
+        partySize,
+        locationId,
+        timeSlot,
+    }: {
         businessId: string,
-        partySize: number,
+        partySize: string,
         locationId?: (string | null),
         timeSlot?: (string | null),
-    ): CancelablePromise<Array<Table>> {
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/tables/availability',
@@ -402,13 +433,14 @@ export class FoodHospitalityOperationsService {
      * - **Station routing**: Route to appropriate kitchen station
      * - **Priority**: Set order priority
      * - **Timing**: Calculate target completion time
-     * @param requestBody
      * @returns KDSOrder Successful Response
      * @throws ApiError
      */
-    public static createKdsOrderApiV1FoodKdsOrdersPost(
+    public static createKdsOrderApiV1FoodKdsOrdersPost({
+        requestBody,
+    }: {
         requestBody: KDSOrderCreate,
-    ): CancelablePromise<KDSOrder> {
+    }): CancelablePromise<KDSOrder> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/kds/orders',
@@ -426,19 +458,20 @@ export class FoodHospitalityOperationsService {
      * - **Real-time**: Live order status
      * - **Metrics**: Prep time, delays
      * - **Filtering**: By station and status
-     * @param businessId
-     * @param station
-     * @param status
-     * @param activeOnly
      * @returns KDSOrderWithMetrics Successful Response
      * @throws ApiError
      */
-    public static listKdsOrdersApiV1FoodKdsOrdersGet(
+    public static listKdsOrdersApiV1FoodKdsOrdersGet({
+        businessId,
+        station,
+        status,
+        activeOnly = true,
+    }: {
         businessId: string,
         station?: (string | null),
         status?: (string | null),
-        activeOnly: boolean = true,
-    ): CancelablePromise<Array<KDSOrderWithMetrics>> {
+        activeOnly?: boolean,
+    }): CancelablePromise<Array<KDSOrderWithMetrics>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/kds/orders',
@@ -456,13 +489,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Get Kds Order
      * Get KDS order with metrics
-     * @param orderId
      * @returns KDSOrderWithMetrics Successful Response
      * @throws ApiError
      */
-    public static getKdsOrderApiV1FoodKdsOrdersOrderIdGet(
+    public static getKdsOrderApiV1FoodKdsOrdersOrderIdGet({
+        orderId,
+    }: {
         orderId: string,
-    ): CancelablePromise<KDSOrderWithMetrics> {
+    }): CancelablePromise<KDSOrderWithMetrics> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/kds/orders/{order_id}',
@@ -481,15 +515,16 @@ export class FoodHospitalityOperationsService {
      * - **Status transitions**: pending → preparing → ready → served
      * - **Timing**: Track prep start/end times
      * - **Notifications**: Alert servers when ready
-     * @param orderId
-     * @param requestBody
      * @returns KDSOrder Successful Response
      * @throws ApiError
      */
-    public static updateKdsOrderApiV1FoodKdsOrdersOrderIdPut(
+    public static updateKdsOrderApiV1FoodKdsOrdersOrderIdPut({
+        orderId,
+        requestBody,
+    }: {
         orderId: string,
         requestBody: KDSOrderUpdate,
-    ): CancelablePromise<KDSOrder> {
+    }): CancelablePromise<KDSOrder> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/kds/orders/{order_id}',
@@ -510,17 +545,18 @@ export class FoodHospitalityOperationsService {
      * - **Prep times**: Average and by item
      * - **Efficiency**: Orders per hour
      * - **Delays**: Late orders analysis
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getKitchenPerformanceApiV1FoodKdsPerformanceGet(
+    public static getKitchenPerformanceApiV1FoodKdsPerformanceGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/kds/performance',
@@ -537,20 +573,17 @@ export class FoodHospitalityOperationsService {
     /**
      * Create Staff Member
      * Create new staff member
-     * @param requestBody
      * @returns StaffMember Successful Response
      * @throws ApiError
      */
-    public static createStaffMemberApiV1FoodStaffPost(
-        businessId: string,
+    public static createStaffMemberApiV1FoodStaffMembersPost({
+        requestBody,
+    }: {
         requestBody: StaffMemberCreate,
-    ): CancelablePromise<StaffMember> {
+    }): CancelablePromise<StaffMember> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/staff/members',
-            query: {
-                'business_id': businessId,
-            },
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -560,18 +593,19 @@ export class FoodHospitalityOperationsService {
     }
     /**
      * List Staff Members
-     * List staff members
-     * @param businessId
-     * @param status
-     * @param position
+     * List staff members (full endpoint)
      * @returns StaffMember Successful Response
      * @throws ApiError
      */
-    public static listStaffMembersApiV1FoodStaffGet(
+    public static listStaffMembersApiV1FoodStaffMembersGet({
+        businessId,
+        status,
+        position,
+    }: {
         businessId: string,
         status?: (string | null),
         position?: (string | null),
-    ): CancelablePromise<Array<StaffMember>> {
+    }): CancelablePromise<Array<StaffMember>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/staff/members',
@@ -586,15 +620,44 @@ export class FoodHospitalityOperationsService {
         });
     }
     /**
-     * Get Staff Member
-     * Get staff member details
-     * @param staffId
+     * List Staff Members Short
+     * List staff members (short endpoint)
      * @returns StaffMember Successful Response
      * @throws ApiError
      */
-    public static getStaffMemberApiV1FoodStaffStaffIdGet(
+    public static listStaffMembersShortApiV1FoodStaffGet({
+        businessId,
+        status,
+        position,
+    }: {
+        businessId: string,
+        status?: (string | null),
+        position?: (string | null),
+    }): CancelablePromise<Array<StaffMember>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/food/staff',
+            query: {
+                'business_id': businessId,
+                'status': status,
+                'position': position,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Staff Member
+     * Get staff member details
+     * @returns StaffMember Successful Response
+     * @throws ApiError
+     */
+    public static getStaffMemberApiV1FoodStaffStaffIdGet({
+        staffId,
+    }: {
         staffId: string,
-    ): CancelablePromise<StaffMember> {
+    }): CancelablePromise<StaffMember> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/staff/{staff_id}',
@@ -609,15 +672,16 @@ export class FoodHospitalityOperationsService {
     /**
      * Update Staff Member
      * Update staff member
-     * @param staffId
-     * @param requestBody
      * @returns StaffMember Successful Response
      * @throws ApiError
      */
-    public static updateStaffMemberApiV1FoodStaffStaffIdPut(
+    public static updateStaffMemberApiV1FoodStaffStaffIdPut({
+        staffId,
+        requestBody,
+    }: {
         staffId: string,
         requestBody: StaffMemberUpdate,
-    ): CancelablePromise<StaffMember> {
+    }): CancelablePromise<StaffMember> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/staff/{staff_id}',
@@ -634,13 +698,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Create Schedule
      * Create staff schedule
-     * @param requestBody
      * @returns StaffSchedule Successful Response
      * @throws ApiError
      */
-    public static createScheduleApiV1FoodSchedulesPost(
+    public static createScheduleApiV1FoodSchedulesPost({
+        requestBody,
+    }: {
         requestBody: StaffScheduleCreate,
-    ): CancelablePromise<StaffSchedule> {
+    }): CancelablePromise<StaffSchedule> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/schedules',
@@ -654,19 +719,20 @@ export class FoodHospitalityOperationsService {
     /**
      * List Schedules
      * List staff schedules
-     * @param businessId
-     * @param staffId
-     * @param startDate
-     * @param endDate
      * @returns StaffSchedule Successful Response
      * @throws ApiError
      */
-    public static listSchedulesApiV1FoodSchedulesGet(
+    public static listSchedulesApiV1FoodSchedulesGet({
+        businessId,
+        staffId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         staffId?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Array<StaffSchedule>> {
+    }): CancelablePromise<Array<StaffSchedule>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/schedules',
@@ -684,15 +750,16 @@ export class FoodHospitalityOperationsService {
     /**
      * Update Schedule
      * Update staff schedule
-     * @param scheduleId
-     * @param requestBody
      * @returns StaffSchedule Successful Response
      * @throws ApiError
      */
-    public static updateScheduleApiV1FoodSchedulesScheduleIdPut(
+    public static updateScheduleApiV1FoodSchedulesScheduleIdPut({
+        scheduleId,
+        requestBody,
+    }: {
         scheduleId: string,
         requestBody: StaffScheduleUpdate,
-    ): CancelablePromise<StaffSchedule> {
+    }): CancelablePromise<StaffSchedule> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/schedules/{schedule_id}',
@@ -709,13 +776,14 @@ export class FoodHospitalityOperationsService {
     /**
      * Delete Schedule
      * Delete staff schedule
-     * @param scheduleId
      * @returns void
      * @throws ApiError
      */
-    public static deleteScheduleApiV1FoodSchedulesScheduleIdDelete(
+    public static deleteScheduleApiV1FoodSchedulesScheduleIdDelete({
+        scheduleId,
+    }: {
         scheduleId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/food/schedules/{schedule_id}',
@@ -734,13 +802,14 @@ export class FoodHospitalityOperationsService {
      * - **Validation**: Check scheduled shift
      * - **Location**: Track clock-in location
      * - **Notifications**: Alert manager of early/late clock-in
-     * @param requestBody
      * @returns TimeClock Successful Response
      * @throws ApiError
      */
-    public static clockInApiV1FoodTimeClockClockInPost(
+    public static clockInApiV1FoodTimeClockClockInPost({
+        requestBody,
+    }: {
         requestBody: TimeClockCreate,
-    ): CancelablePromise<TimeClock> {
+    }): CancelablePromise<TimeClock> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/food/time-clock/clock-in',
@@ -758,15 +827,16 @@ export class FoodHospitalityOperationsService {
      * - **Hours calculation**: Auto-calculate total hours
      * - **Overtime**: Detect and flag overtime
      * - **Breaks**: Account for break time
-     * @param clockId
-     * @param clockOutTime
      * @returns TimeClock Successful Response
      * @throws ApiError
      */
-    public static clockOutApiV1FoodTimeClockClockIdClockOutPut(
+    public static clockOutApiV1FoodTimeClockClockIdClockOutPut({
+        clockId,
+        clockOutTime,
+    }: {
         clockId: string,
         clockOutTime?: (string | null),
-    ): CancelablePromise<TimeClock> {
+    }): CancelablePromise<TimeClock> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/time-clock/{clock_id}/clock-out',
@@ -784,19 +854,20 @@ export class FoodHospitalityOperationsService {
     /**
      * List Time Clock Entries
      * List time clock entries
-     * @param businessId
-     * @param staffId
-     * @param startDate
-     * @param endDate
      * @returns TimeClock Successful Response
      * @throws ApiError
      */
-    public static listTimeClockEntriesApiV1FoodTimeClockGet(
+    public static listTimeClockEntriesApiV1FoodTimeClockGet({
+        businessId,
+        staffId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         staffId?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Array<TimeClock>> {
+    }): CancelablePromise<Array<TimeClock>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/time-clock',
@@ -818,13 +889,14 @@ export class FoodHospitalityOperationsService {
      * - **Real-time**: Who's working now
      * - **Duration**: How long they've been clocked in
      * - **Position**: Current role/station
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getClockedInStaffApiV1FoodTimeClockActiveGet(
+    public static getClockedInStaffApiV1FoodTimeClockActiveGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Array<Record<string, any>>> {
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/time-clock/active',
@@ -845,15 +917,16 @@ export class FoodHospitalityOperationsService {
      * - **Staff**: Who's working, breaks, etc.
      * - **Orders**: Today's order metrics
      * - **Revenue**: Real-time revenue tracking
-     * @param businessId
-     * @param locationId
      * @returns OperationsDashboard Successful Response
      * @throws ApiError
      */
-    public static getOperationsDashboardApiV1FoodDashboardBusinessIdGet(
+    public static getOperationsDashboardApiV1FoodDashboardBusinessIdGet({
+        businessId,
+        locationId,
+    }: {
         businessId: string,
         locationId?: (string | null),
-    ): CancelablePromise<OperationsDashboard> {
+    }): CancelablePromise<OperationsDashboard> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/dashboard/{business_id}',
@@ -875,17 +948,18 @@ export class FoodHospitalityOperationsService {
      * - **Average turnover**: Time per table
      * - **By time of day**: Peak vs. off-peak
      * - **By table**: Identify slow tables
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static analyzeTableTurnoverApiV1FoodAnalyticsTableTurnoverGet(
+    public static analyzeTableTurnoverApiV1FoodAnalyticsTableTurnoverGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate: string,
         endDate: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/analytics/table-turnover',
@@ -907,17 +981,18 @@ export class FoodHospitalityOperationsService {
      * - **Labor percentage**: % of revenue
      * - **Overtime**: Overtime costs
      * - **By position**: Cost breakdown
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static analyzeLaborCostsApiV1FoodAnalyticsLaborCostsGet(
+    public static analyzeLaborCostsApiV1FoodAnalyticsLaborCostsGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate: string,
         endDate: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/analytics/labor-costs',

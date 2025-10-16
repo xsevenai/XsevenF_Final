@@ -23,13 +23,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Create Project
      * Create a new project
-     * @param requestBody
      * @returns ProjectResponse Successful Response
      * @throws ApiError
      */
-    public static createProjectApiV1ProfessionalProjectsPost(
+    public static createProjectApiV1ProfessionalProjectsPost({
+        requestBody,
+    }: {
         requestBody: ProjectCreate,
-    ): CancelablePromise<ProjectResponse> {
+    }): CancelablePromise<ProjectResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/projects',
@@ -43,23 +44,36 @@ export class ProfessionalServicesTemplateService {
     /**
      * List Projects
      * List all projects for a business
-     * @param businessId Business ID
-     * @param clientId Filter by client
-     * @param status Filter by status
-     * @param priority Filter by priority
-     * @param limit
-     * @param offset
      * @returns ProjectResponse Successful Response
      * @throws ApiError
      */
-    public static listProjectsApiV1ProfessionalProjectsGet(
+    public static listProjectsApiV1ProfessionalProjectsGet({
+        businessId,
+        clientId,
+        status,
+        priority,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by client
+         */
         clientId?: (string | null),
+        /**
+         * Filter by status
+         */
         status?: (string | null),
+        /**
+         * Filter by priority
+         */
         priority?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<ProjectResponse>> {
+    }): CancelablePromise<Array<ProjectResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/projects',
@@ -79,13 +93,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Project
      * Get a specific project by ID
-     * @param projectId
      * @returns ProjectResponse Successful Response
      * @throws ApiError
      */
-    public static getProjectApiV1ProfessionalProjectsProjectIdGet(
+    public static getProjectApiV1ProfessionalProjectsProjectIdGet({
+        projectId,
+    }: {
         projectId: string,
-    ): CancelablePromise<ProjectResponse> {
+    }): CancelablePromise<ProjectResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/projects/{project_id}',
@@ -100,15 +115,16 @@ export class ProfessionalServicesTemplateService {
     /**
      * Update Project
      * Update a project
-     * @param projectId
-     * @param requestBody
      * @returns ProjectResponse Successful Response
      * @throws ApiError
      */
-    public static updateProjectApiV1ProfessionalProjectsProjectIdPut(
+    public static updateProjectApiV1ProfessionalProjectsProjectIdPut({
+        projectId,
+        requestBody,
+    }: {
         projectId: string,
         requestBody: ProjectUpdate,
-    ): CancelablePromise<ProjectResponse> {
+    }): CancelablePromise<ProjectResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/professional/projects/{project_id}',
@@ -125,13 +141,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Delete Project
      * Delete a project
-     * @param projectId
      * @returns void
      * @throws ApiError
      */
-    public static deleteProjectApiV1ProfessionalProjectsProjectIdDelete(
+    public static deleteProjectApiV1ProfessionalProjectsProjectIdDelete({
+        projectId,
+    }: {
         projectId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/professional/projects/{project_id}',
@@ -146,13 +163,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Create Time Entry
      * Create a new time entry
-     * @param requestBody
      * @returns TimeEntryResponse Successful Response
      * @throws ApiError
      */
-    public static createTimeEntryApiV1ProfessionalTimeEntriesPost(
+    public static createTimeEntryApiV1ProfessionalTimeEntriesPost({
+        requestBody,
+    }: {
         requestBody: TimeEntryCreate,
-    ): CancelablePromise<TimeEntryResponse> {
+    }): CancelablePromise<TimeEntryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/time-entries',
@@ -166,29 +184,51 @@ export class ProfessionalServicesTemplateService {
     /**
      * List Time Entries
      * List all time entries for a business
-     * @param businessId Business ID
-     * @param projectId Filter by project
-     * @param staffId Filter by staff
-     * @param status Filter by status
-     * @param startDate Filter from date
-     * @param endDate Filter to date
-     * @param billable Filter by billable status
-     * @param limit
-     * @param offset
      * @returns TimeEntryResponse Successful Response
      * @throws ApiError
      */
-    public static listTimeEntriesApiV1ProfessionalTimeEntriesGet(
+    public static listTimeEntriesApiV1ProfessionalTimeEntriesGet({
+        businessId,
+        projectId,
+        staffId,
+        status,
+        startDate,
+        endDate,
+        billable,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by project
+         */
         projectId?: (string | null),
+        /**
+         * Filter by staff
+         */
         staffId?: (string | null),
+        /**
+         * Filter by status
+         */
         status?: (string | null),
+        /**
+         * Filter from date
+         */
         startDate?: (string | null),
+        /**
+         * Filter to date
+         */
         endDate?: (string | null),
+        /**
+         * Filter by billable status
+         */
         billable?: (boolean | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<TimeEntryResponse>> {
+    }): CancelablePromise<Array<TimeEntryResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/time-entries',
@@ -211,13 +251,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Time Entry
      * Get a specific time entry by ID
-     * @param entryId
      * @returns TimeEntryResponse Successful Response
      * @throws ApiError
      */
-    public static getTimeEntryApiV1ProfessionalTimeEntriesEntryIdGet(
+    public static getTimeEntryApiV1ProfessionalTimeEntriesEntryIdGet({
+        entryId,
+    }: {
         entryId: string,
-    ): CancelablePromise<TimeEntryResponse> {
+    }): CancelablePromise<TimeEntryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/time-entries/{entry_id}',
@@ -232,15 +273,16 @@ export class ProfessionalServicesTemplateService {
     /**
      * Update Time Entry
      * Update a time entry
-     * @param entryId
-     * @param requestBody
      * @returns TimeEntryResponse Successful Response
      * @throws ApiError
      */
-    public static updateTimeEntryApiV1ProfessionalTimeEntriesEntryIdPut(
+    public static updateTimeEntryApiV1ProfessionalTimeEntriesEntryIdPut({
+        entryId,
+        requestBody,
+    }: {
         entryId: string,
         requestBody: TimeEntryUpdate,
-    ): CancelablePromise<TimeEntryResponse> {
+    }): CancelablePromise<TimeEntryResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/professional/time-entries/{entry_id}',
@@ -257,13 +299,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Delete Time Entry
      * Delete a time entry
-     * @param entryId
      * @returns void
      * @throws ApiError
      */
-    public static deleteTimeEntryApiV1ProfessionalTimeEntriesEntryIdDelete(
+    public static deleteTimeEntryApiV1ProfessionalTimeEntriesEntryIdDelete({
+        entryId,
+    }: {
         entryId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/professional/time-entries/{entry_id}',
@@ -278,13 +321,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Create Invoice
      * Create a new invoice
-     * @param requestBody
      * @returns InvoiceResponse Successful Response
      * @throws ApiError
      */
-    public static createInvoiceApiV1ProfessionalInvoicesPost(
+    public static createInvoiceApiV1ProfessionalInvoicesPost({
+        requestBody,
+    }: {
         requestBody: InvoiceCreate,
-    ): CancelablePromise<InvoiceResponse> {
+    }): CancelablePromise<InvoiceResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/invoices',
@@ -298,23 +342,36 @@ export class ProfessionalServicesTemplateService {
     /**
      * List Invoices
      * List all invoices for a business
-     * @param businessId Business ID
-     * @param clientId Filter by client
-     * @param projectId Filter by project
-     * @param status Filter by status
-     * @param limit
-     * @param offset
      * @returns InvoiceResponse Successful Response
      * @throws ApiError
      */
-    public static listInvoicesApiV1ProfessionalInvoicesGet(
+    public static listInvoicesApiV1ProfessionalInvoicesGet({
+        businessId,
+        clientId,
+        projectId,
+        status,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by client
+         */
         clientId?: (string | null),
+        /**
+         * Filter by project
+         */
         projectId?: (string | null),
+        /**
+         * Filter by status
+         */
         status?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<InvoiceResponse>> {
+    }): CancelablePromise<Array<InvoiceResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/invoices',
@@ -334,13 +391,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Invoice
      * Get a specific invoice by ID
-     * @param invoiceId
      * @returns InvoiceResponse Successful Response
      * @throws ApiError
      */
-    public static getInvoiceApiV1ProfessionalInvoicesInvoiceIdGet(
+    public static getInvoiceApiV1ProfessionalInvoicesInvoiceIdGet({
+        invoiceId,
+    }: {
         invoiceId: string,
-    ): CancelablePromise<InvoiceResponse> {
+    }): CancelablePromise<InvoiceResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/invoices/{invoice_id}',
@@ -355,15 +413,16 @@ export class ProfessionalServicesTemplateService {
     /**
      * Update Invoice
      * Update an invoice
-     * @param invoiceId
-     * @param requestBody
      * @returns InvoiceResponse Successful Response
      * @throws ApiError
      */
-    public static updateInvoiceApiV1ProfessionalInvoicesInvoiceIdPut(
+    public static updateInvoiceApiV1ProfessionalInvoicesInvoiceIdPut({
+        invoiceId,
+        requestBody,
+    }: {
         invoiceId: string,
         requestBody: InvoiceUpdate,
-    ): CancelablePromise<InvoiceResponse> {
+    }): CancelablePromise<InvoiceResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/professional/invoices/{invoice_id}',
@@ -380,13 +439,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Delete Invoice
      * Delete an invoice
-     * @param invoiceId
      * @returns void
      * @throws ApiError
      */
-    public static deleteInvoiceApiV1ProfessionalInvoicesInvoiceIdDelete(
+    public static deleteInvoiceApiV1ProfessionalInvoicesInvoiceIdDelete({
+        invoiceId,
+    }: {
         invoiceId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/professional/invoices/{invoice_id}',
@@ -401,15 +461,19 @@ export class ProfessionalServicesTemplateService {
     /**
      * Mark Invoice Paid
      * Mark an invoice as paid
-     * @param invoiceId
-     * @param paymentMethod Payment method used
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static markInvoicePaidApiV1ProfessionalInvoicesInvoiceIdMarkPaidPost(
+    public static markInvoicePaidApiV1ProfessionalInvoicesInvoiceIdMarkPaidPost({
+        invoiceId,
+        paymentMethod,
+    }: {
         invoiceId: string,
+        /**
+         * Payment method used
+         */
         paymentMethod?: (string | null),
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/invoices/{invoice_id}/mark-paid',
@@ -427,13 +491,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Create Resource
      * Create a new resource
-     * @param requestBody
      * @returns ResourceResponse Successful Response
      * @throws ApiError
      */
-    public static createResourceApiV1ProfessionalResourcesPost(
+    public static createResourceApiV1ProfessionalResourcesPost({
+        requestBody,
+    }: {
         requestBody: ResourceCreate,
-    ): CancelablePromise<ResourceResponse> {
+    }): CancelablePromise<ResourceResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/resources',
@@ -447,21 +512,31 @@ export class ProfessionalServicesTemplateService {
     /**
      * List Resources
      * List all resources for a business
-     * @param businessId Business ID
-     * @param type Filter by resource type
-     * @param status Filter by status
-     * @param limit
-     * @param offset
      * @returns ResourceResponse Successful Response
      * @throws ApiError
      */
-    public static listResourcesApiV1ProfessionalResourcesGet(
+    public static listResourcesApiV1ProfessionalResourcesGet({
+        businessId,
+        type,
+        status,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by resource type
+         */
         type?: (string | null),
+        /**
+         * Filter by status
+         */
         status?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<ResourceResponse>> {
+    }): CancelablePromise<Array<ResourceResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/resources',
@@ -480,13 +555,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Resource
      * Get a specific resource by ID
-     * @param resourceId
      * @returns ResourceResponse Successful Response
      * @throws ApiError
      */
-    public static getResourceApiV1ProfessionalResourcesResourceIdGet(
+    public static getResourceApiV1ProfessionalResourcesResourceIdGet({
+        resourceId,
+    }: {
         resourceId: string,
-    ): CancelablePromise<ResourceResponse> {
+    }): CancelablePromise<ResourceResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/resources/{resource_id}',
@@ -501,15 +577,16 @@ export class ProfessionalServicesTemplateService {
     /**
      * Update Resource
      * Update a resource
-     * @param resourceId
-     * @param requestBody
      * @returns ResourceResponse Successful Response
      * @throws ApiError
      */
-    public static updateResourceApiV1ProfessionalResourcesResourceIdPut(
+    public static updateResourceApiV1ProfessionalResourcesResourceIdPut({
+        resourceId,
+        requestBody,
+    }: {
         resourceId: string,
         requestBody: ResourceUpdate,
-    ): CancelablePromise<ResourceResponse> {
+    }): CancelablePromise<ResourceResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/professional/resources/{resource_id}',
@@ -526,13 +603,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Delete Resource
      * Delete a resource
-     * @param resourceId
      * @returns void
      * @throws ApiError
      */
-    public static deleteResourceApiV1ProfessionalResourcesResourceIdDelete(
+    public static deleteResourceApiV1ProfessionalResourcesResourceIdDelete({
+        resourceId,
+    }: {
         resourceId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/professional/resources/{resource_id}',
@@ -547,13 +625,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Create Resource Allocation
      * Create a new resource allocation
-     * @param requestBody
      * @returns ResourceAllocationResponse Successful Response
      * @throws ApiError
      */
-    public static createResourceAllocationApiV1ProfessionalResourceAllocationsPost(
+    public static createResourceAllocationApiV1ProfessionalResourceAllocationsPost({
+        requestBody,
+    }: {
         requestBody: ResourceAllocationCreate,
-    ): CancelablePromise<ResourceAllocationResponse> {
+    }): CancelablePromise<ResourceAllocationResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/professional/resource-allocations',
@@ -567,21 +646,31 @@ export class ProfessionalServicesTemplateService {
     /**
      * List Resource Allocations
      * List all resource allocations for a business
-     * @param businessId Business ID
-     * @param resourceId Filter by resource
-     * @param projectId Filter by project
-     * @param limit
-     * @param offset
      * @returns ResourceAllocationResponse Successful Response
      * @throws ApiError
      */
-    public static listResourceAllocationsApiV1ProfessionalResourceAllocationsGet(
+    public static listResourceAllocationsApiV1ProfessionalResourceAllocationsGet({
+        businessId,
+        resourceId,
+        projectId,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by resource
+         */
         resourceId?: (string | null),
+        /**
+         * Filter by project
+         */
         projectId?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<ResourceAllocationResponse>> {
+    }): CancelablePromise<Array<ResourceAllocationResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/resource-allocations',
@@ -600,13 +689,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Delete Resource Allocation
      * Delete a resource allocation
-     * @param allocationId
      * @returns void
      * @throws ApiError
      */
-    public static deleteResourceAllocationApiV1ProfessionalResourceAllocationsAllocationIdDelete(
+    public static deleteResourceAllocationApiV1ProfessionalResourceAllocationsAllocationIdDelete({
+        allocationId,
+    }: {
         allocationId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/professional/resource-allocations/{allocation_id}',
@@ -621,17 +711,18 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Project Profitability
      * Analyze profitability by project
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getProjectProfitabilityApiV1ProfessionalAnalyticsProjectProfitabilityGet(
+    public static getProjectProfitabilityApiV1ProfessionalAnalyticsProjectProfitabilityGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/project-profitability',
@@ -648,17 +739,18 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Billable Analysis
      * Analyze billable vs non-billable hours
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getBillableAnalysisApiV1ProfessionalAnalyticsBillableVsNonBillableGet(
+    public static getBillableAnalysisApiV1ProfessionalAnalyticsBillableVsNonBillableGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/billable-vs-non-billable',
@@ -675,17 +767,18 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Staff Utilization Professional
      * Analyze staff utilization and capacity
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getStaffUtilizationProfessionalApiV1ProfessionalAnalyticsStaffUtilizationGet(
+    public static getStaffUtilizationProfessionalApiV1ProfessionalAnalyticsStaffUtilizationGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/staff-utilization',
@@ -702,17 +795,18 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Project Timeline Analysis
      * Analyze project timeline performance (on-time vs delayed)
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getProjectTimelineAnalysisApiV1ProfessionalAnalyticsProjectTimelineGet(
+    public static getProjectTimelineAnalysisApiV1ProfessionalAnalyticsProjectTimelineGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/project-timeline',
@@ -729,13 +823,14 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Invoice Aging
      * Analyze invoice aging and outstanding payments
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInvoiceAgingApiV1ProfessionalAnalyticsInvoiceAgingGet(
+    public static getInvoiceAgingApiV1ProfessionalAnalyticsInvoiceAgingGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/invoice-aging',
@@ -750,19 +845,20 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Revenue By Client
      * Analyze revenue by client
-     * @param businessId
-     * @param startDate
-     * @param endDate
-     * @param limit
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getRevenueByClientApiV1ProfessionalAnalyticsRevenueByClientGet(
+    public static getRevenueByClientApiV1ProfessionalAnalyticsRevenueByClientGet({
+        businessId,
+        startDate,
+        endDate,
+        limit = 10,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-        limit: number = 10,
-    ): CancelablePromise<Record<string, any>> {
+        limit?: number,
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/revenue-by-client',
@@ -780,17 +876,18 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Resource Allocation Analysis
      * Analyze resource allocation efficiency
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getResourceAllocationAnalysisApiV1ProfessionalAnalyticsResourceAllocationGet(
+    public static getResourceAllocationAnalysisApiV1ProfessionalAnalyticsResourceAllocationGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/resource-allocation',
@@ -807,15 +904,16 @@ export class ProfessionalServicesTemplateService {
     /**
      * Get Budget Variance
      * Analyze budget vs actual spending
-     * @param businessId
-     * @param projectId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getBudgetVarianceApiV1ProfessionalAnalyticsBudgetVarianceGet(
+    public static getBudgetVarianceApiV1ProfessionalAnalyticsBudgetVarianceGet({
+        businessId,
+        projectId,
+    }: {
         businessId: string,
         projectId?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/professional/analytics/budget-variance',

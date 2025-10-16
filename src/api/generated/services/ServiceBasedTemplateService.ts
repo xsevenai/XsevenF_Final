@@ -15,13 +15,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Service Simple
      * Create a new service offering (simplified)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createServiceSimpleApiV1ServiceBasedServicesPost(
+    public static createServiceSimpleApiV1ServiceBasedServicesPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/services',
@@ -35,13 +36,14 @@ export class ServiceBasedTemplateService {
     /**
      * List Services Simple
      * List all services for a business (simplified)
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listServicesSimpleApiV1ServiceBasedServicesGet(
+    public static listServicesSimpleApiV1ServiceBasedServicesGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/services',
@@ -56,13 +58,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Service
      * Create a new service offering
-     * @param requestBody
      * @returns ServiceResponse Successful Response
      * @throws ApiError
      */
-    public static createServiceApiV1ServiceBasedOfferingsPost(
+    public static createServiceApiV1ServiceBasedOfferingsPost({
+        requestBody,
+    }: {
         requestBody: ServiceCreate,
-    ): CancelablePromise<ServiceResponse> {
+    }): CancelablePromise<ServiceResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/offerings',
@@ -76,21 +79,31 @@ export class ServiceBasedTemplateService {
     /**
      * List Services
      * List all service offerings for a business
-     * @param businessId Business ID
-     * @param category Filter by category
-     * @param isActive Filter by active status
-     * @param limit
-     * @param offset
      * @returns ServiceResponse Successful Response
      * @throws ApiError
      */
-    public static listServicesApiV1ServiceBasedOfferingsGet(
+    public static listServicesApiV1ServiceBasedOfferingsGet({
+        businessId,
+        category,
+        isActive,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by category
+         */
         category?: (string | null),
+        /**
+         * Filter by active status
+         */
         isActive?: (boolean | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<ServiceResponse>> {
+    }): CancelablePromise<Array<ServiceResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/offerings',
@@ -109,13 +122,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Service Category Simple
      * Create service category (simplified)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createServiceCategorySimpleApiV1ServiceBasedServiceCategoriesPost(
+    public static createServiceCategorySimpleApiV1ServiceBasedServiceCategoriesPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/service-categories',
@@ -129,13 +143,14 @@ export class ServiceBasedTemplateService {
     /**
      * Get Service
      * Get a specific service offering by ID
-     * @param serviceId
      * @returns ServiceResponse Successful Response
      * @throws ApiError
      */
-    public static getServiceApiV1ServiceBasedOfferingsServiceIdGet(
+    public static getServiceApiV1ServiceBasedOfferingsServiceIdGet({
+        serviceId,
+    }: {
         serviceId: string,
-    ): CancelablePromise<ServiceResponse> {
+    }): CancelablePromise<ServiceResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/offerings/{service_id}',
@@ -150,15 +165,16 @@ export class ServiceBasedTemplateService {
     /**
      * Update Service
      * Update a service offering
-     * @param serviceId
-     * @param requestBody
      * @returns ServiceResponse Successful Response
      * @throws ApiError
      */
-    public static updateServiceApiV1ServiceBasedOfferingsServiceIdPut(
+    public static updateServiceApiV1ServiceBasedOfferingsServiceIdPut({
+        serviceId,
+        requestBody,
+    }: {
         serviceId: string,
         requestBody: ServiceUpdate,
-    ): CancelablePromise<ServiceResponse> {
+    }): CancelablePromise<ServiceResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/service-based/offerings/{service_id}',
@@ -175,13 +191,14 @@ export class ServiceBasedTemplateService {
     /**
      * Delete Service
      * Delete a service offering
-     * @param serviceId
      * @returns void
      * @throws ApiError
      */
-    public static deleteServiceApiV1ServiceBasedOfferingsServiceIdDelete(
+    public static deleteServiceApiV1ServiceBasedOfferingsServiceIdDelete({
+        serviceId,
+    }: {
         serviceId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/service-based/offerings/{service_id}',
@@ -196,13 +213,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Appointment Flexible
      * Create appointment (enterprise-grade flexible endpoint)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createAppointmentFlexibleApiV1ServiceBasedAppointmentsPost(
+    public static createAppointmentFlexibleApiV1ServiceBasedAppointmentsPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/appointments',
@@ -216,27 +234,46 @@ export class ServiceBasedTemplateService {
     /**
      * List Appointments
      * List all appointments for a business
-     * @param businessId Business ID
-     * @param clientId Filter by client
-     * @param staffId Filter by staff
-     * @param status Filter by status
-     * @param startDate Filter from date
-     * @param endDate Filter to date
-     * @param limit
-     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listAppointmentsApiV1ServiceBasedAppointmentsGet(
+    public static listAppointmentsApiV1ServiceBasedAppointmentsGet({
+        businessId,
+        clientId,
+        staffId,
+        status,
+        startDate,
+        endDate,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by client
+         */
         clientId?: (string | null),
+        /**
+         * Filter by staff
+         */
         staffId?: (string | null),
+        /**
+         * Filter by status
+         */
         status?: (string | null),
+        /**
+         * Filter from date
+         */
         startDate?: (string | null),
+        /**
+         * Filter to date
+         */
         endDate?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/appointments',
@@ -258,13 +295,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Appointment
      * Create a new appointment (strict validation)
-     * @param requestBody
      * @returns AppointmentResponse Successful Response
      * @throws ApiError
      */
-    public static createAppointmentApiV1ServiceBasedAppointmentsStrictPost(
+    public static createAppointmentApiV1ServiceBasedAppointmentsStrictPost({
+        requestBody,
+    }: {
         requestBody: AppointmentCreate,
-    ): CancelablePromise<AppointmentResponse> {
+    }): CancelablePromise<AppointmentResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/appointments/strict',
@@ -278,13 +316,14 @@ export class ServiceBasedTemplateService {
     /**
      * Get Appointment
      * Get a specific appointment by ID
-     * @param appointmentId
      * @returns AppointmentResponse Successful Response
      * @throws ApiError
      */
-    public static getAppointmentApiV1ServiceBasedAppointmentsAppointmentIdGet(
+    public static getAppointmentApiV1ServiceBasedAppointmentsAppointmentIdGet({
+        appointmentId,
+    }: {
         appointmentId: string,
-    ): CancelablePromise<AppointmentResponse> {
+    }): CancelablePromise<AppointmentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/appointments/{appointment_id}',
@@ -299,15 +338,16 @@ export class ServiceBasedTemplateService {
     /**
      * Update Appointment
      * Update an appointment
-     * @param appointmentId
-     * @param requestBody
      * @returns AppointmentResponse Successful Response
      * @throws ApiError
      */
-    public static updateAppointmentApiV1ServiceBasedAppointmentsAppointmentIdPut(
+    public static updateAppointmentApiV1ServiceBasedAppointmentsAppointmentIdPut({
+        appointmentId,
+        requestBody,
+    }: {
         appointmentId: string,
         requestBody: AppointmentUpdate,
-    ): CancelablePromise<AppointmentResponse> {
+    }): CancelablePromise<AppointmentResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/service-based/appointments/{appointment_id}',
@@ -324,13 +364,14 @@ export class ServiceBasedTemplateService {
     /**
      * Delete Appointment
      * Cancel/Delete an appointment
-     * @param appointmentId
      * @returns void
      * @throws ApiError
      */
-    public static deleteAppointmentApiV1ServiceBasedAppointmentsAppointmentIdDelete(
+    public static deleteAppointmentApiV1ServiceBasedAppointmentsAppointmentIdDelete({
+        appointmentId,
+    }: {
         appointmentId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/service-based/appointments/{appointment_id}',
@@ -347,13 +388,14 @@ export class ServiceBasedTemplateService {
      * Create a service package (bundle multiple services)
      *
      * Example: "Spa Day Package" includes massage + facial + manicure
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createServicePackageApiV1ServiceBasedPackagesPost(
+    public static createServicePackageApiV1ServiceBasedPackagesPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/packages',
@@ -367,19 +409,26 @@ export class ServiceBasedTemplateService {
     /**
      * List Service Packages
      * List all service packages
-     * @param businessId Business ID
-     * @param isActive Filter by active status
-     * @param limit
-     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listServicePackagesApiV1ServiceBasedPackagesGet(
+    public static listServicePackagesApiV1ServiceBasedPackagesGet({
+        businessId,
+        isActive,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by active status
+         */
         isActive?: (boolean | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/packages',
@@ -397,13 +446,14 @@ export class ServiceBasedTemplateService {
     /**
      * Get Service Package
      * Get service package by ID
-     * @param packageId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getServicePackageApiV1ServiceBasedPackagesPackageIdGet(
+    public static getServicePackageApiV1ServiceBasedPackagesPackageIdGet({
+        packageId,
+    }: {
         packageId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/packages/{package_id}',
@@ -418,15 +468,16 @@ export class ServiceBasedTemplateService {
     /**
      * Update Service Package
      * Update service package
-     * @param packageId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateServicePackageApiV1ServiceBasedPackagesPackageIdPut(
+    public static updateServicePackageApiV1ServiceBasedPackagesPackageIdPut({
+        packageId,
+        requestBody,
+    }: {
         packageId: string,
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/service-based/packages/{package_id}',
@@ -443,13 +494,14 @@ export class ServiceBasedTemplateService {
     /**
      * Delete Service Package
      * Delete service package
-     * @param packageId
      * @returns void
      * @throws ApiError
      */
-    public static deleteServicePackageApiV1ServiceBasedPackagesPackageIdDelete(
+    public static deleteServicePackageApiV1ServiceBasedPackagesPackageIdDelete({
+        packageId,
+    }: {
         packageId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/service-based/packages/{package_id}',
@@ -464,13 +516,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Membership Plan
      * Create membership plan (monthly gym membership, salon VIP, etc.)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createMembershipPlanApiV1ServiceBasedMembershipsPost(
+    public static createMembershipPlanApiV1ServiceBasedMembershipsPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/memberships',
@@ -484,19 +537,23 @@ export class ServiceBasedTemplateService {
     /**
      * List Membership Plans
      * List all membership plans
-     * @param businessId Business ID
-     * @param isActive
-     * @param limit
-     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listMembershipPlansApiV1ServiceBasedMembershipsGet(
+    public static listMembershipPlansApiV1ServiceBasedMembershipsGet({
+        businessId,
+        isActive,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
         isActive?: (boolean | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/memberships',
@@ -514,13 +571,14 @@ export class ServiceBasedTemplateService {
     /**
      * Get Membership Plan
      * Get membership plan by ID
-     * @param membershipId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getMembershipPlanApiV1ServiceBasedMembershipsMembershipIdGet(
+    public static getMembershipPlanApiV1ServiceBasedMembershipsMembershipIdGet({
+        membershipId,
+    }: {
         membershipId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/memberships/{membership_id}',
@@ -535,15 +593,16 @@ export class ServiceBasedTemplateService {
     /**
      * Update Membership Plan
      * Update membership plan
-     * @param membershipId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateMembershipPlanApiV1ServiceBasedMembershipsMembershipIdPut(
+    public static updateMembershipPlanApiV1ServiceBasedMembershipsMembershipIdPut({
+        membershipId,
+        requestBody,
+    }: {
         membershipId: string,
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/service-based/memberships/{membership_id}',
@@ -560,13 +619,14 @@ export class ServiceBasedTemplateService {
     /**
      * Delete Membership Plan
      * Delete membership plan
-     * @param membershipId
      * @returns void
      * @throws ApiError
      */
-    public static deleteMembershipPlanApiV1ServiceBasedMembershipsMembershipIdDelete(
+    public static deleteMembershipPlanApiV1ServiceBasedMembershipsMembershipIdDelete({
+        membershipId,
+    }: {
         membershipId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/service-based/memberships/{membership_id}',
@@ -581,13 +641,14 @@ export class ServiceBasedTemplateService {
     /**
      * Create Class Session
      * Create class/group session (yoga class, spin class, group training)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createClassSessionApiV1ServiceBasedClassesPost(
+    public static createClassSessionApiV1ServiceBasedClassesPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/classes',
@@ -601,23 +662,27 @@ export class ServiceBasedTemplateService {
     /**
      * List Class Sessions
      * List all class sessions
-     * @param businessId Business ID
-     * @param instructorId
-     * @param startDate
-     * @param endDate
-     * @param limit
-     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listClassSessionsApiV1ServiceBasedClassesGet(
+    public static listClassSessionsApiV1ServiceBasedClassesGet({
+        businessId,
+        instructorId,
+        startDate,
+        endDate,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
         instructorId?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/classes',
@@ -637,15 +702,16 @@ export class ServiceBasedTemplateService {
     /**
      * Book Class Session
      * Book a spot in a class session
-     * @param classId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static bookClassSessionApiV1ServiceBasedClassesClassIdBookPost(
+    public static bookClassSessionApiV1ServiceBasedClassesClassIdBookPost({
+        classId,
+        requestBody,
+    }: {
         classId: string,
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/classes/{class_id}/book',
@@ -662,13 +728,14 @@ export class ServiceBasedTemplateService {
     /**
      * Add To Waitlist
      * Add customer to waitlist when appointments are full
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static addToWaitlistApiV1ServiceBasedWaitlistPost(
+    public static addToWaitlistApiV1ServiceBasedWaitlistPost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/service-based/waitlist',
@@ -682,19 +749,23 @@ export class ServiceBasedTemplateService {
     /**
      * List Waitlist
      * List waitlist entries
-     * @param businessId Business ID
-     * @param status
-     * @param limit
-     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listWaitlistApiV1ServiceBasedWaitlistGet(
+    public static listWaitlistApiV1ServiceBasedWaitlistGet({
+        businessId,
+        status,
+        limit = 100,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
         status?: (string | null),
-        limit: number = 100,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<any>> {
+    }): CancelablePromise<Array<any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/waitlist',
@@ -712,15 +783,16 @@ export class ServiceBasedTemplateService {
     /**
      * Convert Waitlist To Appointment
      * Convert waitlist entry to actual appointment
-     * @param entryId
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static convertWaitlistToAppointmentApiV1ServiceBasedWaitlistEntryIdConvertPut(
+    public static convertWaitlistToAppointmentApiV1ServiceBasedWaitlistEntryIdConvertPut({
+        entryId,
+        requestBody,
+    }: {
         entryId: string,
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/service-based/waitlist/{entry_id}/convert',
@@ -737,17 +809,18 @@ export class ServiceBasedTemplateService {
     /**
      * Get Appointment Trends
      * Analyze appointment booking trends
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getAppointmentTrendsApiV1ServiceBasedAnalyticsAppointmentTrendsGet(
+    public static getAppointmentTrendsApiV1ServiceBasedAnalyticsAppointmentTrendsGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/analytics/appointment-trends',
@@ -764,17 +837,18 @@ export class ServiceBasedTemplateService {
     /**
      * Get Service Performance
      * Analyze which services are most popular
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getServicePerformanceApiV1ServiceBasedAnalyticsServicePerformanceGet(
+    public static getServicePerformanceApiV1ServiceBasedAnalyticsServicePerformanceGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/analytics/service-performance',
@@ -791,17 +865,18 @@ export class ServiceBasedTemplateService {
     /**
      * Get No Show Rate
      * Calculate no-show and cancellation rates
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getNoShowRateApiV1ServiceBasedAnalyticsNoShowRateGet(
+    public static getNoShowRateApiV1ServiceBasedAnalyticsNoShowRateGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/analytics/no-show-rate',
@@ -818,17 +893,18 @@ export class ServiceBasedTemplateService {
     /**
      * Get Staff Utilization
      * Analyze staff booking utilization
-     * @param businessId
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getStaffUtilizationApiV1ServiceBasedAnalyticsStaffUtilizationGet(
+    public static getStaffUtilizationApiV1ServiceBasedAnalyticsStaffUtilizationGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
         businessId: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/service-based/analytics/staff-utilization',

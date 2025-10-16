@@ -8,7 +8,7 @@ import type { TableStatus } from './TableStatus';
  * Create table
  */
 export type TableCreate = {
-    table_number: number;
+    table_number: string;
     capacity: number;
     location_id?: (string | null);
     floor_plan_id?: (string | null);

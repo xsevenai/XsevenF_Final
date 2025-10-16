@@ -5,11 +5,4 @@
 /**
  * Inventory transaction types
  */
-export enum TransactionType {
-    PURCHASE = 'purchase',
-    SALE = 'sale',
-    ADJUSTMENT = 'adjustment',
-    TRANSFER = 'transfer',
-    WASTE = 'waste',
-    RETURN = 'return',
-}
+export type TransactionType = 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'waste' | 'return';

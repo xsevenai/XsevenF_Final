@@ -129,8 +129,8 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
 
   return (
-    <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`}>
-      <div className="p-6 space-y-6">
+    <div className={`flex-1 ${mainPanelBg} h-screen flex flex-col transition-colors duration-300`}>
+      <div className="px-6 pt-6 pb-0 flex flex-col flex-1">
         {/* Header */}
         <div className={`${cardBg} p-8 border shadow-lg relative overflow-hidden`}
           style={{ borderRadius: '1.5rem' }}>
@@ -146,7 +146,7 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
             style={{ borderRadius: '1.5rem' }}>
             <div className="flex items-center justify-between mb-4">
@@ -213,7 +213,7 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
 
         {/* Clocked In Staff Section */}
         {clockedInStaff.length > 0 && (
-          <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+          <div className={`${cardBg} p-6 border shadow-lg mb-6`} style={{ borderRadius: '1.5rem' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-xl font-semibold ${textPrimary}`}>Currently Clocked In</h2>
               <div className={`px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800`}>
@@ -256,7 +256,7 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
         )}
 
         {/* Controls */}
-        <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <div className={`${cardBg} p-6 border shadow-lg mb-6`} style={{ borderRadius: '1.5rem' }}>
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 flex-1">
               {/* Search */}
@@ -307,21 +307,21 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
           </div>
         </div>
 
-        {/* Time Clock Entries List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Time Clock Entries Table */}
+        <div className={`${cardBg} border-l border-r border-t shadow-lg transition-colors duration-300 overflow-hidden flex-1`} style={{ borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem' }}>
           {loading ? (
-            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
           ) : error ? (
-            <div className={`${cardBg} p-8 border shadow-lg col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8">
               <div className="flex items-center gap-3 text-red-500">
                 <AlertCircle className="h-6 w-6" />
                 <p>Error loading time clock entries: {error}</p>
               </div>
             </div>
           ) : filteredEntries.length === 0 ? (
-            <div className={`${cardBg} p-8 border shadow-lg text-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8 text-center">
               <Clock className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
               <h3 className={`${textPrimary} text-lg font-semibold mb-2`}>No Time Entries Found</h3>
               <p className={`${textSecondary}`}>
@@ -332,74 +332,155 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
               </p>
             </div>
           ) : (
-            filteredEntries.map((entry, index) => {
-              const staff = staffMembers.find(s => s.id === entry.staff_id)
-              const staffName = staff ? `${staff.first_name} ${staff.last_name}` : 'Unknown Staff'
-              const clockInTime = entry.clock_in ? new Date(entry.clock_in) : null
-              const clockOutTime = entry.clock_out ? new Date(entry.clock_out) : null
-              const isActive = !clockOutTime
-              
-              return (
-                <div
-                  key={entry.id}
-                  className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
-                  style={{ borderRadius: '1.5rem' }}
-                >
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className={`w-20 h-20 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
-                      <Clock className={`h-8 w-8 ${textPrimary}`} />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className={`${textPrimary} font-semibold text-lg`}>
-                        {staffName}
-                      </h3>
-                      <p className={`${textSecondary} text-sm`}>
-                        Clock In: {clockInTime ? clockInTime.toLocaleDateString() : 'Unknown'}
-                      </p>
-                      <p className={`${textSecondary} text-sm`}>
-                        {clockInTime ? clockInTime.toLocaleTimeString() : 'Unknown'}
-                      </p>
-                      {clockOutTime && (
-                        <>
-                          <p className={`${textSecondary} text-sm`}>
-                            Clock Out: {clockOutTime.toLocaleDateString()}
-                          </p>
-                          <p className={`${textSecondary} text-sm`}>
-                            {clockOutTime.toLocaleTimeString()}
-                          </p>
-                        </>
-                      )}
-                      {entry.notes && (
-                        <p className={`${textSecondary} text-xs mt-1`}>{entry.notes}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2 w-full">
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${
-                        isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {isActive ? 'Active' : 'Completed'}
-                      </div>
-                      {isActive && (
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleClockOut(entry.id)
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="w-full flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
-                        >
-                          <Square className="h-3 w-3" />
-                          Clock Out
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })
+            <div className="overflow-x-auto overflow-y-auto flex-1">
+              <table className="w-full">
+                {/* Table Header */}
+                <thead className="sticky top-0 z-10">
+                  <tr className={`${isDark ? "bg-[#171717] border-b border-[#2a2a2a]" : "bg-white border-b border-gray-200"}`}>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Staff Member
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Clock In
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Clock Out
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Duration
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Status
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Notes
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                
+                {/* Table Body */}
+                <tbody>
+                  {filteredEntries.map((entry, index) => {
+                    const staff = staffMembers.find(s => s.id === entry.staff_id)
+                    const staffName = staff ? `${staff.first_name} ${staff.last_name}` : 'Unknown Staff'
+                    const clockInTime = entry.clock_in ? new Date(entry.clock_in) : null
+                    const clockOutTime = entry.clock_out ? new Date(entry.clock_out) : null
+                    const isActive = !clockOutTime
+                    
+                    // Calculate duration
+                    const calculateDuration = () => {
+                      if (!clockInTime) return 'Unknown'
+                      const endTime = clockOutTime || new Date()
+                      const diffMs = endTime.getTime() - clockInTime.getTime()
+                      const hours = Math.floor(diffMs / (1000 * 60 * 60))
+                      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                      return `${hours}h ${minutes}m`
+                    }
+                    
+                    return (
+                      <tr 
+                        key={entry.id}
+                        className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                      >
+                        {/* Staff Member */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                              <span className={`${textPrimary} font-bold text-sm`}>
+                                {(staff?.first_name?.charAt(0) || '')}{(staff?.last_name?.charAt(0) || '')}
+                              </span>
+                            </div>
+                            <div>
+                              <div className={`${textPrimary} font-semibold text-sm`}>{staffName}</div>
+                              <div className={`${textSecondary} text-xs`}>{staff?.position || 'Unknown Position'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        
+                        {/* Clock In */}
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className={`${textPrimary} text-sm font-medium`}>
+                              {clockInTime ? clockInTime.toLocaleDateString() : 'Unknown'}
+                            </div>
+                            <div className={`${textSecondary} text-xs`}>
+                              {clockInTime ? clockInTime.toLocaleTimeString() : 'Unknown'}
+                            </div>
+                          </div>
+                        </td>
+                        
+                        {/* Clock Out */}
+                        <td className="py-4 px-6">
+                          <div>
+                            {clockOutTime ? (
+                              <>
+                                <div className={`${textPrimary} text-sm font-medium`}>
+                                  {clockOutTime.toLocaleDateString()}
+                                </div>
+                                <div className={`${textSecondary} text-xs`}>
+                                  {clockOutTime.toLocaleTimeString()}
+                                </div>
+                              </>
+                            ) : (
+                              <div className={`${textSecondary} text-sm italic`}>Still Active</div>
+                            )}
+                          </div>
+                        </td>
+                        
+                        {/* Duration */}
+                        <td className="py-4 px-6">
+                          <div className={`${textPrimary} text-sm font-medium`}>
+                            {calculateDuration()}
+                          </div>
+                        </td>
+                        
+                        {/* Status */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`}></div>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                isActive 
+                                  ? isDark ? "bg-green-900 text-green-300" : "bg-green-100 text-green-800"
+                                  : isDark ? "bg-gray-900 text-gray-300" : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {isActive ? 'Active' : 'Completed'}
+                            </span>
+                          </div>
+                        </td>
+                        
+                        {/* Notes */}
+                        <td className="py-4 px-6">
+                          <div className={`${textSecondary} text-sm max-w-xs truncate`}>
+                            {entry.notes || 'No notes'}
+                          </div>
+                        </td>
+                        
+                        {/* Actions */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            {isActive && (
+                              <Button
+                                onClick={() => handleClockOut(entry.id)}
+                                size="sm"
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                <Square className="h-3 w-3 mr-1" />
+                                Clock Out
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

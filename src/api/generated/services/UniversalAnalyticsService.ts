@@ -7,40 +7,29 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class UniversalAnalyticsService {
     /**
-     * Get Customer Insights
-     * Get customer/client insights across all categories
-     * @param businessId Business ID
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static getCustomerInsightsApiV1AnalyticsCustomersInsightsGet(
-        businessId: string,
-    ): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/analytics/customers/insights',
-            query: {
-                'business_id': businessId,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
      * Get Financial Summary
      * Get financial summary across all revenue sources
-     * @param businessId Business ID
-     * @param startDate Start date
-     * @param endDate End date
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getFinancialSummaryApiV1AnalyticsFinancialSummaryGet(
+    public static getFinancialSummaryApiV1AnalyticsFinancialSummaryGet({
+        businessId,
+        startDate,
+        endDate,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Start date
+         */
         startDate?: (string | null),
+        /**
+         * End date
+         */
         endDate?: (string | null),
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/financial/summary',
@@ -55,29 +44,24 @@ export class UniversalAnalyticsService {
         });
     }
     /**
-     * Generate Report
-     * Generate comprehensive business report
-     * @param businessId Business ID
-     * @param reportType Report type: summary, detailed, financial
-     * @param startDate
-     * @param endDate
+     * Get Customer Insights
+     * Get customer/client insights across all categories
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static generateReportApiV1AnalyticsReportsGeneratePost(
+    public static getCustomerInsightsApiV1AnalyticsCustomersInsightsGet({
+        businessId,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
-        reportType: string = 'summary',
-        startDate?: (string | null),
-        endDate?: (string | null),
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/analytics/reports/generate',
+            method: 'GET',
+            url: '/api/v1/analytics/customers/insights',
             query: {
                 'business_id': businessId,
-                'report_type': reportType,
-                'start_date': startDate,
-                'end_date': endDate,
             },
             errors: {
                 422: `Validation Error`,
@@ -87,17 +71,27 @@ export class UniversalAnalyticsService {
     /**
      * Get Performance Trends
      * Get performance trends over time
-     * @param businessId Business ID
-     * @param metric Metric to track: revenue, orders, appointments, projects
-     * @param period Period: 7d, 30d, 90d
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getPerformanceTrendsApiV1AnalyticsPerformanceTrendsGet(
+    public static getPerformanceTrendsApiV1AnalyticsPerformanceTrendsGet({
+        businessId,
+        metric = 'revenue',
+        period = '30d',
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
-        metric: string = 'revenue',
-        period: string = '30d',
-    ): CancelablePromise<any> {
+        /**
+         * Metric to track: revenue, orders, appointments, projects
+         */
+        metric?: string,
+        /**
+         * Period: 7d, 30d, 90d
+         */
+        period?: string,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/performance/trends',
@@ -105,6 +99,43 @@ export class UniversalAnalyticsService {
                 'business_id': businessId,
                 'metric': metric,
                 'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Generate Report
+     * Generate comprehensive business report
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static generateReportApiV1AnalyticsReportsGeneratePost({
+        businessId,
+        reportType = 'summary',
+        startDate,
+        endDate,
+    }: {
+        /**
+         * Business ID
+         */
+        businessId: string,
+        /**
+         * Report type: summary, detailed, financial
+         */
+        reportType?: string,
+        startDate?: (string | null),
+        endDate?: (string | null),
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/analytics/reports/generate',
+            query: {
+                'business_id': businessId,
+                'report_type': reportType,
+                'start_date': startDate,
+                'end_date': endDate,
             },
             errors: {
                 422: `Validation Error`,

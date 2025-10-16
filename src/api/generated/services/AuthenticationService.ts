@@ -23,13 +23,14 @@ export class AuthenticationService {
      * - Default business settings
      *
      * **Flow**: Frontend -> Dashboard Service -> Supabase (Direct)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static registerBusinessApiV1AuthRegisterBusinessPost(
+    public static registerBusinessApiV1AuthRegisterBusinessPost({
+        requestBody,
+    }: {
         requestBody: BusinessRegistration,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/register/business',
@@ -45,13 +46,14 @@ export class AuthenticationService {
      * Authenticate user and return session tokens (Through Backend)
      *
      * **Flow**: Frontend -> Dashboard Service -> Supabase Auth -> Backend Validation
-     * @param requestBody
      * @returns TokenResponse Successful Response
      * @throws ApiError
      */
-    public static loginApiV1AuthLoginPost(
+    public static loginApiV1AuthLoginPost({
+        requestBody,
+    }: {
         requestBody: LoginRequest,
-    ): CancelablePromise<TokenResponse> {
+    }): CancelablePromise<TokenResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/login',
@@ -65,13 +67,14 @@ export class AuthenticationService {
     /**
      * Refresh Token
      * Refresh access token using refresh token
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static refreshTokenApiV1AuthRefreshPost(
+    public static refreshTokenApiV1AuthRefreshPost({
+        requestBody,
+    }: {
         requestBody: RefreshTokenRequest,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/refresh',
@@ -111,13 +114,14 @@ export class AuthenticationService {
     /**
      * Request Password Reset
      * Request password reset email
-     * @param email
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static requestPasswordResetApiV1AuthPasswordResetRequestPost(
+    public static requestPasswordResetApiV1AuthPasswordResetRequestPost({
+        email,
+    }: {
         email: string,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/password/reset-request',
@@ -132,13 +136,14 @@ export class AuthenticationService {
     /**
      * Update Password
      * Update user password (requires authentication)
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updatePasswordApiV1AuthPasswordUpdatePost(
+    public static updatePasswordApiV1AuthPasswordUpdatePost({
+        requestBody,
+    }: {
         requestBody: PasswordUpdateRequest,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/password/update',

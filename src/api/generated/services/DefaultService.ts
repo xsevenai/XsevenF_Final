@@ -12,15 +12,16 @@ export class DefaultService {
      * Get dashboard analytics for business
      *
      * Includes: orders, revenue, customer metrics, top items
-     * @param businessId
-     * @param period
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getDashboardAnalyticsApiV1AnalyticsDashboardBusinessIdGet(
+    public static getDashboardAnalyticsApiV1AnalyticsDashboardBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
         businessId: string,
-        period: string = '7d',
-    ): CancelablePromise<any> {
+        period?: string,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/dashboard/{business_id}',
@@ -88,15 +89,16 @@ export class DefaultService {
      * Get top-5 category assessments
      *
      * Analyzes performance by category
-     * @param businessId
-     * @param limit
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getTopCategoriesApiV1AnalyticsTopCategoriesBusinessIdGet(
+    public static getTopCategoriesApiV1AnalyticsTopCategoriesBusinessIdGet({
+        businessId,
+        limit = 5,
+    }: {
         businessId: string,
-        limit: number = 5,
-    ): CancelablePromise<any> {
+        limit?: number,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/top-categories/{business_id}',
@@ -116,13 +118,14 @@ export class DefaultService {
      * Get customer behavior insights
      *
      * Includes: demographics, preferences, retention
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getCustomerInsightsApiV1AnalyticsCustomerInsightsBusinessIdGet(
+    public static getCustomerInsightsApiV1AnalyticsCustomerInsightsBusinessIdGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/customer-insights/{business_id}',
@@ -139,13 +142,14 @@ export class DefaultService {
      * Get real-time metrics
      *
      * Live data from Kafka streams
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getRealtimeMetricsApiV1AnalyticsRealTimeBusinessIdGet(
+    public static getRealtimeMetricsApiV1AnalyticsRealTimeBusinessIdGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/analytics/real-time/{business_id}',
@@ -168,17 +172,18 @@ export class DefaultService {
      * - Business documents
      *
      * Uses OCR (Tesseract/Google Vision) and AI (OpenAI) for extraction
-     * @param formData
-     * @param businessId
-     * @param category
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static uploadPdfApiV1PdfUploadPost(
+    public static uploadPdfApiV1PdfUploadPost({
+        formData,
+        businessId,
+        category = 'menu',
+    }: {
         formData: Body_upload_pdf_api_v1_pdf_upload_post,
         businessId?: string,
-        category: string = 'menu',
-    ): CancelablePromise<any> {
+        category?: string,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/pdf/upload',
@@ -196,13 +201,14 @@ export class DefaultService {
     /**
      * Get Extracted Content
      * Get extracted content from processed PDF
-     * @param fileId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getExtractedContentApiV1PdfExtractFileIdGet(
+    public static getExtractedContentApiV1PdfExtractFileIdGet({
+        fileId,
+    }: {
         fileId: string,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/pdf/extract/{file_id}',
@@ -219,13 +225,14 @@ export class DefaultService {
      * AI-powered content categorization
      *
      * Uses OpenAI to categorize extracted content into relevant sections
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static categorizeContentApiV1PdfCategorizePost(
+    public static categorizeContentApiV1PdfCategorizePost({
+        requestBody,
+    }: {
         requestBody: Record<string, any>,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/pdf/categorize',
@@ -241,19 +248,20 @@ export class DefaultService {
      * Generate business report
      *
      * Types: summary, detailed, financial, customer
-     * @param businessId
-     * @param reportType
-     * @param startDate
-     * @param endDate
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static generateReportApiV1ReportsGenerateBusinessIdGet(
+    public static generateReportApiV1ReportsGenerateBusinessIdGet({
+        businessId,
+        reportType = 'summary',
+        startDate,
+        endDate,
+    }: {
         businessId: string,
-        reportType: string = 'summary',
+        reportType?: string,
         startDate?: (string | null),
         endDate?: (string | null),
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/reports/generate/{business_id}',
@@ -276,17 +284,18 @@ export class DefaultService {
      *
      * Formats: csv, json, excel
      * Types: orders, customers, inventory, analytics
-     * @param businessId
-     * @param dataType
-     * @param format
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static exportDataApiV1ExportBusinessIdGet(
+    public static exportDataApiV1ExportBusinessIdGet({
+        businessId,
+        dataType = 'orders',
+        format = 'csv',
+    }: {
         businessId: string,
-        dataType: string = 'orders',
-        format: string = 'csv',
-    ): CancelablePromise<any> {
+        dataType?: string,
+        format?: string,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/export/{business_id}',

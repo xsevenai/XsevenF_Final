@@ -6,7 +6,10 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "regenerate-openapi": "npx openapi-typescript-codegen -i http://127.0.0.1:8060/openapi.json -o src/api/generated --client axios --useOptions --useUnionTypes",
+    "openapi:generate": "npx openapi-typescript-codegen -i http://127.0.0.1:8060/openapi.json -o src/api/generated --client axios --useOptions --useUnionTypes",
+    "openapi:check": "curl -s http://127.0.0.1:8060/openapi.json | jq .info.title"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,0 +1,13 @@
+{
+  "name": "regenerate-openapi",
+  "version": "1.0.0",
+  "description": "Regenerate OpenAPI TypeScript client from FastAPI backend",
+  "scripts": {
+    "regenerate-openapi": "bash scripts/regenerate-openapi.sh",
+    "openapi:generate": "npx openapi-typescript-codegen -i http://127.0.0.1:8060/openapi.json -o src/api/generated --client axios --useOptions --useUnionTypes",
+    "openapi:check": "curl -s http://127.0.0.1:8060/openapi.json | jq .info.title"
+  },
+  "devDependencies": {
+    "openapi-typescript-codegen": "^0.26.0"
+  }
+}

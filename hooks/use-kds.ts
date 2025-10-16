@@ -28,12 +28,12 @@ export const useKDSOrders = (businessId: string) => {
       configureAPI()
       
       console.log('Fetching KDS orders with params:', filters)
-      const data = await FoodHospitalityOperationsService.listKdsOrdersApiV1FoodKdsOrdersGet(
+      const data = await FoodHospitalityOperationsService.listKdsOrdersApiV1FoodKdsOrdersGet({
         businessId,
-        filters?.station || null,
-        filters?.status || null,
-        filters?.activeOnly !== undefined ? filters.activeOnly : true
-      )
+        station: filters?.station || null,
+        status: filters?.status || null,
+        activeOnly: filters?.activeOnly !== undefined ? filters.activeOnly : true
+      })
       console.log('Fetched KDS orders:', data.length, 'orders')
       setOrders(data)
     } catch (err: any) {
@@ -50,7 +50,7 @@ export const useKDSOrders = (businessId: string) => {
       configureAPI()
       
       console.log('Creating KDS order with data:', data)
-      const newOrder = await FoodHospitalityOperationsService.createKdsOrderApiV1FoodKdsOrdersPost(data)
+      const newOrder = await FoodHospitalityOperationsService.createKdsOrderApiV1FoodKdsOrdersPost({ requestBody: data })
       console.log('KDS order created successfully:', newOrder)
       setOrders(prev => [newOrder, ...prev])
       return newOrder
@@ -76,7 +76,7 @@ export const useKDSOrders = (businessId: string) => {
       }
       
       console.log('Updating KDS order:', orderId, 'with data:', cleanData)
-      const updatedOrder = await FoodHospitalityOperationsService.updateKdsOrderApiV1FoodKdsOrdersOrderIdPut(orderId, cleanData)
+      const updatedOrder = await FoodHospitalityOperationsService.updateKdsOrderApiV1FoodKdsOrdersOrderIdPut({ orderId, requestBody: cleanData })
       console.log('KDS order updated successfully:', updatedOrder)
       setOrders(prev => prev.map(order => order.id === orderId ? updatedOrder : order))
       return updatedOrder
@@ -93,7 +93,7 @@ export const useKDSOrders = (businessId: string) => {
       setError(null)
       configureAPI()
       
-      const order = await FoodHospitalityOperationsService.getKdsOrderApiV1FoodKdsOrdersOrderIdGet(orderId)
+      const order = await FoodHospitalityOperationsService.getKdsOrderApiV1FoodKdsOrdersOrderIdGet({ orderId })
       return order
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get KDS order'
@@ -160,11 +160,11 @@ export const useKDSPerformance = (businessId: string) => {
       const defaultStartDate = startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       
       console.log('Fetching KDS performance:', { startDate: defaultStartDate, endDate: defaultEndDate })
-      const data = await FoodHospitalityOperationsService.getKitchenPerformanceApiV1FoodKdsPerformanceGet(
+      const data = await FoodHospitalityOperationsService.getKitchenPerformanceApiV1FoodKdsPerformanceGet({
         businessId,
-        defaultStartDate,
-        defaultEndDate
-      )
+        startDate: defaultStartDate,
+        endDate: defaultEndDate
+      })
       console.log('Fetched KDS performance:', data)
       setPerformance(data)
       return data

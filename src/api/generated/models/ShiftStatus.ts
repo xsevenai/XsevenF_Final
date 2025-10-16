@@ -5,11 +5,4 @@
 /**
  * Staff shift statuses
  */
-export enum ShiftStatus {
-    SCHEDULED = 'scheduled',
-    CONFIRMED = 'confirmed',
-    IN_PROGRESS = 'in_progress',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled',
-    NO_SHOW = 'no_show',
-}
+export type ShiftStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';

@@ -26,13 +26,14 @@ export class MenuManagementService {
      * - **Hierarchical support**: Can have parent categories
      * - **Display order**: Control category ordering
      * - **Icons**: Optional icon URLs for visual representation
-     * @param requestBody
      * @returns MenuCategory Successful Response
      * @throws ApiError
      */
-    public static createMenuCategoryApiV1MenuCategoriesPost(
+    public static createMenuCategoryApiV1MenuCategoriesPost({
+        requestBody,
+    }: {
         requestBody: MenuCategoryCreate,
-    ): CancelablePromise<MenuCategory> {
+    }): CancelablePromise<MenuCategory> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/categories',
@@ -49,17 +50,27 @@ export class MenuManagementService {
      *
      * - **Hierarchical**: Returns categories with parent-child relationships
      * - **Filtering**: Filter by parent or active status
-     * @param businessId Business ID
-     * @param parentId Filter by parent category
-     * @param isActive Filter by active status
      * @returns MenuCategory Successful Response
      * @throws ApiError
      */
-    public static listMenuCategoriesApiV1MenuCategoriesGet(
+    public static listMenuCategoriesApiV1MenuCategoriesGet({
+        businessId,
+        parentId,
+        isActive,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by parent category
+         */
         parentId?: (string | null),
+        /**
+         * Filter by active status
+         */
         isActive?: (boolean | null),
-    ): CancelablePromise<Array<MenuCategory>> {
+    }): CancelablePromise<Array<MenuCategory>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/categories',
@@ -76,13 +87,14 @@ export class MenuManagementService {
     /**
      * Get Menu Category
      * Get menu category by ID
-     * @param categoryId
      * @returns MenuCategory Successful Response
      * @throws ApiError
      */
-    public static getMenuCategoryApiV1MenuCategoriesCategoryIdGet(
+    public static getMenuCategoryApiV1MenuCategoriesCategoryIdGet({
+        categoryId,
+    }: {
         categoryId: string,
-    ): CancelablePromise<MenuCategory> {
+    }): CancelablePromise<MenuCategory> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/categories/{category_id}',
@@ -97,15 +109,16 @@ export class MenuManagementService {
     /**
      * Update Menu Category
      * Update menu category
-     * @param categoryId
-     * @param requestBody
      * @returns MenuCategory Successful Response
      * @throws ApiError
      */
-    public static updateMenuCategoryApiV1MenuCategoriesCategoryIdPut(
+    public static updateMenuCategoryApiV1MenuCategoriesCategoryIdPut({
+        categoryId,
+        requestBody,
+    }: {
         categoryId: string,
         requestBody: MenuCategoryUpdate,
-    ): CancelablePromise<MenuCategory> {
+    }): CancelablePromise<MenuCategory> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/menu/categories/{category_id}',
@@ -125,13 +138,14 @@ export class MenuManagementService {
      *
      * - **Cascade handling**: Items in category will have category_id set to NULL
      * - **Soft delete option**: Can be implemented for data retention
-     * @param categoryId
      * @returns void
      * @throws ApiError
      */
-    public static deleteMenuCategoryApiV1MenuCategoriesCategoryIdDelete(
+    public static deleteMenuCategoryApiV1MenuCategoriesCategoryIdDelete({
+        categoryId,
+    }: {
         categoryId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/menu/categories/{category_id}',
@@ -150,13 +164,14 @@ export class MenuManagementService {
      * - **Full customization**: Price, cost, variants, modifiers
      * - **Availability**: Time-based and location-based availability
      * - **Rich metadata**: Images, allergens, nutrition info
-     * @param requestBody
      * @returns MenuItem Successful Response
      * @throws ApiError
      */
-    public static createMenuItemApiV1MenuItemsPost(
+    public static createMenuItemApiV1MenuItemsPost({
+        requestBody,
+    }: {
         requestBody: MenuItemCreate,
-    ): CancelablePromise<MenuItem> {
+    }): CancelablePromise<MenuItem> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/items',
@@ -174,23 +189,36 @@ export class MenuManagementService {
      * - **Search**: Full-text search on name and description
      * - **Filtering**: By category, availability, tags
      * - **Pagination**: Efficient for large menus
-     * @param businessId Business ID
-     * @param categoryId Filter by category
-     * @param isAvailable Filter by availability
-     * @param search Search by name or description
-     * @param limit
-     * @param offset
      * @returns MenuItem Successful Response
      * @throws ApiError
      */
-    public static listMenuItemsApiV1MenuItemsGet(
+    public static listMenuItemsApiV1MenuItemsGet({
+        businessId,
+        categoryId,
+        isAvailable,
+        search,
+        limit = 50,
+        offset,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by category
+         */
         categoryId?: (string | null),
+        /**
+         * Filter by availability
+         */
         isAvailable?: (boolean | null),
+        /**
+         * Search by name or description
+         */
         search?: (string | null),
-        limit: number = 50,
+        limit?: number,
         offset?: number,
-    ): CancelablePromise<Array<MenuItem>> {
+    }): CancelablePromise<Array<MenuItem>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/items',
@@ -214,13 +242,14 @@ export class MenuManagementService {
      * - **Multi-criteria**: Search by multiple fields
      * - **Price range**: Filter by min/max price
      * - **Tags**: Filter by tags
-     * @param requestBody
      * @returns MenuItem Successful Response
      * @throws ApiError
      */
-    public static searchMenuItemsApiV1MenuItemsSearchPost(
+    public static searchMenuItemsApiV1MenuItemsSearchPost({
+        requestBody,
+    }: {
         requestBody: MenuItemSearch,
-    ): CancelablePromise<Array<MenuItem>> {
+    }): CancelablePromise<Array<MenuItem>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/items/search',
@@ -237,15 +266,16 @@ export class MenuManagementService {
      *
      * - **Complete data**: Includes category and modifier details
      * - **Profit margin**: Automatically calculated
-     * @param itemId
-     * @param includeModifiers
      * @returns MenuItemWithDetails Successful Response
      * @throws ApiError
      */
-    public static getMenuItemApiV1MenuItemsItemIdGet(
+    public static getMenuItemApiV1MenuItemsItemIdGet({
+        itemId,
+        includeModifiers = true,
+    }: {
         itemId: string,
-        includeModifiers: boolean = true,
-    ): CancelablePromise<MenuItemWithDetails> {
+        includeModifiers?: boolean,
+    }): CancelablePromise<MenuItemWithDetails> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/items/{item_id}',
@@ -266,15 +296,16 @@ export class MenuManagementService {
      *
      * - **Partial updates**: Only update provided fields
      * - **Validation**: Price, cost, and inventory checks
-     * @param itemId
-     * @param requestBody
      * @returns MenuItem Successful Response
      * @throws ApiError
      */
-    public static updateMenuItemApiV1MenuItemsItemIdPut(
+    public static updateMenuItemApiV1MenuItemsItemIdPut({
+        itemId,
+        requestBody,
+    }: {
         itemId: string,
         requestBody: MenuItemUpdate,
-    ): CancelablePromise<MenuItem> {
+    }): CancelablePromise<MenuItem> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/menu/items/{item_id}',
@@ -294,15 +325,16 @@ export class MenuManagementService {
      *
      * - **Soft delete**: Set is_available to false (default)
      * - **Hard delete**: Permanently remove from database
-     * @param itemId
-     * @param softDelete
      * @returns void
      * @throws ApiError
      */
-    public static deleteMenuItemApiV1MenuItemsItemIdDelete(
+    public static deleteMenuItemApiV1MenuItemsItemIdDelete({
+        itemId,
+        softDelete = true,
+    }: {
         itemId: string,
-        softDelete: boolean = true,
-    ): CancelablePromise<void> {
+        softDelete?: boolean,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/menu/items/{item_id}',
@@ -323,13 +355,14 @@ export class MenuManagementService {
      *
      * - **Efficiency**: Update many items at once
      * - **Use cases**: Price changes, availability updates, category reassignment
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static bulkUpdateMenuItemsApiV1MenuItemsBulkUpdatePost(
+    public static bulkUpdateMenuItemsApiV1MenuItemsBulkUpdatePost({
+        requestBody,
+    }: {
         requestBody: BulkMenuItemUpdate,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/items/bulk-update',
@@ -346,15 +379,16 @@ export class MenuManagementService {
      *
      * - **Quick creation**: Copy all properties
      * - **Customization**: Optionally provide new name
-     * @param itemId
-     * @param newName
      * @returns MenuItem Successful Response
      * @throws ApiError
      */
-    public static duplicateMenuItemApiV1MenuItemsItemIdDuplicatePost(
+    public static duplicateMenuItemApiV1MenuItemsItemIdDuplicatePost({
+        itemId,
+        newName,
+    }: {
         itemId: string,
         newName?: (string | null),
-    ): CancelablePromise<MenuItem> {
+    }): CancelablePromise<MenuItem> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/items/{item_id}/duplicate',
@@ -376,13 +410,14 @@ export class MenuManagementService {
      * - **Types**: Single or multiple selection
      * - **Pricing**: Each option can have price adjustment
      * - **Validation**: Min/max selection rules
-     * @param requestBody
      * @returns ItemModifier Successful Response
      * @throws ApiError
      */
-    public static createItemModifierApiV1MenuModifiersPost(
+    public static createItemModifierApiV1MenuModifiersPost({
+        requestBody,
+    }: {
         requestBody: ItemModifierCreate,
-    ): CancelablePromise<ItemModifier> {
+    }): CancelablePromise<ItemModifier> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/modifiers',
@@ -396,15 +431,22 @@ export class MenuManagementService {
     /**
      * List Item Modifiers
      * List all item modifiers for a business
-     * @param businessId Business ID
-     * @param modifierType Filter by type
      * @returns ItemModifier Successful Response
      * @throws ApiError
      */
-    public static listItemModifiersApiV1MenuModifiersGet(
+    public static listItemModifiersApiV1MenuModifiersGet({
+        businessId,
+        modifierType,
+    }: {
+        /**
+         * Business ID
+         */
         businessId: string,
+        /**
+         * Filter by type
+         */
         modifierType?: (string | null),
-    ): CancelablePromise<Array<ItemModifier>> {
+    }): CancelablePromise<Array<ItemModifier>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/modifiers',
@@ -420,13 +462,14 @@ export class MenuManagementService {
     /**
      * Get Item Modifier
      * Get item modifier by ID
-     * @param modifierId
      * @returns ItemModifier Successful Response
      * @throws ApiError
      */
-    public static getItemModifierApiV1MenuModifiersModifierIdGet(
+    public static getItemModifierApiV1MenuModifiersModifierIdGet({
+        modifierId,
+    }: {
         modifierId: string,
-    ): CancelablePromise<ItemModifier> {
+    }): CancelablePromise<ItemModifier> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/modifiers/{modifier_id}',
@@ -441,15 +484,16 @@ export class MenuManagementService {
     /**
      * Update Item Modifier
      * Update item modifier
-     * @param modifierId
-     * @param requestBody
      * @returns ItemModifier Successful Response
      * @throws ApiError
      */
-    public static updateItemModifierApiV1MenuModifiersModifierIdPut(
+    public static updateItemModifierApiV1MenuModifiersModifierIdPut({
+        modifierId,
+        requestBody,
+    }: {
         modifierId: string,
         requestBody: ItemModifierUpdate,
-    ): CancelablePromise<ItemModifier> {
+    }): CancelablePromise<ItemModifier> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/menu/modifiers/{modifier_id}',
@@ -466,13 +510,14 @@ export class MenuManagementService {
     /**
      * Delete Item Modifier
      * Delete item modifier
-     * @param modifierId
      * @returns void
      * @throws ApiError
      */
-    public static deleteItemModifierApiV1MenuModifiersModifierIdDelete(
+    public static deleteItemModifierApiV1MenuModifiersModifierIdDelete({
+        modifierId,
+    }: {
         modifierId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/menu/modifiers/{modifier_id}',
@@ -490,17 +535,18 @@ export class MenuManagementService {
      *
      * - **Flexible**: Same modifier can be used for multiple items
      * - **Ordering**: Control display order of modifiers
-     * @param itemId
-     * @param modifierId
-     * @param displayOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static assignModifierToItemApiV1MenuItemsItemIdModifiersModifierIdPost(
+    public static assignModifierToItemApiV1MenuItemsItemIdModifiersModifierIdPost({
+        itemId,
+        modifierId,
+        displayOrder,
+    }: {
         itemId: string,
         modifierId: string,
         displayOrder?: number,
-    ): CancelablePromise<any> {
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/items/{item_id}/modifiers/{modifier_id}',
@@ -519,15 +565,16 @@ export class MenuManagementService {
     /**
      * Remove Modifier From Item
      * Remove modifier from menu item
-     * @param itemId
-     * @param modifierId
      * @returns void
      * @throws ApiError
      */
-    public static removeModifierFromItemApiV1MenuItemsItemIdModifiersModifierIdDelete(
+    public static removeModifierFromItemApiV1MenuItemsItemIdModifiersModifierIdDelete({
+        itemId,
+        modifierId,
+    }: {
         itemId: string,
         modifierId: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/menu/items/{item_id}/modifiers/{modifier_id}',
@@ -547,13 +594,14 @@ export class MenuManagementService {
      * - **Sources**: PDF, CSV, JSON, Toast, DoorDash
      * - **Auto-categorization**: AI-powered category creation
      * - **Conflict handling**: Overwrite or skip existing items
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static importMenuApiV1MenuImportPost(
+    public static importMenuApiV1MenuImportPost({
+        requestBody,
+    }: {
         requestBody: MenuImport,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/menu/import',
@@ -571,17 +619,18 @@ export class MenuManagementService {
      * - **Formats**: JSON, CSV, PDF
      * - **Filtering**: Include/exclude inactive items
      * - **Use cases**: Backup, integration, printing
-     * @param businessId
-     * @param format
-     * @param includeInactive
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static exportMenuApiV1MenuExportBusinessIdGet(
+    public static exportMenuApiV1MenuExportBusinessIdGet({
+        businessId,
+        format = 'json',
+        includeInactive = false,
+    }: {
         businessId: string,
-        format: string = 'json',
-        includeInactive: boolean = false,
-    ): CancelablePromise<Record<string, any>> {
+        format?: string,
+        includeInactive?: boolean,
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/export/{business_id}',
@@ -603,17 +652,18 @@ export class MenuManagementService {
      *
      * - **Metrics**: Sales volume, revenue, profit margin
      * - **Time periods**: 1 day, 7 days, 30 days, 90 days
-     * @param businessId
-     * @param period
-     * @param limit
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getTopMenuItemsApiV1MenuAnalyticsBusinessIdTopItemsGet(
+    public static getTopMenuItemsApiV1MenuAnalyticsBusinessIdTopItemsGet({
+        businessId,
+        period = '7d',
+        limit = 10,
+    }: {
         businessId: string,
-        period: string = '7d',
-        limit: number = 10,
-    ): CancelablePromise<Array<Record<string, any>>> {
+        period?: string,
+        limit?: number,
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/analytics/{business_id}/top-items',
@@ -635,15 +685,16 @@ export class MenuManagementService {
      *
      * - **Metrics**: Sales by category, profit margins
      * - **Insights**: Best and worst performing categories
-     * @param businessId
-     * @param period
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getCategoryPerformanceApiV1MenuAnalyticsBusinessIdCategoryPerformanceGet(
+    public static getCategoryPerformanceApiV1MenuAnalyticsBusinessIdCategoryPerformanceGet({
+        businessId,
+        period = '7d',
+    }: {
         businessId: string,
-        period: string = '7d',
-    ): CancelablePromise<Array<Record<string, any>>> {
+        period?: string,
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/analytics/{business_id}/category-performance',
@@ -665,13 +716,14 @@ export class MenuManagementService {
      * - **Overall margins**: Business-wide profit analysis
      * - **Item-level**: Identify high and low margin items
      * - **Recommendations**: Suggest pricing adjustments
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static analyzeProfitMarginsApiV1MenuAnalyticsBusinessIdProfitMarginsGet(
+    public static analyzeProfitMarginsApiV1MenuAnalyticsBusinessIdProfitMarginsGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/menu/analytics/{business_id}/profit-margins',

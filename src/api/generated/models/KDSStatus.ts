@@ -5,10 +5,4 @@
 /**
  * Kitchen Display System statuses
  */
-export enum KDSStatus {
-    PENDING = 'pending',
-    PREPARING = 'preparing',
-    READY = 'ready',
-    SERVED = 'served',
-    CANCELLED = 'cancelled',
-}
+export type KDSStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';

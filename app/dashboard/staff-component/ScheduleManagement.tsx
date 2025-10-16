@@ -182,10 +182,10 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
 
   return (
-    <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`}>
-      <div className="p-6 space-y-6">
+    <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
             style={{ borderRadius: '1.5rem' }}>
             <div className="flex items-center justify-between mb-4">
@@ -254,7 +254,7 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
         </div>
 
         {/* Controls */}
-        <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+        <div className={`${cardBg} p-6 border shadow-lg mb-6`} style={{ borderRadius: '1.5rem' }}>
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 flex-1">
               {/* Search */}
@@ -306,21 +306,21 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
           </div>
         </div>
 
-        {/* Schedule List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Schedule Table */}
+        <div className={`${cardBg} border-l border-r border-t shadow-lg transition-colors duration-300 overflow-hidden flex-1`} style={{ borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem' }}>
           {loading ? (
-            <div className={`${cardBg} p-8 border shadow-lg flex items-center justify-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
           ) : error ? (
-            <div className={`${cardBg} p-8 border shadow-lg col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8">
               <div className="flex items-center gap-3 text-red-500">
                 <AlertCircle className="h-6 w-6" />
                 <p>Error loading schedules: {error}</p>
               </div>
             </div>
           ) : filteredSchedules.length === 0 ? (
-            <div className={`${cardBg} p-8 border shadow-lg text-center col-span-full`} style={{ borderRadius: '1.5rem' }}>
+            <div className="p-8 text-center">
               <Calendar className={`h-12 w-12 ${textSecondary} mx-auto mb-4`} />
               <h3 className={`${textPrimary} text-lg font-semibold mb-2`}>No Schedules Found</h3>
               <p className={`${textSecondary}`}>
@@ -331,64 +331,149 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
               </p>
             </div>
           ) : (
-            filteredSchedules.map((schedule, index) => {
-              const staff = staffMembers.find(s => s.id === schedule.staff_id)
-              const staffName = staff ? `${staff.first_name} ${staff.last_name}` : 'Unknown Staff'
-              
-              return (
-                <div
-                  key={schedule.id}
-                  className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]`}
-                  style={{ borderRadius: '1.5rem' }}
-                >
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className={`w-20 h-20 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-2xl flex items-center justify-center`}>
-                      <Calendar className={`h-8 w-8 ${textPrimary}`} />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className={`${textPrimary} font-semibold text-lg`}>
-                        {staffName}
-                      </h3>
-                      <p className={`${textSecondary} text-sm`}>
-                        {schedule.shift_date}
-                      </p>
-                      <p className={`${textSecondary} text-sm`}>
-                        {schedule.shift_start} - {schedule.shift_end}
-                      </p>
-                      {schedule.notes && (
-                        <p className={`${textSecondary} text-xs mt-1`}>{schedule.notes}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2 w-full">
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditClick(schedule)
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 flex items-center justify-center gap-1"
+            <div className="overflow-x-auto overflow-y-auto flex-1">
+              <table className="w-full">
+                {/* Table Header */}
+                <thead className="sticky top-0 z-10">
+                  <tr className={`${isDark ? "bg-[#171717] border-b border-[#2a2a2a]" : "bg-white border-b border-gray-200"}`}>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Staff Member
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Date
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Shift Time
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Duration
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Status
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Notes
+                    </th>
+                    <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                
+                {/* Table Body */}
+                <tbody>
+                  {filteredSchedules.map((schedule, index) => {
+                    const staff = staffMembers.find(s => s.id === schedule.staff_id)
+                    const staffName = staff ? `${staff.first_name} ${staff.last_name}` : 'Unknown Staff'
+                    
+                    // Calculate duration
+                    const calculateDuration = () => {
+                      if (!schedule.shift_start || !schedule.shift_end) return 'Unknown'
+                      const startTime = new Date(`2000-01-01T${schedule.shift_start}`)
+                      const endTime = new Date(`2000-01-01T${schedule.shift_end}`)
+                      const diffMs = endTime.getTime() - startTime.getTime()
+                      const hours = Math.floor(diffMs / (1000 * 60 * 60))
+                      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                      return `${hours}h ${minutes}m`
+                    }
+                    
+                    return (
+                      <tr 
+                        key={schedule.id}
+                        className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
                       >
-                        <Edit className="h-3 w-3" />
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteSchedule(schedule.id)
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
+                        {/* Staff Member */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                              <span className={`${textPrimary} font-bold text-sm`}>
+                                {(staff?.first_name?.charAt(0) || '')}{(staff?.last_name?.charAt(0) || '')}
+                              </span>
+                            </div>
+                            <div>
+                              <div className={`${textPrimary} font-semibold text-sm`}>{staffName}</div>
+                              <div className={`${textSecondary} text-xs`}>{staff?.position || 'No position'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        
+                        {/* Date */}
+                        <td className="py-4 px-6">
+                          <div className={`${textPrimary} text-sm font-medium`}>
+                            {schedule.shift_date ? new Date(schedule.shift_date).toLocaleDateString() : 'Not set'}
+                          </div>
+                        </td>
+                        
+                        {/* Shift Time */}
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className={`${textPrimary} text-sm font-medium`}>
+                              {schedule.shift_start || 'Not set'} - {schedule.shift_end || 'Not set'}
+                            </div>
+                          </div>
+                        </td>
+                        
+                        {/* Duration */}
+                        <td className="py-4 px-6">
+                          <div className={`${textPrimary} text-sm font-medium`}>
+                            {calculateDuration()}
+                          </div>
+                        </td>
+                        
+                        {/* Status */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${schedule.status === 'scheduled' ? "bg-blue-500" : schedule.status === 'confirmed' ? "bg-green-500" : "bg-gray-400"}`}></div>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                schedule.status === 'scheduled' 
+                                  ? isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-800"
+                                  : schedule.status === 'confirmed'
+                                  ? isDark ? "bg-green-900 text-green-300" : "bg-green-100 text-green-800"
+                                  : isDark ? "bg-gray-900 text-gray-300" : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {schedule.status || 'Unknown'}
+                            </span>
+                          </div>
+                        </td>
+                        
+                        {/* Notes */}
+                        <td className="py-4 px-6">
+                          <div className={`${textSecondary} text-sm max-w-xs truncate`}>
+                            {schedule.notes || 'No notes'}
+                          </div>
+                        </td>
+                        
+                        {/* Actions */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={() => handleEditClick(schedule)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center justify-center gap-1"
+                            >
+                              <Edit className="h-3 w-3" />
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteSchedule(schedule.id)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

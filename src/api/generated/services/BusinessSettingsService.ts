@@ -17,13 +17,14 @@ export class BusinessSettingsService {
      * - **Preferences**: Locale, currency, timezone
      * - **Business hours**: Operating hours per day
      * - **Integrations**: Third-party service configs
-     * @param businessId
      * @returns BusinessSettings Successful Response
      * @throws ApiError
      */
-    public static getBusinessSettingsApiV1BusinessSettingsBusinessIdGet(
+    public static getBusinessSettingsApiV1BusinessSettingsBusinessIdGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<BusinessSettings> {
+    }): CancelablePromise<BusinessSettings> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/business-settings/{business_id}',
@@ -41,15 +42,16 @@ export class BusinessSettingsService {
      *
      * - **Partial updates**: Only update provided fields
      * - **Validation**: Ensure valid configurations
-     * @param businessId
-     * @param requestBody
      * @returns BusinessSettings Successful Response
      * @throws ApiError
      */
-    public static updateBusinessSettingsApiV1BusinessSettingsBusinessIdPut(
+    public static updateBusinessSettingsApiV1BusinessSettingsBusinessIdPut({
+        businessId,
+        requestBody,
+    }: {
         businessId: string,
         requestBody: BusinessSettingsUpdate,
-    ): CancelablePromise<BusinessSettings> {
+    }): CancelablePromise<BusinessSettings> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/business-settings/{business_id}',
@@ -70,13 +72,14 @@ export class BusinessSettingsService {
      * - **Schedule**: Hours for each day of week
      * - **Breaks**: Break periods during the day
      * - **Holidays**: Special hours or closures
-     * @param businessId
      * @returns WorkingHours Successful Response
      * @throws ApiError
      */
-    public static getWorkingHoursApiV1BusinessSettingsBusinessIdWorkingHoursGet(
+    public static getWorkingHoursApiV1BusinessSettingsBusinessIdWorkingHoursGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Array<WorkingHours>> {
+    }): CancelablePromise<Array<WorkingHours>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/business-settings/{business_id}/working-hours',
@@ -94,15 +97,16 @@ export class BusinessSettingsService {
      *
      * - **Validation**: Ensure valid time ranges
      * - **Conflicts**: Check for overlapping hours
-     * @param businessId
-     * @param requestBody
      * @returns WorkingHours Successful Response
      * @throws ApiError
      */
-    public static updateWorkingHoursApiV1BusinessSettingsBusinessIdWorkingHoursPut(
+    public static updateWorkingHoursApiV1BusinessSettingsBusinessIdWorkingHoursPut({
+        businessId,
+        requestBody,
+    }: {
         businessId: string,
         requestBody: Array<WorkingHours>,
-    ): CancelablePromise<Array<WorkingHours>> {
+    }): CancelablePromise<Array<WorkingHours>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/business-settings/{business_id}/working-hours',
@@ -124,13 +128,14 @@ export class BusinessSettingsService {
      * - **Delivery**: DoorDash, UberEats, GrubHub
      * - **Payments**: Stripe, PayPal
      * - **Communication**: Twilio, SendGrid
-     * @param businessId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getIntegrationsApiV1BusinessSettingsBusinessIdIntegrationsGet(
+    public static getIntegrationsApiV1BusinessSettingsBusinessIdIntegrationsGet({
+        businessId,
+    }: {
         businessId: string,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/business-settings/{business_id}/integrations',
@@ -149,17 +154,18 @@ export class BusinessSettingsService {
      * - **Enable/disable**: Toggle integration
      * - **Credentials**: API keys, tokens
      * - **Settings**: Integration-specific configs
-     * @param businessId
-     * @param integrationName
-     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateIntegrationApiV1BusinessSettingsBusinessIdIntegrationsIntegrationNamePut(
+    public static updateIntegrationApiV1BusinessSettingsBusinessIdIntegrationsIntegrationNamePut({
+        businessId,
+        integrationName,
+        requestBody,
+    }: {
         businessId: string,
         integrationName: string,
         requestBody: Record<string, any>,
-    ): CancelablePromise<Record<string, any>> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/business-settings/{business_id}/integrations/{integration_name}',
@@ -177,15 +183,16 @@ export class BusinessSettingsService {
     /**
      * Delete Integration
      * Remove integration configuration (Requires Authentication - Owner/Admin)
-     * @param businessId
-     * @param integrationName
      * @returns void
      * @throws ApiError
      */
-    public static deleteIntegrationApiV1BusinessSettingsBusinessIdIntegrationsIntegrationNameDelete(
+    public static deleteIntegrationApiV1BusinessSettingsBusinessIdIntegrationsIntegrationNameDelete({
+        businessId,
+        integrationName,
+    }: {
         businessId: string,
         integrationName: string,
-    ): CancelablePromise<void> {
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/business-settings/{business_id}/integrations/{integration_name}',
