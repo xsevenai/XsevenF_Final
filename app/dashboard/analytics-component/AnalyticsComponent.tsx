@@ -9,6 +9,7 @@ import {
   Users, 
   MessageSquare, 
   ShoppingCart,
+  Utensils,
   RefreshCw,
   Loader2,
   AlertCircle,
@@ -18,6 +19,7 @@ import {
 // Lazy load components for better performance
 const OverviewAnalytics = lazy(() => import('./OverviewAnalytics'))
 const OrdersAnalytics = lazy(() => import('./OrdersAnalytics'))
+const MenuAnalytics = lazy(() => import('./MenuAnalytics'))
 const MessagesAnalytics = lazy(() => import('./MessagesAnalytics'))
 const RevenueAnalytics = lazy(() => import('./RevenueAnalytics'))
 
@@ -28,7 +30,7 @@ interface AnalyticsComponentProps {
 export default function AnalyticsComponent({ businessId }: AnalyticsComponentProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'messages' | 'revenue'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'menu' | 'messages' | 'revenue'>('overview')
   const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [loading, setLoading] = useState(false)
@@ -88,6 +90,8 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
         return <OverviewAnalytics {...commonProps} />
       case 'orders':
         return <OrdersAnalytics {...commonProps} />
+      case 'menu':
+        return <MenuAnalytics {...commonProps} />
       case 'messages':
         return <MessagesAnalytics {...commonProps} />
       case 'revenue':
@@ -109,7 +113,7 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
     <div className={`flex-1 ${themeStyles.mainPanelBg} transition-colors duration-300`}>
       <div className="p-6 space-y-4">
         {/* Header with Box */}
-        <div className={`${themeStyles.cardBg} border p-8 mb-4`} style={{ borderRadius: '1.5rem' }}>
+        <div className={`${themeStyles.cardBg} border px-8 pt-8 pb-2 mb-4`} style={{ borderRadius: '1.5rem' }}>
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className={`text-3xl font-bold ${themeStyles.textPrimary} mb-1`}>Analytics Dashboard</h1>
@@ -172,7 +176,7 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
           </div>
 
           {/* Tab Navigation - Inside Header Box */}
-          <div className="flex justify-start mt-4 gap-1">
+          <div className="flex justify-between mt-4 gap-1">
             <button
               onClick={() => setActiveTab('overview')}
               className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
@@ -194,6 +198,17 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
             >
               <ShoppingCart className="h-5 w-5 mr-3" />
               Orders
+            </button>
+            <button
+              onClick={() => setActiveTab('menu')}
+              className={`text-base py-4 px-8 font-semibold flex items-center transition-colors ${
+                activeTab === 'menu' 
+                  ? `${themeStyles.textPrimary} border-b-2 border-blue-500` 
+                  : `${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
+              }`}
+            >
+              <Utensils className="h-5 w-5 mr-3" />
+              Menu
             </button>
             <button
               onClick={() => setActiveTab('messages')}
