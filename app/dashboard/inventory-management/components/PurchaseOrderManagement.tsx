@@ -229,111 +229,176 @@ export default function PurchaseOrderManagement({
         </div>
       </div>
 
-      {/* Purchase Orders List */}
-      {filteredPOs.length === 0 ? (
-        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300 text-center py-12`} style={{ borderRadius: "1.5rem" }}>
-          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Purchase Orders</h3>
-          <p className={`${textSecondary}`}>Create your first purchase order to get started</p>
+      {/* Purchase Orders Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Order Number
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Supplier
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Order Date
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Expected Delivery
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Items Count
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Total Amount
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Status
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
+            <tbody>
+              {filteredPOs.map((po) => (
+                <tr 
+                  key={po.id}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                >
+                  {/* Order Number */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                        <Package className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <div className={`${textPrimary} font-semibold text-sm`}>{po.order_number}</div>
+                        <div className={`${textSecondary} text-xs`}>
+                          {po.notes ? po.notes.substring(0, 30) + '...' : 'No notes'}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Supplier */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm`}>
+                      {suppliers.find(s => s.id === po.supplier_id)?.name || 'Unknown Supplier'}
+                    </div>
+                  </td>
+                  
+                  {/* Order Date */}
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className={`${textPrimary} text-sm font-medium`}>
+                        {new Date(po.order_date).toLocaleDateString()}
+                      </div>
+                      <div className={`${textSecondary} text-xs`}>
+                        {new Date(po.order_date).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Expected Delivery */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm`}>
+                      {po.expected_delivery_date 
+                        ? new Date(po.expected_delivery_date).toLocaleDateString()
+                        : 'Not set'
+                      }
+                    </div>
+                  </td>
+                  
+                  {/* Items Count */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm font-medium`}>
+                      {po.items.length} items
+                    </div>
+                  </td>
+                  
+                  {/* Total Amount */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm font-medium`}>
+                      ${parseFloat(po.total_amount).toFixed(2)}
+                    </div>
+                  </td>
+                  
+                  {/* Status */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        po.status === 'received' ? 'bg-green-500' : 
+                        po.status === 'confirmed' ? 'bg-blue-500' : 
+                        po.status === 'cancelled' ? 'bg-red-500' : 'bg-yellow-500'
+                      }`}></div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(po.status)}`}
+                      >
+                        {getStatusIcon(po.status)}
+                        {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditPO(po.id)}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="Edit Purchase Order"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedPO(po)}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      {po.status === 'confirmed' && (
+                        <button
+                          onClick={() => handleReceivePO(po.id)}
+                          disabled={isReceiving === po.id}
+                          className={`text-green-500 hover:text-green-600 p-1 transition-colors duration-300 disabled:opacity-50`}
+                          title="Receive Order"
+                        >
+                          {isReceiving === po.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPOs.map((po) => (
-            <div
-              key={po.id}
-              className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
-              style={{ borderRadius: '1.5rem' }}
+        
+        {/* Empty State */}
+        {filteredPOs.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Purchase Orders</h3>
+            <p className={`${textSecondary} mb-4`}>Create your first purchase order to get started</p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
-                    <Package className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className={`${textPrimary} font-semibold text-lg`}>{suppliers.find(s => s.id === po.supplier_id)?.name || 'Unknown Supplier'}</h3>
-                    <p className={`${textSecondary} text-sm`}>
-                      {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
-                    </p>
-                  </div>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(po.status)}`}>
-                  {getStatusIcon(po.status)}
-                  {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Order Date:</span>
-                  <span className={`${textPrimary}`}>
-                    {new Date(po.order_date).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Expected Delivery:</span>
-                  <span className={`${textPrimary}`}>
-                    {po.expected_delivery_date 
-                      ? new Date(po.expected_delivery_date).toLocaleDateString()
-                      : 'Not set'
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Items:</span>
-                  <span className={`${textPrimary}`}>{po.items.length}</span>
-                </div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span className={`${textSecondary}`}>Total Amount:</span>
-                  <span className={`${textPrimary}`}>
-                    ${parseFloat(po.total_amount).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              {po.notes && (
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className={`${textSecondary} text-sm`}>{po.notes}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => handleEditPO(po.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
-                  title="Edit Purchase Order"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => setSelectedPO(po)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
-                  title="View Details"
-                >
-                  <Eye className="h-4 w-4" />
-                  View
-                </button>
-                {po.status === 'confirmed' && (
-                  <button
-                    onClick={() => handleReceivePO(po.id)}
-                    disabled={isReceiving === po.id}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} text-green-500 hover:text-green-600 disabled:opacity-50`}
-                    title="Receive Order"
-                  >
-                    {isReceiving === po.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="h-4 w-4" />
-                    )}
-                    Receive
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              Create Purchase Order
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Create PO Form Modal */}
       {showCreateForm && (
@@ -444,7 +509,7 @@ export default function PurchaseOrderManagement({
                             </div>
                             <div className="flex justify-between text-sm font-medium">
                               <span className={`${textSecondary}`}>Total:</span>
-                              <span className={`${textPrimary}`}>${parseFloat(item.unit_cost * item.quantity).toFixed(2)}</span>
+                              <span className={`${textPrimary}`}>${(Number(item.unit_cost) * Number(item.quantity)).toFixed(2)}</span>
                             </div>
                           </div>
                         </div>

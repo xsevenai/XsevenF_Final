@@ -5,7 +5,7 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Plus, Edit, Trash2, Users, Phone, Mail, Globe, Loader2, Search } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
-import type { Supplier, SupplierCreate, SupplierUpdate } from '@/src/api/generated/models'
+import type { Supplier, SupplierCreate, SupplierUpdate } from '@/src/api/generated'
 
 interface SupplierManagementProps {
   suppliers: Supplier[]
@@ -177,109 +177,167 @@ export default function SupplierManagement({
         </div>
       </div>
 
-      {/* Suppliers List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSuppliers.map((supplier) => (
-          <div
-            key={supplier.id}
-            className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
-            style={{ borderRadius: '1.5rem' }}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
-                  <Users className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className={`${textPrimary} font-semibold text-lg`}>{supplier.name}</h3>
-                  <p className={`${textSecondary} text-sm`}>
-                    {supplier.is_active ? 'Active' : 'Inactive'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {supplier.contact_name && (
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span className={`${textSecondary} text-sm`}>{supplier.contact_name}</span>
-                </div>
-              )}
-              {supplier.email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  <span className={`${textSecondary} text-sm`}>{supplier.email}</span>
-                </div>
-              )}
-              {supplier.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-gray-400" />
-                  <span className={`${textSecondary} text-sm`}>{supplier.phone}</span>
-                </div>
-              )}
-              {supplier.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-gray-400" />
-                  <span className={`${textSecondary} text-sm`}>{supplier.website}</span>
-                </div>
-              )}
-            </div>
-
-            {supplier.payment_terms && (
-              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className={`${textSecondary} text-sm`}>
-                  <strong>Payment Terms:</strong> {supplier.payment_terms}
-                </p>
-              </div>
-            )}
-
-            {supplier.notes && (
-              <div className="mt-2">
-                <p className={`${textSecondary} text-sm`}>{supplier.notes}</p>
-              </div>
-            )}
+      {/* Suppliers Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Supplier Name
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Contact Person
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Email
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Phone
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Website
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Payment Terms
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Status
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
             
-            {/* Action Buttons */}
-            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Table Body */}
+            <tbody>
+              {filteredSuppliers.map((supplier) => (
+                <tr 
+                  key={supplier.id}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                >
+                  {/* Supplier Name */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                        <Users className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <div className={`${textPrimary} font-semibold text-sm`}>{supplier.name}</div>
+                        <div className={`${textSecondary} text-xs`}>
+                          {supplier.address ? supplier.address.substring(0, 30) + '...' : 'No address'}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Contact Person */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm`}>
+                      {supplier.contact_name || 'N/A'}
+                    </div>
+                  </td>
+                  
+                  {/* Email */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {supplier.email || 'N/A'}
+                    </div>
+                  </td>
+                  
+                  {/* Phone */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {supplier.phone || 'N/A'}
+                    </div>
+                  </td>
+                  
+                  {/* Website */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {supplier.website ? (
+                        <a 
+                          href={supplier.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-400"
+                        >
+                          {supplier.website}
+                        </a>
+                      ) : 'N/A'}
+                    </div>
+                  </td>
+                  
+                  {/* Payment Terms */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {supplier.payment_terms || 'N/A'}
+                    </div>
+                  </td>
+                  
+                  {/* Status */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${supplier.is_active ? "bg-green-500" : "bg-gray-400"}`}></div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          supplier.is_active 
+                            ? isDark ? "bg-green-900 text-green-300" : "bg-green-100 text-green-800"
+                            : isDark ? "bg-gray-900 text-gray-300" : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {supplier.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingSupplier(supplier)}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="Edit Supplier"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSupplier(supplier.id)}
+                        className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                        title="Delete Supplier"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Empty State */}
+        {filteredSuppliers.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No suppliers found</h3>
+            <p className={`${textSecondary} mb-4`}>
+              {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first supplier'}
+            </p>
+            {!searchTerm && (
               <button
-                onClick={() => setEditingSupplier(supplier)}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
-                title="Edit Supplier"
+                onClick={() => setShowCreateForm(true)}
+                className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
               >
-                <Edit className="h-4 w-4" />
-                Edit
+                Add Supplier
               </button>
-              <button
-                onClick={() => handleDeleteSupplier(supplier.id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} text-red-500 hover:text-red-600`}
-                title="Delete Supplier"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            </div>
+            )}
           </div>
-        ))}
+        )}
       </div>
 
-      {filteredSuppliers.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No suppliers found</h3>
-          <p className={`${textSecondary} mb-4`}>
-            {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first supplier'}
-          </p>
-          {!searchTerm && (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
-            >
-              Add Supplier
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Create/Edit Form Modal */}
       {(showCreateForm || editingSupplier) && (

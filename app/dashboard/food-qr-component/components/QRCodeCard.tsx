@@ -1,19 +1,18 @@
 // components/QRCodeCard.tsx
 import React, { useState, useEffect } from 'react'
-import { Download, Eye, QrCode, Calendar, BarChart3, Monitor, Menu, Settings, Edit, Trash2, AlertTriangle } from 'lucide-react'
+import { Download, Eye, QrCode, Calendar, BarChart3, Monitor, Menu, Settings, Trash2, AlertTriangle, Package, Building } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useTheme } from '@/hooks/useTheme'
-import type { QRCode } from '@/lib/food-qr'
+import type { QRCodeResponse } from '@/src/api/generated/models/QRCodeResponse'
 
 interface QRCodeCardProps {
-  qrCode: QRCode
-  onDownload: (qrCode: QRCode) => void
-  onView: (qrCode: QRCode) => void
-  onEdit?: (qrCode: QRCode) => void
-  onDelete?: (qrCode: QRCode) => void
+  qrCode: QRCodeResponse
+  onDownload: (qrCode: QRCodeResponse) => void
+  onView: (qrCode: QRCodeResponse) => void
+  onDelete?: (qrCode: QRCodeResponse) => void
 }
 
-export default function QRCodeCard({ qrCode, onDownload, onView, onEdit, onDelete }: QRCodeCardProps) {
+export default function QRCodeCard({ qrCode, onDownload, onView, onDelete }: QRCodeCardProps) {
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -48,12 +47,12 @@ export default function QRCodeCard({ qrCode, onDownload, onView, onEdit, onDelet
 
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation()
+    console.log('🔍 QRCodeCard handleDownload called with:', qrCode)
+    if (!qrCode || Object.keys(qrCode).length === 0) {
+      console.error('❌ QRCodeCard: Cannot download empty QR code object')
+      return
+    }
     onDownload(qrCode)
-  }
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEdit?.(qrCode)
   }
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -74,27 +73,33 @@ export default function QRCodeCard({ qrCode, onDownload, onView, onEdit, onDelet
 
   const getTypeIcon = () => {
     switch (qrCode.type) {
-      case 'TABLE': return Monitor
-      case 'MENU': return Menu
-      case 'CUSTOM': return Settings
+      case 'table': return Monitor
+      case 'menu_item': return Menu
+      case 'menu_category': return Package
+      case 'order': return Settings
+      case 'business': return Building
       default: return QrCode
     }
   }
 
   const getTypeColor = () => {
     switch (qrCode.type) {
-      case 'TABLE': return 'from-blue-500 to-blue-600'
-      case 'MENU': return 'from-green-500 to-green-600'
-      case 'CUSTOM': return 'from-purple-500 to-purple-600'
+      case 'table': return 'from-blue-500 to-blue-600'
+      case 'menu_item': return 'from-green-500 to-green-600'
+      case 'menu_category': return 'from-yellow-500 to-yellow-600'
+      case 'order': return 'from-purple-500 to-purple-600'
+      case 'business': return 'from-indigo-500 to-indigo-600'
       default: return 'from-gray-500 to-gray-600'
     }
   }
 
   const getTypeName = () => {
     switch (qrCode.type) {
-      case 'TABLE': return qrCode.table_id ? `Table ${qrCode.table_id}` : 'Table QR'
-      case 'MENU': return 'Menu QR'
-      case 'CUSTOM': return 'Custom QR'
+      case 'table': return `Table ${qrCode.target_id}`
+      case 'menu_item': return 'Menu Item'
+      case 'menu_category': return 'Menu Category'
+      case 'order': return 'Order'
+      case 'business': return 'Business'
       default: return 'QR Code'
     }
   }
@@ -151,53 +156,34 @@ export default function QRCodeCard({ qrCode, onDownload, onView, onEdit, onDelet
             <div className="flex items-center space-x-2">
               <span className="text-xs px-2 py-1 font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 style={{ borderRadius: '9999px' }}>
-                {qrCode.type}
+                {qrCode.type.replace('_', ' ').toUpperCase()}
               </span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          {onEdit && (
-            <button
-              onClick={handleEdit}
-              className="p-2 text-green-400 hover:text-green-300 hover:bg-green-500/10 transition-all duration-200"
-              style={{ borderRadius: '0.5rem' }}
-              title="Edit QR Code"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-          )}
-          <button
-            onClick={handleDownload}
-            className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-all duration-200"
-            style={{ borderRadius: '0.5rem' }}
-            title="Download QR Code"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          {onDelete && (
-            <button
-              onClick={handleDeleteClick}
-              className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
-              style={{ borderRadius: '0.5rem' }}
-              title="Delete QR Code"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleDownload}
+                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-all duration-200"
+                    style={{ borderRadius: '0.5rem' }}
+                    title="Download QR Code"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={handleDeleteClick}
+                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                      style={{ borderRadius: '0.5rem' }}
+                      title="Delete QR Code"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
       </div>
 
-      {/* QR Code Preview */}
-      <div className="mb-4 bg-white p-3 flex items-center justify-center"
-        style={{ borderRadius: '0.75rem' }}>
-        <img 
-          src={`data:image/png;base64,${qrCode.image_base64}`}
-          alt={`QR Code for ${getTypeName()}`}
-          className="w-20 h-20 object-contain"
-        />
-      </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm">
@@ -211,28 +197,30 @@ export default function QRCodeCard({ qrCode, onDownload, onView, onEdit, onDelet
         <div className="flex items-center justify-between text-sm">
           <div className={`flex items-center space-x-2 ${textSecondary}`}>
             <QrCode className="w-4 h-4" />
-            <span>Size</span>
+            <span>QR ID</span>
           </div>
-          <span className={`${textPrimary}`}>{qrCode.size}px</span>
+          <span className={`${textPrimary} font-mono text-xs truncate max-w-24`}>
+            {qrCode.qr_id}
+          </span>
         </div>
 
-        {qrCode.scan_count !== undefined && (
-          <div className="flex items-center justify-between text-sm">
-            <div className={`flex items-center space-x-2 ${textSecondary}`}>
-              <BarChart3 className="w-4 h-4" />
-              <span>Scans</span>
-            </div>
-            <span className={`${textPrimary}`}>{qrCode.scan_count}</span>
+        <div className="flex items-center justify-between text-sm">
+          <div className={`flex items-center space-x-2 ${textSecondary}`}>
+            <Settings className="w-4 h-4" />
+            <span>Target ID</span>
           </div>
-        )}
+          <span className={`${textPrimary} font-mono text-xs truncate max-w-24`}>
+            {qrCode.target_id}
+          </span>
+        </div>
 
-        {qrCode.last_scanned_at && (
+        {qrCode.expires_at && (
           <div className="flex items-center justify-between text-sm">
             <div className={`flex items-center space-x-2 ${textSecondary}`}>
-              <Eye className="w-4 h-4" />
-              <span>Last Scan</span>
+              <Calendar className="w-4 h-4" />
+              <span>Expires</span>
             </div>
-            <span className={`${textPrimary}`}>{formatDate(qrCode.last_scanned_at)}</span>
+            <span className={`${textPrimary}`}>{formatDate(qrCode.expires_at)}</span>
           </div>
         )}
       </div>

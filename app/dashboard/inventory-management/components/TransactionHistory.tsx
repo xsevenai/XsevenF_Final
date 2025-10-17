@@ -304,86 +304,142 @@ export default function TransactionHistory({
         </div>
       </div>
 
-      {/* Transactions List */}
-      <div className={`${cardBg} border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-xl font-semibold ${textPrimary}`}>Transactions</h3>
-            <button
-              className={`px-4 py-2 ${isDark ? 'bg-[#2a2a2a] hover:bg-[#353535]' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
-            >
-              <Download className="h-4 w-4" />
-              Export
-            </button>
-          </div>
-          
-          <div className="space-y-4">
-            {filteredTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions Found</h3>
-                <p className={`${textSecondary}`}>
-                  {searchTerm || filterType !== 'all' || filterDateRange !== 'all'
-                    ? 'Try adjusting your search or filters'
-                    : 'No transactions available'
-                  }
-                </p>
-              </div>
-            ) : (
-              filteredTransactions.map((transaction) => (
-                <div
+      {/* Transactions Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Transaction ID
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Item
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Type
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Quantity Change
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Reason
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Date
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
+            <tbody>
+              {filteredTransactions.map((transaction) => (
+                <tr 
                   key={transaction.id}
-                  className={`${innerCardBg} border rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]`}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
+                  {/* Transaction ID */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
                         {getTransactionIcon(transaction.transaction_type)}
                       </div>
                       <div>
-                        <h4 className={`${textPrimary} font-semibold`}>
-                          {transaction.inventory_item_id}
-                        </h4>
-                        <p className={`${textSecondary} text-sm`}>
-                          {transaction.reason || 'No reason provided'}
-                        </p>
+                        <div className={`${textPrimary} font-semibold text-sm`}>
+                          {transaction.id || `txn_${String(transaction.id).substring(0, 8)}`}
+                        </div>
+                        <div className={`${textSecondary} text-xs`}>
+                          {transaction.notes ? transaction.notes.substring(0, 30) + '...' : 'No notes'}
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className={`text-lg font-bold ${getQuantityChangeColor(transaction.quantity_change)}`}>
-                          {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
-                        </div>
-                        <div className={`${textSecondary} text-sm`}>
-                          {new Date(transaction.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.transaction_type)}`}>
+                  </td>
+                  
+                  {/* Item */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm`}>
+                      {transaction.inventory_item_id}
+                    </div>
+                  </td>
+                  
+                  {/* Type */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        transaction.transaction_type === 'adjustment' ? 'bg-blue-500' : 
+                        transaction.transaction_type === 'count' ? 'bg-purple-500' : 
+                        transaction.transaction_type === 'receipt' ? 'bg-green-500' : 
+                        transaction.transaction_type === 'issue' ? 'bg-red-500' : 'bg-yellow-500'
+                      }`}></div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getTransactionTypeColor(transaction.transaction_type)}`}
+                      >
                         {transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Quantity Change */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm font-medium ${getQuantityChangeColor(transaction.quantity_change)}`}>
+                      {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
+                    </div>
+                  </td>
+                  
+                  {/* Reason */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {transaction.reason || 'No reason provided'}
+                    </div>
+                  </td>
+                  
+                  {/* Date */}
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className={`${textPrimary} text-sm font-medium`}>
+                        {new Date(transaction.created_at).toLocaleDateString()}
                       </div>
-                      
+                      <div className={`${textSecondary} text-xs`}>
+                        {new Date(transaction.created_at).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedTransaction(transaction)}
-                        className={`${textSecondary} hover:text-blue-400 p-2 transition-colors duration-300`}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                     </div>
-                  </div>
-                  
-                  {transaction.notes && (
-                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className={`${textSecondary} text-sm`}>{transaction.notes}</p>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        
+        {/* Empty State */}
+        {filteredTransactions.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions Found</h3>
+            <p className={`${textSecondary} mb-4`}>
+              {searchTerm || filterType !== 'all' || filterDateRange !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'No transactions available'
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Transaction Details Modal */}

@@ -195,80 +195,157 @@ export default function StockAdjustments({
         </div>
       </div>
 
-      {/* Transactions List */}
-      {filteredTransactions.length === 0 ? (
-        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300 text-center py-12`} style={{ borderRadius: "1.5rem" }}>
-          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions</h3>
-          <p className={`${textSecondary}`}>Stock adjustments and counts will appear here</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTransactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className={`${cardBg} p-6 border shadow-lg hover:shadow-xl transition-all duration-300`}
-              style={{ borderRadius: '1.5rem' }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-lg`}>
-                    {getTransactionIcon(transaction.transaction_type)}
-                  </div>
-                  <div>
-                    <h3 className={`${textPrimary} font-semibold text-lg`}>
-                      {transaction.reason || 'Stock Adjustment'}
-                    </h3>
-                    <p className={`${textSecondary} text-sm`}>
-                      {transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)}
-                    </p>
-                  </div>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getTransactionTypeColor(transaction.transaction_type)}`}>
-                  {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Item:</span>
-                  <span className={`${textPrimary}`}>{transaction.inventory_item_id}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className={`${textSecondary}`}>Date:</span>
-                  <span className={`${textPrimary}`}>
-                    {new Date(transaction.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span className={`${textSecondary}`}>Change:</span>
-                  <span className={`${textPrimary} ${transaction.quantity_change > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
-                  </span>
-                </div>
-              </div>
-
-              {transaction.notes && (
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className={`${textSecondary} text-sm`}>{transaction.notes}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => setSelectedTransaction(transaction)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${isDark ? 'hover:bg-[#2a2a2a]' : 'hover:bg-gray-200'} ${textSecondary} hover:text-blue-400`}
-                  title="View Details"
+      {/* Transactions Table */}
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Transaction ID
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Item
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Type
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Quantity Change
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Reason
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Date
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
+            <tbody>
+              {filteredTransactions.map((transaction) => (
+                <tr 
+                  key={transaction.id}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
                 >
-                  <Eye className="h-4 w-4" />
-                  View
-                </button>
-              </div>
-            </div>
-          ))}
+                  {/* Transaction ID */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 ${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                        {getTransactionIcon(transaction.transaction_type)}
+                      </div>
+                      <div>
+                        <div className={`${textPrimary} font-semibold text-sm`}>
+                          {transaction.id || `txn_${String(transaction.id).substring(0, 8)}`}
+                        </div>
+                        <div className={`${textSecondary} text-xs`}>
+                          {transaction.notes ? transaction.notes.substring(0, 30) + '...' : 'No notes'}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Item */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm`}>
+                      {transaction.inventory_item_id}
+                    </div>
+                  </td>
+                  
+                  {/* Type */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        transaction.transaction_type === 'adjustment' ? 'bg-blue-500' : 
+                        transaction.transaction_type === 'count' ? 'bg-purple-500' : 
+                        transaction.transaction_type === 'receipt' ? 'bg-green-500' : 
+                        transaction.transaction_type === 'issue' ? 'bg-red-500' : 'bg-yellow-500'
+                      }`}></div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getTransactionTypeColor(transaction.transaction_type)}`}
+                      >
+                        {transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)}
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* Quantity Change */}
+                  <td className="py-4 px-6">
+                    <div className={`${textPrimary} text-sm font-medium ${
+                      transaction.quantity_change > 0 ? 'text-green-500' : 
+                      transaction.quantity_change < 0 ? 'text-red-500' : ''
+                    }`}>
+                      {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
+                    </div>
+                  </td>
+                  
+                  {/* Reason */}
+                  <td className="py-4 px-6">
+                    <div className={`${textSecondary} text-sm`}>
+                      {transaction.reason || 'No reason provided'}
+                    </div>
+                  </td>
+                  
+                  {/* Date */}
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className={`${textPrimary} text-sm font-medium`}>
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </div>
+                      <div className={`${textSecondary} text-xs`}>
+                        {new Date(transaction.created_at).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedTransaction(transaction)}
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+        
+        {/* Empty State */}
+        {filteredTransactions.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Transactions</h3>
+            <p className={`${textSecondary} mb-4`}>Stock adjustments and counts will appear here</p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => setShowAdjustForm(true)}
+                className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+              >
+                <Edit className="h-4 w-4" />
+                Adjust Stock
+              </button>
+              <button
+                onClick={() => setShowCountForm(true)}
+                className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
+              >
+                <Scale className="h-4 w-4" />
+                Stock Count
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Stock Adjustment Form Modal */}
       {showAdjustForm && (

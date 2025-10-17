@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react'
 import { X, QrCode, Loader2, Save } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useTheme } from "@/hooks/useTheme"
-import type { QRCode } from '@/lib/food-qr'
+import type { QRCodeResponse } from '@/src/api/generated/models/QRCodeResponse'
 
 interface EditQRModalProps {
   isOpen: boolean
   onClose: () => void
-  qrCode: QRCode | null
+  qrCode: QRCodeResponse | null
   onUpdate: (qrId: string, updates: {
     size?: number
     color?: string
@@ -74,7 +74,7 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
     if (!validateForm()) return
 
     try {
-      await onUpdate(qrCode.id, formData)
+      await onUpdate(qrCode.qr_id, formData)
       setErrors({})
       onClose()
     } catch (error) {
@@ -91,12 +91,16 @@ export default function EditQRModal({ isOpen, onClose, qrCode, onUpdate, loading
 
   const getTypeName = () => {
     switch (qrCode.type) {
-      case 'TABLE':
-        return qrCode.table_id ? `Table ${qrCode.table_id}` : 'Table QR'
-      case 'MENU':
-        return 'Menu QR Code'
-      case 'CUSTOM':
-        return 'Custom QR Code'
+      case 'table':
+        return qrCode.target_id ? `Table ${qrCode.target_id}` : 'Table QR'
+      case 'menu_item':
+        return 'Menu Item QR Code'
+      case 'menu_category':
+        return 'Menu Category QR Code'
+      case 'order':
+        return 'Order QR Code'
+      case 'business':
+        return 'Business QR Code'
       default:
         return 'QR Code'
     }
