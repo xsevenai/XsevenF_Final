@@ -44,3 +44,5 @@ const testEndpoint = async (endpoint) => {
 
 // Test all endpoints
 endpoints.forEach(testEndpoint)
+
+

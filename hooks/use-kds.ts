@@ -5,6 +5,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FoodHospitalityOperationsService } from '@/src/api/generated/services/FoodHospitalityOperationsService'
 import { configureAPI } from '@/lib/api-config'
+import { request as __request } from '@/src/api/generated/core/request'
+import { OpenAPI } from '@/src/api/generated/core/OpenAPI'
 import type { KDSOrder } from '@/src/api/generated/models/KDSOrder'
 import type { KDSOrderCreate } from '@/src/api/generated/models/KDSOrderCreate'
 import type { KDSOrderUpdate } from '@/src/api/generated/models/KDSOrderUpdate'
@@ -50,7 +52,23 @@ export const useKDSOrders = (businessId: string) => {
       configureAPI()
       
       console.log('Creating KDS order with data:', data)
-      const newOrder = await FoodHospitalityOperationsService.createKdsOrderApiV1FoodKdsOrdersPost({ requestBody: data })
+      console.log('Business ID:', businessId)
+      console.log('Target time:', data.target_time)
+      
+      // Custom API call with business_id as query parameter (as required by the API)
+      const newOrder = await __request(OpenAPI, {
+        method: 'POST',
+        url: '/api/v1/food/kds/orders',
+        query: {
+          'business_id': businessId,
+        },
+        body: data,
+        mediaType: 'application/json',
+        errors: {
+          422: `Validation Error`,
+        },
+      })
+      
       console.log('KDS order created successfully:', newOrder)
       setOrders(prev => [newOrder, ...prev])
       return newOrder
@@ -60,7 +78,7 @@ export const useKDSOrders = (businessId: string) => {
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [])
+  }, [businessId])
 
   const updateOrder = useCallback(async (orderId: string, data: KDSOrderUpdate) => {
     try {

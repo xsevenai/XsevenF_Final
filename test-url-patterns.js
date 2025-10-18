@@ -50,3 +50,5 @@ const testUrl = async (url) => {
 
 // Test all URL patterns
 testUrls.forEach(testUrl)
+
+

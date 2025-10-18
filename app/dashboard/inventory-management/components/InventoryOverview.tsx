@@ -13,14 +13,7 @@ import {
   FileText,
 } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
-
-interface InventoryItemWithMetrics {
-  id: string
-  name: string
-  current_stock: string
-  min_stock: string
-  unit_cost: string
-}
+import type { InventoryItemWithMetrics } from '@/src/api/generated/models/InventoryItemWithMetrics'
 
 interface InventoryOverviewProps {
   stats: any
@@ -29,10 +22,12 @@ interface InventoryOverviewProps {
   onRefresh: () => void
   inventoryItems: InventoryItemWithMetrics[]
   lowStockItems: InventoryItemWithMetrics[]
+  activeAlerts: any[]
   onViewItems?: () => void
   onViewLowStock?: () => void
   onViewSuppliers?: () => void
   onViewPurchaseOrders?: () => void
+  onViewReports?: () => void
 }
 
 export default function InventoryOverview({
@@ -42,10 +37,12 @@ export default function InventoryOverview({
   onRefresh,
   inventoryItems,
   lowStockItems,
+  activeAlerts,
   onViewItems,
   onViewLowStock,
   onViewSuppliers,
   onViewPurchaseOrders,
+  onViewReports,
 }: InventoryOverviewProps) {
   const { isDark } = useTheme()
 
@@ -193,7 +190,7 @@ export default function InventoryOverview({
                   >
                     <span className={`${textPrimary} font-medium`}>{item.name}</span>
                     <span className={`${alertText} text-sm font-semibold`}>
-                      {item.current_stock}/{item.min_stock} units
+                      {item.current_stock || "0"}/{item.min_stock || "0"} units
                     </span>
                   </div>
                 ))}

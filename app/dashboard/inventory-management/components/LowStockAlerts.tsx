@@ -40,7 +40,6 @@ export default function LowStockAlerts({
   onBack
 }: LowStockAlertsProps) {
   const [creatingReorder, setCreatingReorder] = useState<string | null>(null)
-  const [expandedView, setExpandedView] = useState<'create-alert' | null>(null)
   const [mounted, setMounted] = useState(false)
   const { theme, isLoaded: themeLoaded, isDark, currentTheme } = useTheme()
 
@@ -57,43 +56,6 @@ export default function LowStockAlerts({
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const handleBack = () => {
-    setExpandedView(null)
-  }
-
-  // Handle expanded view rendering (like PurchaseOrderManagement does)
-  if (expandedView === 'create-alert') {
-    return (
-      <div className="flex-1 min-h-screen overflow-y-auto transition-colors duration-300 bg-gray-50">
-        <div className="p-6 space-y-6">
-          <div className="bg-white p-8 border shadow-lg rounded-2xl">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleBack}
-                className="text-gray-600 hover:bg-gray-100 p-2 rounded-xl transition-all duration-200 hover:scale-110"
-              >
-                <ArrowLeft className="h-6 w-6" />
-              </button>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Stock Alert</h1>
-                <p className="text-gray-600">Create a new stock alert for inventory items</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 border shadow-lg rounded-2xl">
-            <p className="text-gray-600">Create alert form will be implemented here...</p>
-            <button
-              onClick={handleBack}
-              className="mt-4 px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Back to Alerts
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   if (!themeLoaded || !mounted) {
     return (
@@ -254,13 +216,6 @@ export default function LowStockAlerts({
         </div>
         
         <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setExpandedView('create-alert')}
-            className={`px-6 py-3 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-xl font-medium transition-all duration-300 flex items-center gap-2 border shadow-lg hover:shadow-xl hover:scale-105`}
-          >
-            <Plus className="h-4 w-4" />
-            Create Alert
-          </button>
           {groupedItems.high.length > 0 && (
             <button
               onClick={createBulkStockAlerts}
@@ -326,51 +281,39 @@ export default function LowStockAlerts({
 
       {/* Low Stock Items Table */}
       <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
-        {/* Fixed Table Header */}
-        <div className={`${isDark ? "bg-[#171717]" : "bg-white"} sticky top-0 z-10`}>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Item Name
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Category
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Current Stock
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Min Required
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Priority
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Status
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Supplier
-                  </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-        </div>
-        
-        {/* Scrollable Table Body */}
-        <div 
-          className={`overflow-x-auto max-h-[600px] overflow-y-auto ${isDark ? "bg-[#171717]" : "bg-white"} ${isDark ? "dark-scrollbar" : "light-scrollbar"}`}
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: isDark ? '#2a2a2a #171717' : '#d1d5db #f9fafb'
-          }}
-        >
+        <div className="overflow-x-auto">
           <table className="w-full">
+            {/* Table Header */}
+            <thead>
+              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Item Name
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Category
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Current Stock
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Min Required
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Priority
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Status
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Supplier
+                </th>
+                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Table Body */}
             <tbody>
               {lowStockItems.map((item) => {
                 const currentStock = parseFloat(item.current_stock || '0')

@@ -684,7 +684,6 @@ export default function StockAlertManagement({
     </div>
   )
 }
-
 // Stock Alert Form Component
 interface StockAlertFormProps {
   inventoryItems: any[]
@@ -697,7 +696,7 @@ interface StockAlertFormProps {
 function StockAlertForm({ inventoryItems, onSubmit, onCancel, loading, initialData }: StockAlertFormProps) {
   const [formData, setFormData] = useState<StockAlertCreate>({
     inventory_item_id: initialData?.inventory_item_id || '',
-    alert_type: initialData?.alert_type || AlertType.LOW_STOCK,
+    alert_type: initialData?.alert_type || 'low_stock',
     threshold: initialData?.threshold || 0,
     is_active: initialData?.is_active ?? true,
     business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
@@ -779,10 +778,10 @@ function StockAlertForm({ inventoryItems, onSubmit, onCancel, loading, initialDa
             className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
             required
           >
-            <option value={AlertType.LOW_STOCK}>Low Stock</option>
-            <option value={AlertType.OUT_OF_STOCK}>Out of Stock</option>
-            <option value={AlertType.EXPIRING}>Expiring</option>
-            <option value={AlertType.OVERSTOCKED}>Overstocked</option>
+            <option value="low_stock">Low Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+            <option value="expiring">Expiring</option>
+            <option value="overstocked">Overstocked</option>
           </select>
         </div>
 

@@ -197,6 +197,14 @@ export default function KDSCreateOrderForm({
     if (!orderData.items?.length) {
       errors.push('At least one menu item is required')
     }
+    
+    // Validate target_time format if provided
+    if (orderData.target_time && orderData.target_time.trim() !== '') {
+      const date = new Date(orderData.target_time)
+      if (isNaN(date.getTime())) {
+        errors.push('Target time must be a valid date and time')
+      }
+    }
 
     if (errors.length > 0) {
       setValidationErrors(errors)
@@ -209,7 +217,7 @@ export default function KDSCreateOrderForm({
     setSubmitSuccess(false)
     
     try {
-      // Ensure business_id is set
+      // Ensure business_id is set and format target_time properly
       const orderToCreate: KDSOrderCreate = {
         ...orderData,
         business_id: businessId,
@@ -217,7 +225,9 @@ export default function KDSCreateOrderForm({
         station: orderData.station!,
         items: orderData.items!,
         priority: orderData.priority || 1,
-        target_time: orderData.target_time || undefined
+        target_time: orderData.target_time && orderData.target_time.trim() !== '' 
+          ? new Date(orderData.target_time).toISOString() 
+          : null
       }
       
       await onCreateOrder(orderToCreate)
