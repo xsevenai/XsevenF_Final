@@ -47,8 +47,7 @@ export default function StockAdjustments({
   const { isDark } = useTheme()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [showAdjustForm, setShowAdjustForm] = useState(false)
-  const [showCountForm, setShowCountForm] = useState(false)
+  const [expandedView, setExpandedView] = useState<'adjust-stock' | 'stock-count' | null>(null)
   const [selectedTransaction, setSelectedTransaction] = useState<InventoryTransaction | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -88,32 +87,59 @@ export default function StockAdjustments({
     }
   }
 
+  const handleBack = () => {
+    setExpandedView(null)
+  }
+
   const handleStockAdjustment = async (adjustment: StockAdjustment) => {
     setIsProcessing(true)
     try {
       await onAdjustStock(adjustment)
-      setShowAdjustForm(false)
+      setExpandedView(null)
       onRefresh()
     } catch (error) {
       console.error('Failed to adjust stock:', error)
+      alert('Failed to adjust stock')
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const handleStockCount = async (counts: any[]) => {
+  const handleStockCount = async (businessId: string, locationId?: string, counts?: any[]) => {
     setIsProcessing(true)
     try {
-      const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
-      await onPerformStockCount(businessId, undefined, counts)
-      setShowCountForm(false)
+      await onPerformStockCount(businessId, locationId, counts)
+      setExpandedView(null)
       onRefresh()
     } catch (error) {
       console.error('Failed to perform stock count:', error)
+      alert('Failed to perform stock count')
     } finally {
       setIsProcessing(false)
     }
   }
+
+  // Handle expanded view rendering (like PurchaseOrderManagement does)
+  if (expandedView === 'adjust-stock') {
+    return (
+      <StockAdjustmentForm
+        onSubmit={handleStockAdjustment}
+        onCancel={handleBack}
+        loading={isProcessing}
+      />
+    )
+  }
+
+  if (expandedView === 'stock-count') {
+    return (
+      <StockCountForm
+        onSubmit={(businessId, locationId, counts) => handleStockCount(businessId, locationId, counts)}
+        onCancel={handleBack}
+        loading={isProcessing}
+      />
+    )
+  }
+
 
   if (loading) {
     return (
@@ -178,14 +204,14 @@ export default function StockAdjustments({
 
           <div className="flex gap-2">
             <button
-              onClick={() => setShowAdjustForm(true)}
+              onClick={() => setExpandedView('adjust-stock')}
               className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
             >
               <Edit className="h-4 w-4" />
               Adjust Stock
             </button>
             <button
-              onClick={() => setShowCountForm(true)}
+              onClick={() => setExpandedView('stock-count')}
               className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
             >
               <Scale className="h-4 w-4" />
@@ -197,10 +223,11 @@ export default function StockAdjustments({
 
       {/* Transactions Table */}
       <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* Table Header */}
-            <thead>
+        {/* Fixed Table Header */}
+        <div className={`${isDark ? "bg-[#171717]" : "bg-white"} sticky top-0 z-10`}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
               <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
                 <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
                   Transaction ID
@@ -225,9 +252,20 @@ export default function StockAdjustments({
                 </th>
               </tr>
             </thead>
-            
-            {/* Table Body */}
-            <tbody>
+          </table>
+        </div>
+      </div>
+        
+      {/* Scrollable Table Body */}
+      <div 
+        className={`overflow-x-auto max-h-[600px] overflow-y-auto ${isDark ? "bg-[#171717]" : "bg-white"} ${isDark ? "dark-scrollbar" : "light-scrollbar"}`}
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: isDark ? '#2a2a2a #171717' : '#d1d5db #f9fafb'
+        }}
+      >
+        <table className="w-full">
+          <tbody>
               {filteredTransactions.map((transaction) => (
                 <tr 
                   key={transaction.id}
@@ -317,9 +355,9 @@ export default function StockAdjustments({
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+          </tbody>
+        </table>
+      </div>
         
         {/* Empty State */}
         {filteredTransactions.length === 0 && (
@@ -329,14 +367,14 @@ export default function StockAdjustments({
             <p className={`${textSecondary} mb-4`}>Stock adjustments and counts will appear here</p>
             <div className="flex gap-2 justify-center">
               <button
-                onClick={() => setShowAdjustForm(true)}
+                onClick={() => setExpandedView('adjust-stock')}
                 className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
               >
                 <Edit className="h-4 w-4" />
                 Adjust Stock
               </button>
               <button
-                onClick={() => setShowCountForm(true)}
+                onClick={() => setExpandedView('stock-count')}
                 className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
               >
                 <Scale className="h-4 w-4" />
@@ -346,109 +384,6 @@ export default function StockAdjustments({
           </div>
         )}
       </div>
-
-      {/* Stock Adjustment Form Modal */}
-      {showAdjustForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-md w-full mx-4`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Adjust Stock</h3>
-              <button
-                onClick={() => setShowAdjustForm(false)}
-                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>Item</label>
-                <input
-                  type="text"
-                  placeholder="Enter item name"
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>New Quantity</label>
-                <input
-                  type="number"
-                  placeholder="Enter new quantity"
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>Reason</label>
-                <input
-                  type="text"
-                  placeholder="Enter reason for adjustment"
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>Notes (Optional)</label>
-                <textarea
-                  placeholder="Additional notes"
-                  rows={3}
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowAdjustForm(false)}
-                  className={`flex-1 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border px-4 py-2 rounded-lg font-medium transition-all duration-200`}
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isProcessing}
-                  className={`flex-1 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50`}
-                >
-                  {isProcessing ? 'Processing...' : 'Adjust Stock'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Stock Count Form Modal */}
-      {showCountForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Perform Stock Count</h3>
-              <button
-                onClick={() => setShowCountForm(false)}
-                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <p className={`${textSecondary} text-sm`}>
-                Stock count form will be implemented here. This will allow you to count multiple items at once.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowCountForm(false)}
-                  className={`flex-1 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border px-4 py-2 rounded-lg font-medium transition-all duration-200`}
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isProcessing}
-                  className={`flex-1 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50`}
-                >
-                  {isProcessing ? 'Processing...' : 'Perform Count'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Transaction Details Modal */}
       {selectedTransaction && (
@@ -505,6 +440,194 @@ export default function StockAdjustments({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Stock Adjustment Form Component
+interface StockAdjustmentFormProps {
+  onSubmit: (adjustment: StockAdjustment) => Promise<void>
+  onCancel: () => void
+  loading: boolean
+}
+
+function StockAdjustmentForm({ onSubmit, onCancel, loading }: StockAdjustmentFormProps) {
+  const { isDark } = useTheme()
+  const [formData, setFormData] = useState({
+    item_name: '',
+    new_quantity: '',
+    reason: '',
+    notes: ''
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const adjustment: StockAdjustment = {
+      item_name: formData.item_name,
+      new_quantity: parseFloat(formData.new_quantity),
+      reason: formData.reason,
+      notes: formData.notes || undefined,
+      business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+    }
+    await onSubmit(adjustment)
+  }
+
+  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
+  const textPrimary = isDark ? "text-white" : "text-gray-900"
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
+  const inputBg = isDark ? "bg-[#1f1f1f] border-[#2a2a2a]" : "bg-gray-50 border-gray-200"
+
+  return (
+    <div className="flex-1 min-h-screen overflow-y-auto transition-colors duration-300 bg-gray-50">
+      <div className="p-6 space-y-6">
+        <div className="bg-white p-8 border shadow-lg rounded-2xl">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onCancel}
+              className="text-gray-600 hover:bg-gray-100 p-2 rounded-xl transition-all duration-200 hover:scale-110"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Adjust Stock</h1>
+              <p className="text-gray-600">Adjust stock levels for inventory items</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 border shadow-lg rounded-2xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-900 font-medium mb-2">Item Name</label>
+              <input
+                type="text"
+                value={formData.item_name}
+                onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
+                placeholder="Enter item name"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:border-blue-500 focus:outline-none transition-all duration-200"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-900 font-medium mb-2">New Quantity</label>
+              <input
+                type="number"
+                value={formData.new_quantity}
+                onChange={(e) => setFormData({ ...formData, new_quantity: e.target.value })}
+                placeholder="Enter new quantity"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:border-blue-500 focus:outline-none transition-all duration-200"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-900 font-medium mb-2">Reason</label>
+              <input
+                type="text"
+                value={formData.reason}
+                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                placeholder="Enter reason for adjustment"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:border-blue-500 focus:outline-none transition-all duration-200"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-900 font-medium mb-2">Notes (Optional)</label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Additional notes"
+                rows={3}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:border-blue-500 focus:outline-none transition-all duration-200 resize-none"
+              />
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex-1 bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
+              >
+                {loading ? 'Processing...' : 'Adjust Stock'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Stock Count Form Component
+interface StockCountFormProps {
+  onSubmit: (businessId: string, locationId?: string, counts?: any[]) => Promise<void>
+  onCancel: () => void
+  loading: boolean
+}
+
+function StockCountForm({ onSubmit, onCancel, loading }: StockCountFormProps) {
+  const { isDark } = useTheme()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const businessId = typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+    await onSubmit(businessId)
+  }
+
+  return (
+    <div className="flex-1 min-h-screen overflow-y-auto transition-colors duration-300 bg-gray-50">
+      <div className="p-6 space-y-6">
+        <div className="bg-white p-8 border shadow-lg rounded-2xl">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onCancel}
+              className="text-gray-600 hover:bg-gray-100 p-2 rounded-xl transition-all duration-200 hover:scale-110"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Perform Stock Count</h1>
+              <p className="text-gray-600">Count inventory items to verify stock levels</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 border shadow-lg rounded-2xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <p className="text-gray-600 text-sm mb-4">
+                Stock count form will be implemented here. This will allow you to count multiple items at once.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex-1 bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
+              >
+                {loading ? 'Processing...' : 'Perform Count'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

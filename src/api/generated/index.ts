@@ -135,6 +135,7 @@ export { FoodQrManagementService } from './services/FoodQrManagementService';
 export { MenuAnalyticsService } from './services/MenuAnalyticsService';
 export { MenuManagementService } from './services/MenuManagementService';
 export { MenuReviewsService } from './services/MenuReviewsService';
+export { OrdersAnalyticsService } from './services/OrdersAnalyticsService';
 export { ProfessionalServicesTemplateService } from './services/ProfessionalServicesTemplateService';
 export { RetailTemplateService } from './services/RetailTemplateService';
 export { ServiceBasedTemplateService } from './services/ServiceBasedTemplateService';

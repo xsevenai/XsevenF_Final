@@ -30,7 +30,7 @@ export default function SupplierManagement({
 }: SupplierManagementProps) {
   const { isDark } = useTheme()
   const [searchTerm, setSearchTerm] = useState('')
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [expandedView, setExpandedView] = useState<'create-supplier' | 'edit-supplier' | null>(null)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -48,29 +48,56 @@ export default function SupplierManagement({
     supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleCreateSupplier = async (formData: FormData) => {
+  const handleBack = () => {
+    setExpandedView(null)
+  }
+
+  const handleCreateSupplier = async (supplierData: SupplierCreate) => {
     try {
       setIsSubmitting(true)
-      const supplierData: SupplierCreate = {
-        name: formData.get('name') as string,
-        contact_name: formData.get('contact_name') as string || null,
-        email: formData.get('email') as string || null,
-        phone: formData.get('phone') as string || null,
-        address: formData.get('address') as string || null,
-        website: formData.get('website') as string || null,
-        payment_terms: formData.get('payment_terms') as string || null,
-        notes: formData.get('notes') as string || null,
-        is_active: true,
-        business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
-      }
-      
-      await onCreateSupplier(supplierData)
-      setShowCreateForm(false)
+      const result = await onCreateSupplier(supplierData)
+      setExpandedView(null)
+      onRefresh()
+      return result
     } catch (error) {
       console.error('Failed to create supplier:', error)
+      alert('Failed to create supplier')
+      throw error
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleEditSupplier = (supplier: Supplier) => {
+    setEditingSupplier(supplier)
+    setExpandedView('edit-supplier')
+  }
+
+  // Handle expanded view rendering (like PurchaseOrderManagement does)
+  if (expandedView === 'create-supplier') {
+    return (
+      <SupplierForm
+        onSubmit={handleCreateSupplier}
+        onCancel={handleBack}
+        loading={isSubmitting}
+      />
+    )
+  }
+
+  if (expandedView === 'edit-supplier' && editingSupplier) {
+    return (
+      <SupplierUpdateForm
+        supplier={editingSupplier}
+        onSubmit={async (updateData) => {
+          const result = await onUpdateSupplier(editingSupplier.id, updateData)
+          setExpandedView(null)
+          onRefresh()
+          return result
+        }}
+        onCancel={handleBack}
+        loading={isSubmitting}
+      />
+    )
   }
 
   const handleUpdateSupplier = async (formData: FormData) => {
@@ -168,7 +195,7 @@ export default function SupplierManagement({
             </div>
           </div>
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => setExpandedView('create-supplier')}
             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all duration-300`}
           >
             <Plus className="h-4 w-4" />
@@ -179,9 +206,10 @@ export default function SupplierManagement({
 
       {/* Suppliers Table */}
       <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+        {/* Fixed Table Header */}
+        <div className={`${isDark ? "bg-[#171717]" : "bg-white"} sticky top-0 z-10`}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            {/* Table Header */}
             <thead>
               <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
                 <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
@@ -210,8 +238,19 @@ export default function SupplierManagement({
                 </th>
               </tr>
             </thead>
-            
-            {/* Table Body */}
+          </table>
+        </div>
+      </div>
+        
+      {/* Scrollable Table Body */}
+      <div 
+        className={`overflow-x-auto max-h-[600px] overflow-y-auto ${isDark ? "bg-[#171717]" : "bg-white"} ${isDark ? "dark-scrollbar" : "light-scrollbar"}`}
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: isDark ? '#2a2a2a #171717' : '#d1d5db #f9fafb'
+        }}
+      >
+        <table className="w-full">
             <tbody>
               {filteredSuppliers.map((supplier) => (
                 <tr 
@@ -297,7 +336,7 @@ export default function SupplierManagement({
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setEditingSupplier(supplier)}
+                        onClick={() => handleEditSupplier(supplier)}
                         className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
                         title="Edit Supplier"
                       >
@@ -328,7 +367,7 @@ export default function SupplierManagement({
             </p>
             {!searchTerm && (
               <button
-                onClick={() => setShowCreateForm(true)}
+                onClick={() => setExpandedView('create-supplier')}
                 className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
               >
                 Add Supplier
@@ -339,169 +378,395 @@ export default function SupplierManagement({
       </div>
 
 
-      {/* Create/Edit Form Modal */}
-      {(showCreateForm || editingSupplier) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>
-                {editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}
-              </h3>
+
+    </div>
+  )
+}
+
+// Supplier Form Component
+interface SupplierFormProps {
+  onSubmit: (supplierData: SupplierCreate) => Promise<Supplier>
+  onCancel: () => void
+  loading: boolean
+}
+
+function SupplierForm({ onSubmit, onCancel, loading }: SupplierFormProps) {
+  const [formData, setFormData] = useState<SupplierCreate>({
+    name: '',
+    contact_name: null,
+    email: null,
+    phone: null,
+    address: null,
+    website: null,
+    payment_terms: null,
+    notes: null,
+    is_active: true,
+    business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
+  })
+  const { isDark } = useTheme()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!formData.name) {
+      alert('Please enter a supplier name')
+      return
+    }
+    
+    if (!formData.business_id) {
+      alert('Business ID is required')
+      return
+    }
+    
+    await onSubmit(formData)
+  }
+
+  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
+  const textPrimary = isDark ? "text-white" : "text-gray-900"
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
+  const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
+  const buttonHoverBg = isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
+
+  return (
+    <div className={`flex-1 min-h-screen overflow-y-auto transition-colors duration-300 ${isDark ? "bg-[#111]" : "bg-gray-50"}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => {
-                setShowCreateForm(false)
-                setEditingSupplier(null)
-              }}
-              className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
+              onClick={onCancel}
+              className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
             >
-              ×
+              <ArrowLeft className="h-6 w-6" />
             </button>
+            <div>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
+                Create Supplier
+              </h1>
+              <p className={`${textSecondary} transition-colors duration-300`}>
+                Add a new supplier to your inventory management system
+              </p>
             </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                if (editingSupplier) {
-                  handleUpdateSupplier(formData)
-                } else {
-                  handleCreateSupplier(formData)
-                }
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Supplier Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    defaultValue={editingSupplier?.name || ''}
-                    required
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Contact Name
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_name"
-                    defaultValue={editingSupplier?.contact_name || ''}
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    defaultValue={editingSupplier?.email || ''}
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    defaultValue={editingSupplier?.phone || ''}
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Website
-                  </label>
-                  <input
-                    type="url"
-                    name="website"
-                    defaultValue={editingSupplier?.website || ''}
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${textPrimary} font-medium mb-2`}>
-                    Payment Terms
-                  </label>
-                  <input
-                    type="text"
-                    name="payment_terms"
-                    defaultValue={editingSupplier?.payment_terms || ''}
-                    placeholder="e.g., Net 30, COD"
-                    className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>
-                  Address
-                </label>
-                <textarea
-                  name="address"
-                  defaultValue={editingSupplier?.address || ''}
-                  rows={3}
-                  className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-              
-              <div>
-                <label className={`block ${textPrimary} font-medium mb-2`}>
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  defaultValue={editingSupplier?.notes || ''}
-                  rows={3}
-                  className={`w-full ${inputBg} ${textPrimary} px-3 py-2 rounded-lg border focus:border-blue-500 focus:outline-none transition-all duration-200`}
-                />
-              </div>
-
-              {editingSupplier && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="is_active"
-                    defaultChecked={editingSupplier.is_active}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <label className={`${textPrimary} font-medium`}>
-                    Active Supplier
-                  </label>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateForm(false)
-                    setEditingSupplier(null)
-                  }}
-                  className={`${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} px-4 py-2 rounded-lg font-medium transition-all duration-300 border`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-blue-500 hover:bg-blue-600 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50`}
-                >
-                  {isSubmitting ? 'Saving...' : (editingSupplier ? 'Update' : 'Create')}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
-      )}
+
+        {/* Form */}
+        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Supplier Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                  required
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Contact Person
+                </label>
+                <input
+                  type="text"
+                  value={formData.contact_name || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contact_name: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={formData.website || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Payment Terms
+                </label>
+                <input
+                  type="text"
+                  value={formData.payment_terms || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, payment_terms: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                  placeholder="e.g., Net 30, COD"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                Address
+              </label>
+              <textarea
+                value={formData.address || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value || null }))}
+                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                Notes
+              </label>
+              <textarea
+                value={formData.notes || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value || null }))}
+                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading ? 'Creating...' : 'Create Supplier'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Supplier Update Form Component
+interface SupplierUpdateFormProps {
+  supplier: Supplier
+  onSubmit: (updateData: SupplierUpdate) => Promise<Supplier>
+  onCancel: () => void
+  loading: boolean
+}
+
+function SupplierUpdateForm({ supplier, onSubmit, onCancel, loading }: SupplierUpdateFormProps) {
+  const [formData, setFormData] = useState<SupplierUpdate>({
+    name: supplier.name,
+    contact_name: supplier.contact_name,
+    email: supplier.email,
+    phone: supplier.phone,
+    address: supplier.address,
+    website: supplier.website,
+    payment_terms: supplier.payment_terms,
+    notes: supplier.notes,
+    is_active: supplier.is_active
+  })
+  const { isDark } = useTheme()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await onSubmit(formData)
+  }
+
+  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
+  const textPrimary = isDark ? "text-white" : "text-gray-900"
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
+  const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
+
+  return (
+    <div className={`flex-1 min-h-screen overflow-y-auto transition-colors duration-300 ${isDark ? "bg-[#111]" : "bg-gray-50"}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onCancel}
+              className={`${textSecondary} hover:bg-[#2a2a2a] p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
+                Edit Supplier
+              </h1>
+              <p className={`${textSecondary} transition-colors duration-300`}>
+                Update supplier information
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Supplier Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                  required
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Contact Person
+                </label>
+                <input
+                  type="text"
+                  value={formData.contact_name || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contact_name: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={formData.website || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                  Payment Terms
+                </label>
+                <input
+                  type="text"
+                  value={formData.payment_terms || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, payment_terms: e.target.value || null }))}
+                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                  placeholder="e.g., Net 30, COD"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                Address
+              </label>
+              <textarea
+                value={formData.address || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value || null }))}
+                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
+                Notes
+              </label>
+              <textarea
+                value={formData.notes || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value || null }))}
+                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.is_active || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <label className={`${textPrimary} font-medium`}>
+                Active Supplier
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading ? 'Updating...' : 'Update Supplier'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

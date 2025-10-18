@@ -23,6 +23,7 @@ import { useTheme } from "@/hooks/useTheme"
 import type { PurchaseOrder } from '@/src/api/generated/models/PurchaseOrder'
 import type { PurchaseOrderCreate } from '@/src/api/generated/models/PurchaseOrderCreate'
 import type { PurchaseOrderUpdate } from '@/src/api/generated/models/PurchaseOrderUpdate'
+import type { PurchaseOrderStatus } from '@/src/api/generated/models/PurchaseOrderStatus'
 import type { Supplier } from '@/src/api/generated/models/Supplier'
 
 interface PurchaseOrderManagementProps {
@@ -84,11 +85,13 @@ export default function PurchaseOrderManagement({
       }
     `
     document.head.appendChild(style)
-    return () => document.head.removeChild(style)
+    return () => {
+      document.head.removeChild(style)
+    }
   }, [])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [expandedView, setExpandedView] = useState<'create-po' | 'edit-po' | null>(null)
   const [showEditForm, setShowEditForm] = useState<string | null>(null)
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
   const [isReceiving, setIsReceiving] = useState<string | null>(null)
@@ -165,7 +168,7 @@ export default function PurchaseOrderManagement({
         await onCreatePurchaseOrder(poData)
       }
       
-      setShowCreateForm(false)
+      setExpandedView(null)
       onRefresh()
     } catch (error) {
       console.error('Failed to create purchase order:', error)
@@ -191,6 +194,23 @@ export default function PurchaseOrderManagement({
 
   const handleEditPO = (poId: string) => {
     setShowEditForm(poId)
+  }
+
+  const handleBack = () => {
+    setExpandedView(null)
+  }
+
+  // Handle expanded view rendering (like MenuComponent does)
+  if (expandedView === 'create-po') {
+    return (
+      <PurchaseOrderForm
+        suppliers={suppliers}
+        inventoryItems={inventoryItems}
+        onSubmit={handleCreatePO}
+        onCancel={handleBack}
+        loading={isCreating}
+      />
+    )
   }
 
   if (loading) {
@@ -255,7 +275,7 @@ export default function PurchaseOrderManagement({
           </div>
 
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => setExpandedView('create-po')}
             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2`}
           >
             <Plus className="h-4 w-4" />
@@ -438,7 +458,7 @@ export default function PurchaseOrderManagement({
             <h3 className={`text-lg font-medium ${textPrimary} mb-2`}>No Purchase Orders</h3>
             <p className={`${textSecondary} mb-4`}>Create your first purchase order to get started</p>
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => setExpandedView('create-po')}
               className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} px-6 py-3 rounded-lg font-medium transition-all duration-300`}
             >
               Create Purchase Order
@@ -447,30 +467,6 @@ export default function PurchaseOrderManagement({
         )}
       </div>
 
-      {/* Create PO Form Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Create Purchase Order</h3>
-              <button
-                onClick={() => setShowCreateForm(false)}
-                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
-            </div>
-            
-            <PurchaseOrderForm
-              suppliers={suppliers}
-              inventoryItems={inventoryItems}
-              onSubmit={handleCreatePO}
-              onCancel={() => setShowCreateForm(false)}
-              loading={isCreating}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Edit PO Form Modal */}
       {showEditForm && (
@@ -660,10 +656,40 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
   const textPrimary = isDark ? "text-white" : "text-gray-900"
   const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
   const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
+  const buttonHoverBg = isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={`flex-1 min-h-screen overflow-y-auto transition-colors duration-300 ${isDark ? "bg-[#111]" : "bg-gray-50"}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onCancel}
+              className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
+                Create Purchase Order
+              </h1>
+              <p className={`${textSecondary} transition-colors duration-300`}>
+                Add a new purchase order to your inventory management system
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
             Supplier *
@@ -845,6 +871,9 @@ function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, load
         </button>
       </div>
     </form>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -888,7 +917,7 @@ function PurchaseOrderUpdateForm({ purchaseOrder, onSubmit, onCancel, loading }:
           </label>
           <select
             value={formData.status || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as PurchaseOrderStatus || null }))}
             className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
           >
             <option value="">Select status...</option>

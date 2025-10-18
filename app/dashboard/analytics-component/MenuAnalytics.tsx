@@ -137,21 +137,6 @@ export default function MenuAnalytics({ timeRange }: MenuAnalyticsProps) {
           />
         </ChartContainer>
 
-        {/* Category Revenue Distribution */}
-        <ChartContainer
-          title="Category Revenue Distribution"
-          subtitle="Revenue breakdown by menu category"
-          isDark={isDark}
-        >
-          <ModernPieChart
-            data={categoryPerformanceData}
-            dataKey="revenue"
-            nameKey="category"
-            isDark={isDark}
-            colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444']}
-          />
-        </ChartContainer>
-
         {/* Profit Margin Analysis */}
         <ChartContainer
           title="Profit Margin Analysis"

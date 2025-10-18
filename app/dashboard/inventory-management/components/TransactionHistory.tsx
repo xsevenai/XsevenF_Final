@@ -306,36 +306,48 @@ export default function TransactionHistory({
 
       {/* Transactions Table */}
       <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
-        <div className="overflow-x-auto">
+        {/* Fixed Table Header */}
+        <div className={`${isDark ? "bg-[#171717]" : "bg-white"} sticky top-0 z-10`}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Transaction ID
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Item
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Type
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Quantity Change
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Reason
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Date
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+        
+        {/* Scrollable Table Body */}
+        <div 
+          className={`overflow-x-auto max-h-[600px] overflow-y-auto ${isDark ? "bg-[#171717]" : "bg-white"} ${isDark ? "dark-scrollbar" : "light-scrollbar"}`}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: isDark ? '#2a2a2a #171717' : '#d1d5db #f9fafb'
+          }}
+        >
           <table className="w-full">
-            {/* Table Header */}
-            <thead>
-              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Transaction ID
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Item
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Type
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Quantity Change
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Reason
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Date
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            
-            {/* Table Body */}
             <tbody>
               {filteredTransactions.map((transaction) => (
                 <tr 

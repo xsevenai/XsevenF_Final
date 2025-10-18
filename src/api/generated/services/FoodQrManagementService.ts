@@ -291,8 +291,52 @@ export class FoodQrManagementService {
         });
     }
     /**
+     * Get Qr Code With Image
+     * Get QR code with regenerated image
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getQrCodeWithImageApiV1FoodQrQrIdGet({
+        qrId,
+    }: {
+        qrId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/food/qr/{qr_id}',
+            path: {
+                'qr_id': qrId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Delete Qr Code
+     * Delete QR code
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static deleteQrCodeApiV1FoodQrQrIdDelete({
+        qrId,
+    }: {
+        qrId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/food/qr/{qr_id}',
+            path: {
+                'qr_id': qrId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * List Qr Codes
-     * List QR codes for business
+     * List QR codes for business with regenerated images
      * @returns any Successful Response
      * @throws ApiError
      */
@@ -317,28 +361,6 @@ export class FoodQrManagementService {
                 'qr_type': qrType,
                 'limit': limit,
                 'offset': offset,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
-     * Delete Qr Code
-     * Delete QR code
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static deleteQrCodeApiV1FoodQrQrIdDelete({
-        qrId,
-    }: {
-        qrId: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/food/qr/{qr_id}',
-            path: {
-                'qr_id': qrId,
             },
             errors: {
                 422: `Validation Error`,

@@ -89,7 +89,7 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
       case 'overview':
         return <OverviewAnalytics {...commonProps} />
       case 'orders':
-        return <OrdersAnalytics {...commonProps} />
+        return <OrdersAnalytics {...commonProps} businessId={businessId} />
       case 'menu':
         return <MenuAnalytics {...commonProps} />
       case 'messages':
@@ -99,7 +99,7 @@ export default function AnalyticsComponent({ businessId }: AnalyticsComponentPro
       default:
         return <OverviewAnalytics {...commonProps} />
     }
-  }, [activeTab, timeRange])
+  }, [activeTab, timeRange, businessId])
 
   if (!themeLoaded || !mounted) {
     return (
