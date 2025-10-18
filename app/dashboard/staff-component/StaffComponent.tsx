@@ -31,6 +31,7 @@ import type { StaffMember } from '@/src/api/generated/models/StaffMember'
 import type { StaffMemberCreate } from '@/src/api/generated/models/StaffMemberCreate'
 import type { StaffMemberUpdate } from '@/src/api/generated/models/StaffMemberUpdate'
 import ScheduleManagement from './ScheduleManagement'
+import StaffFormComponent from './StaffFormComponent'
 
 interface StaffComponentProps {
   businessId: string
@@ -49,96 +50,36 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
 
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<'staff' | 'schedules'>('staff')
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [expandedView, setExpandedView] = useState<'add-staff-member' | 'edit-staff-member' | null>(null)
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [positionFilter, setPositionFilter] = useState<string>('all')
 
-  // Form state - Fixed: Added missing required fields
-  const [formData, setFormData] = useState<StaffMemberCreate>({
-    business_id: businessId,
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    position: '',
-    hourly_rate: 0,
-    hire_date: '',
-    status: 'active'
-  })
-
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleCreateStaff = async () => {
-    try {
-      console.log('🔄 Creating staff member with data:', formData)
-      await createStaffMember(formData)
-      setShowCreateForm(false)
-      resetForm()
-      await refresh() // Refresh the list
-    } catch (error) {
-      console.error('Failed to create staff member:', error)
-    }
+  const handleCloseEdit = () => {
+    setExpandedView(null)
+    setEditingStaff(null)
   }
 
-  const handleUpdateStaff = async () => {
-    if (!editingStaff) return
-    
-    try {
-      const updateData: StaffMemberUpdate = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone: formData.phone,
-        position: formData.position,
-        hourly_rate: formData.hourly_rate?.toString(), // Convert number to string
-
-        hire_date: formData.hire_date,
-        status: formData.status
-      }
-      
-      console.log('🔄 Updating staff member:', editingStaff.id, updateData)
-      await updateStaffMember(editingStaff.id, updateData)
-      setEditingStaff(null)
-      setShowCreateForm(false)
-      resetForm()
-      await refresh() // Refresh the list
-    } catch (error) {
-      console.error('Failed to update staff member:', error)
-    }
+  const handleStaffMemberCreated = () => {
+    console.log('Staff member created successfully')
+    // Refresh the staff list
+    refresh()
   }
 
-  const resetForm = () => {
-    setFormData({
-      business_id: businessId,
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      position: '',
-      hourly_rate: 0,
-      hire_date: '',
-      status: 'active'
-    })
+  const handleStaffMemberUpdated = () => {
+    console.log('Staff member updated successfully')
+    // Refresh the staff list
+    refresh()
   }
 
   const handleEditClick = (staff: StaffMember) => {
     setEditingStaff(staff)
-    setFormData({
-      business_id: businessId,
-      first_name: staff.first_name || '',
-      last_name: staff.last_name || '',
-      email: staff.email || '',
-      phone: staff.phone || '',
-      position: staff.position || '',
-      hourly_rate: staff.hourly_rate ? parseFloat(staff.hourly_rate) : 0,
-      hire_date: staff.hire_date || '',
-      status: staff.status || 'active'
-    })
-    setShowCreateForm(true)
+    setExpandedView('edit-staff-member')
   }
 
   // Fixed: Better filtering with null checks
@@ -170,6 +111,20 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
       <div className={`flex-1 ${isDark ? 'bg-[#111111]' : 'bg-gray-50'} flex items-center justify-center transition-all duration-300`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
+    )
+  }
+
+  // Handle expanded views (like MenuComponent does)
+  if (expandedView) {
+    return (
+      <StaffFormComponent
+        formType={expandedView}
+        onBack={handleCloseEdit}
+        onStaffMemberCreated={handleStaffMemberCreated}
+        onStaffMemberUpdated={handleStaffMemberUpdated}
+        editStaff={editingStaff || undefined}
+        businessId={businessId}
+      />
     )
   }
 
@@ -329,9 +284,7 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
             <div className="flex gap-3">
               <Button
                 onClick={() => {
-                  resetForm()
-                  setEditingStaff(null)
-                  setShowCreateForm(true)
+                  setExpandedView('add-staff-member')
                 }}
                 className={`${buttonTheme} px-6 py-2 rounded-lg flex items-center gap-2`}
               >
@@ -494,142 +447,6 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
           )}
         </div>
 
-        {/* Create/Edit Form Modal */}
-        {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`${cardBg} p-8 border shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
-              style={{ borderRadius: '1.5rem' }}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-2xl font-bold ${textPrimary}`}>
-                  {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
-                </h2>
-                <Button
-                  onClick={() => {
-                    setShowCreateForm(false)
-                    setEditingStaff(null)
-                    resetForm()
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  ✕
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>First Name *</Label>
-                  <Input
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter first name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Last Name *</Label>
-                  <Input
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter last name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Email *</Label>
-                  <Input
-                    type="email"
-                    value={formData.email ?? ''}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter email address"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Phone</Label>
-                  <Input
-                    value={formData.phone ?? ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter phone number"
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Position *</Label>
-                  <Input
-                    value={formData.position ?? ''}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter position (e.g., Server, Chef, Manager)"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Hourly Rate</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.hourly_rate ?? 0}
-                    onChange={(e) => setFormData({ ...formData, hourly_rate: parseFloat(e.target.value) || 0 })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Enter hourly rate"
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Hire Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.hire_date ?? ''}
-                    onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Status</Label>
-                  <select
-                    value={formData.status || 'active'}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1 w-full px-3 py-2 rounded-lg border`}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-
-              </div>
-
-              <div className="flex justify-end gap-4 mt-8">
-                <Button
-                  onClick={() => {
-                    setShowCreateForm(false)
-                    setEditingStaff(null)
-                    resetForm()
-                  }}
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={editingStaff ? handleUpdateStaff : handleCreateStaff}
-                  className={buttonTheme}
-                  disabled={!formData.first_name || !formData.last_name || !formData.email || !formData.position}
-                >
-                  {editingStaff ? 'Update Staff Member' : 'Add Staff Member'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
           </>
         ) : (
           <div className="flex flex-col flex-1">

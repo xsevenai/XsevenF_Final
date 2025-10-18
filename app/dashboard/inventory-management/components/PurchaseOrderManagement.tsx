@@ -51,6 +51,41 @@ export default function PurchaseOrderManagement({
   onBack
 }: PurchaseOrderManagementProps) {
   const { isDark } = useTheme()
+
+  // Add custom scrollbar styles
+  React.useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .dark-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .dark-scrollbar::-webkit-scrollbar-track {
+        background: #171717;
+      }
+      .dark-scrollbar::-webkit-scrollbar-thumb {
+        background: #2a2a2a;
+        border-radius: 4px;
+      }
+      .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #3a3a3a;
+      }
+      .light-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .light-scrollbar::-webkit-scrollbar-track {
+        background: #f9fafb;
+      }
+      .light-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+      }
+      .light-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+      }
+    `
+    document.head.appendChild(style)
+    return () => document.head.removeChild(style)
+  }, [])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -231,39 +266,51 @@ export default function PurchaseOrderManagement({
 
       {/* Purchase Orders Table */}
       <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
-        <div className="overflow-x-auto">
+        {/* Fixed Table Header */}
+        <div className={`${isDark ? "bg-[#171717]" : "bg-white"} sticky top-0 z-10`}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Order Number
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Supplier
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Order Date
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Expected Delivery
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Items Count
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Total Amount
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Status
+                  </th>
+                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+        
+        {/* Scrollable Table Body */}
+        <div 
+          className={`overflow-x-auto max-h-[600px] overflow-y-auto ${isDark ? "bg-[#171717]" : "bg-white"} ${isDark ? "dark-scrollbar" : "light-scrollbar"}`}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: isDark ? '#2a2a2a #171717' : '#d1d5db #f9fafb'
+          }}
+        >
           <table className="w-full">
-            {/* Table Header */}
-            <thead>
-              <tr className={`${isDark ? "border-b border-[#2a2a2a]" : "border-b border-gray-200"}`}>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Order Number
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Supplier
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Order Date
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Expected Delivery
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Items Count
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Total Amount
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Status
-                </th>
-                <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            
-            {/* Table Body */}
             <tbody>
               {filteredPOs.map((po) => (
                 <tr 

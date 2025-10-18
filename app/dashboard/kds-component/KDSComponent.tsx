@@ -21,10 +21,12 @@ import {
   Edit,
   BarChart3
 } from "lucide-react"
-import type { KDSOrderWithMetrics, KDSStatus } from "@/src/api/generated/models/KDSOrderWithMetrics"
+import type { KDSOrderWithMetrics } from "@/src/api/generated/models/KDSOrderWithMetrics"
+import type { KDSStatus } from "@/src/api/generated/models/KDSStatus"
 import type { KDSOrderCreate } from "@/src/api/generated/models/KDSOrderCreate"
 import type { KDSOrderUpdate } from "@/src/api/generated/models/KDSOrderUpdate"
 import CreateKDSOrderModal from "./components/CreateKDSOrderModal"
+import KDSCreateOrderForm from "./components/KDSCreateOrderForm"
 import UpdateKDSOrderModal from "./components/UpdateKDSOrderModal"
 import KDSPerformanceDashboard from "./components/KDSPerformanceDashboard"
 
@@ -38,6 +40,7 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
   const [selectedStation, setSelectedStation] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<KDSOrderWithMetrics | null>(null)
   const [activeTab, setActiveTab] = useState<"orders" | "performance">("orders")
@@ -79,6 +82,52 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
+
+  const handleCreateOrder = async (orderData: KDSOrderCreate) => {
+    try {
+      await orders.createOrder(orderData)
+      // Refresh the orders list
+      await refreshAll()
+    } catch (error) {
+      console.error('Failed to create KDS order:', error)
+      throw error
+    }
+  }
+
+  const handleUpdateOrder = async (orderId: string, updateData: KDSOrderUpdate) => {
+    try {
+      await orders.updateOrder(orderId, updateData)
+      // Refresh the orders list
+      await refreshAll()
+    } catch (error) {
+      console.error('Failed to update KDS order:', error)
+      throw error
+    }
+  }
+
+  const handleViewOrder = (order: KDSOrderWithMetrics) => {
+    setSelectedOrder(order)
+    setIsUpdateModalOpen(true)
+  }
+
+  // Show create form if open
+  if (isCreateFormOpen) {
+    return (
+      <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <KDSCreateOrderForm
+          businessId={currentBusinessId}
+          onBack={() => setIsCreateFormOpen(false)}
+          onCreateOrder={handleCreateOrder}
+          isDark={isDark}
+        />
+      </div>
+    )
+  }
 
   // Filter orders based on selected filters
   const filteredOrders = orders.orders.filter(order => {
@@ -138,33 +187,6 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
     return `${diffMins}m`
   }
 
-  const handleCreateOrder = async (orderData: KDSOrderCreate) => {
-    try {
-      await orders.createOrder(orderData)
-      // Refresh the orders list
-      await refreshAll()
-    } catch (error) {
-      console.error('Failed to create KDS order:', error)
-      throw error
-    }
-  }
-
-  const handleUpdateOrder = async (orderId: string, updateData: KDSOrderUpdate) => {
-    try {
-      await orders.updateOrder(orderId, updateData)
-      // Refresh the orders list
-      await refreshAll()
-    } catch (error) {
-      console.error('Failed to update KDS order:', error)
-      throw error
-    }
-  }
-
-  const handleViewOrder = (order: KDSOrderWithMetrics) => {
-    setSelectedOrder(order)
-    setIsUpdateModalOpen(true)
-  }
-
   return (
     <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <style jsx>{`
@@ -183,7 +205,7 @@ export default function KDSComponent({ businessId }: KDSComponentProps) {
             </div>
             <div className="flex gap-2">
               <Button 
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={() => setIsCreateFormOpen(true)}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />

@@ -128,9 +128,7 @@ export default function MainPanel({
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
 
   const renderExpandedView = () => {
-    // Keep your existing expanded view logic
     switch (expandedView) {
-      // ... your existing expanded view cases ...
       default:
         return null
     }
@@ -368,7 +366,7 @@ export default function MainPanel({
   )
 
   const renderAnalytics = () => (
-    <AnalyticsComponent />
+    <AnalyticsComponent businessId={businessId} />
   )
 
   const renderOrders = () => (

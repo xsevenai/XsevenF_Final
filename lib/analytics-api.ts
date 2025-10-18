@@ -121,6 +121,19 @@ class AnalyticsAPI {
     return this.request(`/analytics/dashboard/${businessId}/summary`)
   }
 
+  // Menu Analytics - Category Performance
+  async getCategoryPerformance(
+    period: string = "7d",
+    includeDetails: boolean = true
+  ) {
+    const businessId = this.getBusinessId()
+    const params = new URLSearchParams({
+      period,
+      include_details: includeDetails.toString()
+    })
+    return this.request(`/analytics/menu/category-performance/${businessId}?${params}`)
+  }
+
   // Export methods
   async exportOrdersData(period: string = "30d", format: string = "json") {
     const businessId = this.getBusinessId()

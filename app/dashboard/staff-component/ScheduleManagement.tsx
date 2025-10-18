@@ -25,6 +25,7 @@ import {
 import type { StaffSchedule } from '@/src/api/generated/models/StaffSchedule'
 import type { StaffScheduleCreate } from '@/src/api/generated/models/StaffScheduleCreate'
 import type { StaffScheduleUpdate } from '@/src/api/generated/models/StaffScheduleUpdate'
+import ScheduleFormComponent from './ScheduleFormComponent'
 
 interface ScheduleManagementProps {
   businessId: string
@@ -45,67 +46,36 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
   const { staffMembers } = useStaffMembers(businessId)
 
   const [mounted, setMounted] = useState(false)
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [expandedView, setExpandedView] = useState<'add-schedule' | 'edit-schedule' | null>(null)
   const [editingSchedule, setEditingSchedule] = useState<StaffSchedule | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [staffFilter, setStaffFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<string>('')
 
-  // Form state
-  const [formData, setFormData] = useState<StaffScheduleCreate>({
-    staff_id: '',
-    location_id: null,
-    shift_date: '',
-    shift_start: '',
-    shift_end: '',
-    break_duration: null,
-    position: null,
-    notes: null,
-    status: 'scheduled',
-    business_id: businessId
-  })
-
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleCreateSchedule = async () => {
-    try {
-      console.log('🔄 Creating schedule with data:', formData)
-      await createSchedule(formData)
-      setShowCreateForm(false)
-      resetForm()
-      await refresh() // Refresh the list
-    } catch (error) {
-      console.error('Failed to create schedule:', error)
-    }
+  const handleCloseEdit = () => {
+    setExpandedView(null)
+    setEditingSchedule(null)
   }
 
-  const handleUpdateSchedule = async () => {
-    if (!editingSchedule) return
-    
-    try {
-      const updateData: StaffScheduleUpdate = {
-        staff_id: formData.staff_id,
-        location_id: formData.location_id,
-        shift_date: formData.shift_date,
-        shift_start: formData.shift_start,
-        shift_end: formData.shift_end,
-        break_duration: formData.break_duration,
-        position: formData.position,
-        notes: formData.notes,
-        status: formData.status
-      }
-      
-      console.log('🔄 Updating schedule:', editingSchedule.id, updateData)
-      await updateSchedule(editingSchedule.id, updateData)
-      setEditingSchedule(null)
-      setShowCreateForm(false)
-      resetForm()
-      await refresh() // Refresh the list
-    } catch (error) {
-      console.error('Failed to update schedule:', error)
-    }
+  const handleScheduleCreated = () => {
+    console.log('Schedule created successfully')
+    // Refresh the schedule list
+    refresh()
+  }
+
+  const handleScheduleUpdated = () => {
+    console.log('Schedule updated successfully')
+    // Refresh the schedule list
+    refresh()
+  }
+
+  const handleEditClick = (schedule: StaffSchedule) => {
+    setEditingSchedule(schedule)
+    setExpandedView('edit-schedule')
   }
 
   const handleDeleteSchedule = async (scheduleId: string) => {
@@ -120,38 +90,6 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
     }
   }
 
-  const resetForm = () => {
-    setFormData({
-      staff_id: '',
-      location_id: null,
-      shift_date: '',
-      shift_start: '',
-      shift_end: '',
-      break_duration: null,
-      position: null,
-      notes: null,
-      status: 'scheduled',
-      business_id: businessId
-    })
-  }
-
-  const handleEditClick = (schedule: StaffSchedule) => {
-    setEditingSchedule(schedule)
-    setFormData({
-      staff_id: schedule.staff_id || '',
-      location_id: schedule.location_id || null,
-      shift_date: schedule.shift_date || '',
-      shift_start: schedule.shift_start || '',
-      shift_end: schedule.shift_end || '',
-      break_duration: schedule.break_duration || null,
-      position: schedule.position || null,
-      notes: schedule.notes || null,
-      status: schedule.status || 'scheduled',
-      business_id: businessId
-    })
-    setShowCreateForm(true)
-  }
-
   // Filter schedules
   const filteredSchedules = schedules.filter(schedule => {
     const staff = staffMembers.find(s => s.id === schedule.staff_id)
@@ -162,7 +100,7 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
       (schedule.notes?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     
     const matchesStaff = staffFilter === 'all' || schedule.staff_id === staffFilter
-    const matchesDate = !dateFilter || schedule.date === dateFilter
+    const matchesDate = !dateFilter || schedule.shift_date === dateFilter
     
     return matchesSearch && matchesStaff && matchesDate
   })
@@ -172,6 +110,20 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
       <div className={`flex-1 ${isDark ? 'bg-[#111111]' : 'bg-gray-50'} flex items-center justify-center transition-all duration-300`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
+    )
+  }
+
+  // Handle expanded views (like StaffComponent does)
+  if (expandedView) {
+    return (
+      <ScheduleFormComponent
+        formType={expandedView}
+        onBack={handleCloseEdit}
+        onScheduleCreated={handleScheduleCreated}
+        onScheduleUpdated={handleScheduleUpdated}
+        editSchedule={editingSchedule || undefined}
+        businessId={businessId}
+      />
     )
   }
 
@@ -294,9 +246,7 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
 
             <Button
               onClick={() => {
-                resetForm()
-                setEditingSchedule(null)
-                setShowCreateForm(true)
+                setExpandedView('add-schedule')
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
             >
@@ -477,112 +427,6 @@ export default function ScheduleManagement({ businessId }: ScheduleManagementPro
           )}
         </div>
 
-        {/* Create/Edit Form Modal */}
-        {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`${cardBg} p-8 border shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
-              style={{ borderRadius: '1.5rem' }}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-2xl font-bold ${textPrimary}`}>
-                  {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
-                </h2>
-                <Button
-                  onClick={() => {
-                    setShowCreateForm(false)
-                    setEditingSchedule(null)
-                    resetForm()
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  ✕
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Staff Member *</Label>
-                  <select
-                    value={formData.staff_id}
-                    onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1 w-full px-3 py-2 rounded-lg border`}
-                    required
-                  >
-                    <option value="">Select staff member</option>
-                    {staffMembers.map(staff => (
-                      <option key={staff.id} value={staff.id}>
-                        {staff.first_name} {staff.last_name} - {staff.position}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Date *</Label>
-                  <Input
-                    type="date"
-                    value={formData.shift_date}
-                    onChange={(e) => setFormData({ ...formData, shift_date: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>Start Time *</Label>
-                  <Input
-                    type="time"
-                    value={formData.shift_start}
-                    onChange={(e) => setFormData({ ...formData, shift_start: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label className={`${textPrimary} font-medium`}>End Time *</Label>
-                  <Input
-                    type="time"
-                    value={formData.shift_end}
-                    onChange={(e) => setFormData({ ...formData, shift_end: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    required
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label className={`${textPrimary} font-medium`}>Notes</Label>
-                  <Input
-                    value={formData.notes || ''}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className={`${innerCardBg} ${textPrimary} mt-1`}
-                    placeholder="Optional notes about this shift"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-4 mt-8">
-                <Button
-                  onClick={() => {
-                    setShowCreateForm(false)
-                    setEditingSchedule(null)
-                    resetForm()
-                  }}
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={editingSchedule ? handleUpdateSchedule : handleCreateSchedule}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={!formData.staff_id || !formData.shift_date || !formData.shift_start || !formData.shift_end}
-                >
-                  {editingSchedule ? 'Update Schedule' : 'Add Schedule'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

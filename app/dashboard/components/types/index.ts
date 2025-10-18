@@ -149,6 +149,8 @@ export type SectionType =
   | "edit-modifier" // Add this
   | "manage-item-modifiers" // Manage modifiers for a specific menu item
   | "manage-modifier-items" // Manage menu items for a specific modifier
+  | "add-staff-member" // Add staff member form
+  | "edit-staff-member" // Edit staff member form
   | string 
   | null
 

@@ -91,13 +91,13 @@ export default function CreateKDSOrderModal({
       configureAPI()
       
       console.log('Fetching menu items for business:', businessId)
-      const items = await MenuManagementService.listMenuItemsApiV1MenuItemsGet(
+      const items = await MenuManagementService.listMenuItemsApiV1MenuItemsGet({
         businessId,
-        null, // categoryId
-        null, // isAvailable
-        null, // search
-        100   // limit
-      )
+        categoryId: null,
+        isAvailable: null,
+        search: null,
+        limit: 100
+      })
       console.log('Fetched menu items:', items.length, 'items')
       setMenuItems(items)
     } catch (err: any) {

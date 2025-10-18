@@ -16,7 +16,8 @@ import {
   Edit,
   User
 } from "lucide-react"
-import type { KDSOrderWithMetrics, KDSStatus } from "@/src/api/generated/models/KDSOrderWithMetrics"
+import type { KDSOrderWithMetrics } from "@/src/api/generated/models/KDSOrderWithMetrics"
+import type { KDSStatus } from "@/src/api/generated/models/KDSStatus"
 
 interface KDSOrderCardProps {
   order: KDSOrderWithMetrics

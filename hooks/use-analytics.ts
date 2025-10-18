@@ -171,6 +171,44 @@ export function useCreateOrderRecord() {
   }
 }
 
+// Category Performance analytics hook
+export function useCategoryPerformance(timeRange: string = "7d", includeDetails: boolean = true) {
+  const [categoryData, setCategoryData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchCategoryPerformance = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // No business ID needed - handled automatically
+      const data = await analyticsApi.getCategoryPerformance(timeRange, includeDetails)
+      setCategoryData(data)
+    } catch (err) {
+      console.error('Category performance error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch category performance')
+    } finally {
+      setLoading(false)
+    }
+  }, [timeRange, includeDetails])
+
+  useEffect(() => {
+    fetchCategoryPerformance()
+  }, [fetchCategoryPerformance])
+
+  const refetch = useCallback(() => {
+    fetchCategoryPerformance()
+  }, [fetchCategoryPerformance])
+
+  return {
+    categoryData,
+    loading,
+    error,
+    refetch
+  }
+}
+
 // Message management hook
 export function useCreateMessageRecord() {
   const [loading, setLoading] = useState(false)
