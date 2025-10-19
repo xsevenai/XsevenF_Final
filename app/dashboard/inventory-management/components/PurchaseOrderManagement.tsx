@@ -7,16 +7,12 @@ import {
   ArrowLeft, 
   Plus, 
   Search, 
-  Filter, 
   Edit, 
-  Trash2, 
   Eye, 
   CheckCircle, 
   Clock, 
   AlertCircle,
   Package,
-  Calendar,
-  DollarSign,
   Loader2
 } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
@@ -26,15 +22,26 @@ import type { PurchaseOrderUpdate } from '@/src/api/generated/models/PurchaseOrd
 import type { PurchaseOrderStatus } from '@/src/api/generated/models/PurchaseOrderStatus'
 import type { Supplier } from '@/src/api/generated/models/Supplier'
 
+// Extended PurchaseOrder type with flattened supplier data
+interface PurchaseOrderWithSupplier extends PurchaseOrder {
+  supplier_name?: string;
+  supplier_email?: string;
+  supplier_contact_name?: string;
+}
+import PurchaseOrderForm from './forms/PurchaseOrderForm'
+import PurchaseOrderUpdateForm from './forms/PurchaseOrderUpdateForm'
+import PurchaseOrderDetailsModal from './modals/PurchaseOrderDetailsModal'
+
 interface PurchaseOrderManagementProps {
-  purchaseOrders: PurchaseOrder[]
+  purchaseOrders: PurchaseOrderWithSupplier[]
   suppliers: Supplier[]
   inventoryItems: any[]
   loading: boolean
   error: string | null
   onRefresh: () => void
-  onCreatePurchaseOrder: (data: PurchaseOrderCreate, createdBy?: string) => Promise<PurchaseOrder>
-  onUpdatePurchaseOrder: (poId: string, data: PurchaseOrderUpdate) => Promise<PurchaseOrder>
+  onRefreshSuppliers?: () => void
+  onCreatePurchaseOrder: (data: PurchaseOrderCreate, createdBy?: string) => Promise<PurchaseOrderWithSupplier>
+  onUpdatePurchaseOrder: (poId: string, data: PurchaseOrderUpdate) => Promise<PurchaseOrderWithSupplier>
   onReceivePurchaseOrder: (poId: string, receivedItems: any[]) => Promise<any>
   onBack: () => void
 }
@@ -46,6 +53,7 @@ export default function PurchaseOrderManagement({
   loading,
   error,
   onRefresh,
+  onRefreshSuppliers,
   onCreatePurchaseOrder,
   onUpdatePurchaseOrder,
   onReceivePurchaseOrder,
@@ -92,8 +100,8 @@ export default function PurchaseOrderManagement({
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [expandedView, setExpandedView] = useState<'create-po' | 'edit-po' | null>(null)
-  const [showEditForm, setShowEditForm] = useState<string | null>(null)
-  const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
+  const [editingPO, setEditingPO] = useState<PurchaseOrderWithSupplier | null>(null)
+  const [selectedPO, setSelectedPO] = useState<PurchaseOrderWithSupplier | null>(null)
   const [isReceiving, setIsReceiving] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -153,7 +161,7 @@ export default function PurchaseOrderManagement({
     }
   }
 
-  const handleCreatePO = async (poData: PurchaseOrderCreate) => {
+  const handleCreatePO = async (poData: PurchaseOrderCreate | PurchaseOrderUpdate) => {
     try {
       setIsCreating(true)
       console.log('Creating purchase order with data:', poData)
@@ -163,9 +171,9 @@ export default function PurchaseOrderManagement({
       console.log('Created by:', createdBy)
       
       if (createdBy) {
-        await onCreatePurchaseOrder(poData, createdBy)
+        await onCreatePurchaseOrder(poData as PurchaseOrderCreate, createdBy)
       } else {
-        await onCreatePurchaseOrder(poData)
+        await onCreatePurchaseOrder(poData as PurchaseOrderCreate)
       }
       
       setExpandedView(null)
@@ -181,23 +189,39 @@ export default function PurchaseOrderManagement({
   const handleUpdatePO = async (poId: string, updateData: PurchaseOrderUpdate) => {
     try {
       setIsUpdating(true)
-      await onUpdatePurchaseOrder(poId, updateData)
-      setShowEditForm(null)
-      onRefresh()
-    } catch (error) {
+      console.log('Updating purchase order:', poId, 'with data:', updateData)
+      
+      const updatedPO = await onUpdatePurchaseOrder(poId, updateData)
+      console.log('Purchase order updated successfully:', updatedPO)
+      
+      setExpandedView(null)
+      setEditingPO(null)
+      
+      // Show success message (you could use a toast notification here)
+      console.log('Purchase order updated successfully!')
+      
+    } catch (error: any) {
       console.error('Failed to update purchase order:', error)
-      alert('Failed to update purchase order')
+      
+      // Show error message to user
+      const errorMessage = error.message || 'Failed to update purchase order'
+      alert(`Error: ${errorMessage}`)
     } finally {
       setIsUpdating(false)
     }
   }
 
   const handleEditPO = (poId: string) => {
-    setShowEditForm(poId)
+    const po = purchaseOrders.find(p => p.id === poId)
+    if (po) {
+      setEditingPO(po)
+      setExpandedView('edit-po')
+    }
   }
 
   const handleBack = () => {
     setExpandedView(null)
+    setEditingPO(null)
   }
 
   // Handle expanded view rendering (like MenuComponent does)
@@ -209,6 +233,17 @@ export default function PurchaseOrderManagement({
         onSubmit={handleCreatePO}
         onCancel={handleBack}
         loading={isCreating}
+      />
+    )
+  }
+
+  if (expandedView === 'edit-po' && editingPO) {
+    return (
+      <PurchaseOrderUpdateForm
+        purchaseOrder={editingPO}
+        onSubmit={(updateData) => handleUpdatePO(editingPO.id, updateData)}
+        onCancel={handleBack}
+        loading={isUpdating}
       />
     )
   }
@@ -354,8 +389,15 @@ export default function PurchaseOrderManagement({
                   
                   {/* Supplier */}
                   <td className="py-4 px-6">
-                    <div className={`${textPrimary} text-sm`}>
-                      {suppliers.find(s => s.id === po.supplier_id)?.name || 'Unknown Supplier'}
+                    <div>
+                      <div className={`${textPrimary} font-semibold text-sm`}>
+                        {po.supplier_name || 'Unknown Supplier'}
+                      </div>
+                      {po.supplier_email && (
+                        <div className={`${textSecondary} text-xs`}>
+                          {po.supplier_email}
+                        </div>
+                      )}
                     </div>
                   </td>
                   
@@ -468,547 +510,15 @@ export default function PurchaseOrderManagement({
       </div>
 
 
-      {/* Edit PO Form Modal */}
-      {showEditForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Edit Purchase Order</h3>
-              <button
-                onClick={() => setShowEditForm(null)}
-                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
-            </div>
-            
-            <PurchaseOrderUpdateForm
-              purchaseOrder={purchaseOrders.find(po => po.id === showEditForm)}
-              onSubmit={(updateData) => handleUpdatePO(showEditForm, updateData)}
-              onCancel={() => setShowEditForm(null)}
-              loading={isUpdating}
-            />
-          </div>
-        </div>
-      )}
-
       {/* PO Details Modal */}
       {selectedPO && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${cardBg} p-6 rounded-xl border shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>Purchase Order Details</h3>
-              <button
-                onClick={() => setSelectedPO(null)}
-                className={`${isDark ? 'text-white hover:text-red-400' : 'text-gray-600 hover:text-red-400'} p-1 transition-colors duration-300`}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className={`${textSecondary} text-sm`}>Order Number:</span>
-                  <p className={`${textPrimary} font-medium`}>{selectedPO.order_number}</p>
-                </div>
-                <div>
-                  <span className={`${textSecondary} text-sm`}>Status:</span>
-                  <p className={`${textPrimary} font-medium`}>{selectedPO.status}</p>
-                </div>
-                <div>
-                  <span className={`${textSecondary} text-sm`}>Total Amount:</span>
-                  <p className={`${textPrimary} font-medium`}>${parseFloat(selectedPO.total_amount).toFixed(2)}</p>
-                </div>
-                <div>
-                  <span className={`${textSecondary} text-sm`}>Order Date:</span>
-                  <p className={`${textPrimary} font-medium`}>
-                    {new Date(selectedPO.order_date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className={`${textPrimary} font-semibold mb-2`}>Items</h4>
-                <div className="space-y-3">
-                  {selectedPO.items.map((item, index) => {
-                    const inventoryItem = inventoryItems.find(inv => inv.id === item.inventory_item_id)
-                    const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item: ${item.inventory_item_id}`
-                    
-                    return (
-                      <div key={index} className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} p-4 rounded-lg`}>
-                        <div className="space-y-2">
-                          <h5 className={`${textPrimary} font-medium`}>
-                            {itemName}
-                          </h5>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className={`${textSecondary}`}>Quantity:</span>
-                              <span className={`${textPrimary}`}>{item.quantity}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className={`${textSecondary}`}>Unit Cost:</span>
-                              <span className={`${textPrimary}`}>${parseFloat(item.unit_cost).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm font-medium">
-                              <span className={`${textSecondary}`}>Total:</span>
-                              <span className={`${textPrimary}`}>${(Number(item.unit_cost) * Number(item.quantity)).toFixed(2)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PurchaseOrderDetailsModal
+          purchaseOrder={selectedPO}
+          inventoryItems={inventoryItems}
+          onClose={() => setSelectedPO(null)}
+        />
       )}
     </div>
   )
 }
 
-// Purchase Order Form Component
-interface PurchaseOrderFormProps {
-  suppliers: Supplier[]
-  inventoryItems: any[]
-  onSubmit: (poData: PurchaseOrderCreate) => Promise<void>
-  onCancel: () => void
-  loading: boolean
-}
-
-function PurchaseOrderForm({ suppliers, inventoryItems, onSubmit, onCancel, loading }: PurchaseOrderFormProps) {
-  const [formData, setFormData] = useState<PurchaseOrderCreate>({
-    supplier_id: '',
-    order_date: new Date().toISOString(),
-    expected_delivery_date: null,
-    items: [],
-    notes: null,
-    business_id: typeof window !== "undefined" ? localStorage.getItem("businessId") || "" : ""
-  })
-  const [newItem, setNewItem] = useState({
-    inventory_item_id: '',
-    quantity: 1,
-    unit_cost: 0
-  })
-  const { isDark } = useTheme()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validate required fields
-    if (!formData.supplier_id) {
-      alert('Please select a supplier')
-      return
-    }
-    
-    if (formData.items.length === 0) {
-      alert('Please add at least one item')
-      return
-    }
-    
-    // Validate items
-    for (let i = 0; i < formData.items.length; i++) {
-      const item = formData.items[i]
-      if (!item.inventory_item_id || !item.quantity || !item.unit_cost) {
-        alert(`Item ${i + 1} is missing required information`)
-        return
-      }
-    }
-    
-    // Ensure business_id is set
-    if (!formData.business_id) {
-      alert('Business ID is required')
-      return
-    }
-    
-    console.log('Form data validation passed:', formData)
-    await onSubmit(formData)
-  }
-
-  const addItem = () => {
-    if (newItem.inventory_item_id && newItem.quantity > 0 && newItem.unit_cost > 0) {
-      const total = newItem.quantity * newItem.unit_cost
-      setFormData(prev => ({
-        ...prev,
-        items: [...prev.items, { 
-          ...newItem, 
-          total: total 
-        }]
-      }))
-      setNewItem({
-        inventory_item_id: '',
-        quantity: 1,
-        unit_cost: 0
-      })
-    }
-  }
-
-  const removeItem = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index)
-    }))
-  }
-
-  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
-  const textPrimary = isDark ? "text-white" : "text-gray-900"
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
-  const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
-  const buttonHoverBg = isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
-
-  return (
-    <div className={`flex-1 min-h-screen overflow-y-auto transition-colors duration-300 ${isDark ? "bg-[#111]" : "bg-gray-50"}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className={`${cardBg} p-8 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onCancel}
-              className={`${textSecondary} ${buttonHoverBg} p-2 rounded-xl transition-all duration-200 hover:scale-110`}
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </button>
-            <div>
-              <h1 className={`text-4xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
-                Create Purchase Order
-              </h1>
-              <p className={`${textSecondary} transition-colors duration-300`}>
-                Add a new purchase order to your inventory management system
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: "1.5rem" }}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Supplier *
-          </label>
-          <select
-            value={formData.supplier_id}
-            onChange={(e) => setFormData(prev => ({ ...prev, supplier_id: e.target.value }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-            required
-          >
-            <option value="">Select a supplier...</option>
-            {suppliers.map(supplier => (
-              <option key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Order Date *
-          </label>
-          <input
-            type="date"
-            value={formData.order_date ? new Date(formData.order_date).toISOString().split('T')[0] : ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, order_date: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-            required
-          />
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Expected Delivery Date
-          </label>
-          <input
-            type="date"
-            value={formData.expected_delivery_date ? new Date(formData.expected_delivery_date).toISOString().split('T')[0] : ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, expected_delivery_date: e.target.value ? new Date(e.target.value).toISOString() : null }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-          Notes
-        </label>
-        <textarea
-          value={formData.notes || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          rows={3}
-          placeholder="Additional notes..."
-        />
-      </div>
-
-      {/* Items Section */}
-      <div>
-        <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Items</h4>
-        
-        {/* Add Item Form */}
-        <div className={`${cardBg} p-4 border rounded-lg mb-4`}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>
-                Inventory Item
-              </label>
-              {inventoryItems.length > 0 ? (
-                <select
-                  value={newItem.inventory_item_id}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, inventory_item_id: e.target.value }))}
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-                >
-                  <option value="">Select an item...</option>
-                  {inventoryItems.map(item => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} ({item.category}) - Stock: {item.current_stock} {item.unit}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={newItem.inventory_item_id}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, inventory_item_id: e.target.value }))}
-                  className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-                  placeholder="Enter item name manually..."
-                />
-              )}
-              {inventoryItems.length === 0 && (
-                <p className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  ⚠️ Inventory items could not be loaded. Please enter item name manually.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>
-                Quantity
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={newItem.quantity}
-                onChange={(e) => setNewItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>
-                Unit Cost
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={newItem.unit_cost}
-                onChange={(e) => setNewItem(prev => ({ ...prev, unit_cost: parseFloat(e.target.value) || 0 }))}
-                className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={addItem}
-                className={`w-full px-4 py-2 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg font-medium transition-all duration-200`}
-              >
-                Add Item
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Items List */}
-        {formData.items.length > 0 && (
-          <div className="space-y-2">
-            {formData.items.map((item, index) => {
-              const inventoryItem = inventoryItems.find(inv => inv.id === item.inventory_item_id)
-              const itemName = inventoryItem ? `${inventoryItem.name} (${inventoryItem.category})` : `Item: ${item.inventory_item_id}`
-              
-              return (
-                <div key={index} className={`${cardBg} p-3 border rounded-lg flex justify-between items-center`}>
-                  <div>
-                    <span className={`${textPrimary} font-medium`}>{itemName}</span>
-                    <span className={`${textSecondary} ml-2`}>
-                      {item.quantity} × ${Number(item.unit_cost).toFixed(2)} = ${Number(item.total).toFixed(2)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    className={`text-red-500 hover:text-red-600 p-1`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
-        >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? 'Creating...' : 'Create Purchase Order'}
-        </button>
-      </div>
-    </form>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Purchase Order Update Form Component
-interface PurchaseOrderUpdateFormProps {
-  purchaseOrder: PurchaseOrder | undefined
-  onSubmit: (updateData: PurchaseOrderUpdate) => Promise<void>
-  onCancel: () => void
-  loading: boolean
-}
-
-function PurchaseOrderUpdateForm({ purchaseOrder, onSubmit, onCancel, loading }: PurchaseOrderUpdateFormProps) {
-  const [formData, setFormData] = useState<PurchaseOrderUpdate>({
-    status: purchaseOrder?.status || null,
-    expected_delivery_date: purchaseOrder?.expected_delivery_date || null,
-    actual_delivery_date: purchaseOrder?.actual_delivery_date || null,
-    notes: purchaseOrder?.notes || null
-  })
-  const { isDark } = useTheme()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onSubmit(formData)
-  }
-
-  const cardBg = isDark ? "bg-[#171717] border-[#2a2a2a]" : "bg-white border-gray-200"
-  const textPrimary = isDark ? "text-white" : "text-gray-900"
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-600"
-  const inputBg = isDark ? "bg-[#2a2a2a] border-[#3a3a3a]" : "bg-gray-50 border-gray-300"
-
-  if (!purchaseOrder) {
-    return <div>Purchase order not found</div>
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Status
-          </label>
-          <select
-            value={formData.status || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as PurchaseOrderStatus || null }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          >
-            <option value="">Select status...</option>
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="received">Received</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Expected Delivery Date
-          </label>
-          <input
-            type="date"
-            value={formData.expected_delivery_date ? new Date(formData.expected_delivery_date).toISOString().split('T')[0] : ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, expected_delivery_date: e.target.value ? new Date(e.target.value).toISOString() : null }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          />
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Actual Delivery Date
-          </label>
-          <input
-            type="date"
-            value={formData.actual_delivery_date ? new Date(formData.actual_delivery_date).toISOString().split('T')[0] : ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, actual_delivery_date: e.target.value ? new Date(e.target.value).toISOString() : null }))}
-            className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-          Notes
-        </label>
-        <textarea
-          value={formData.notes || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value || null }))}
-          className={`w-full px-3 py-2 ${inputBg} ${textPrimary} border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-          rows={3}
-          placeholder="Update notes..."
-        />
-      </div>
-
-      {/* Current Purchase Order Info */}
-      <div className={`${cardBg} p-4 border rounded-lg`}>
-        <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>Current Purchase Order Info</h4>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className={`${textSecondary}`}>Order Number:</span>
-            <p className={`${textPrimary} font-medium`}>{purchaseOrder.order_number}</p>
-          </div>
-          <div>
-            <span className={`${textSecondary}`}>Total Amount:</span>
-            <p className={`${textPrimary} font-medium`}>${parseFloat(purchaseOrder.total_amount).toFixed(2)}</p>
-          </div>
-          <div>
-            <span className={`${textSecondary}`}>Order Date:</span>
-            <p className={`${textPrimary} font-medium`}>
-              {new Date(purchaseOrder.order_date).toLocaleDateString()}
-            </p>
-          </div>
-          <div>
-            <span className={`${textSecondary}`}>Items Count:</span>
-            <p className={`${textPrimary} font-medium`}>{purchaseOrder.items.length} items</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className={`px-6 py-2 ${isDark ? 'bg-[#1f1f1f] text-gray-400 border-[#2a2a2a] hover:bg-[#2a2a2a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} border rounded-lg font-medium transition-all duration-200`}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-6 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-gray-900 hover:bg-gray-800 text-white'} rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2`}
-        >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? 'Updating...' : 'Update Purchase Order'}
-        </button>
-      </div>
-    </form>
-  )
-}

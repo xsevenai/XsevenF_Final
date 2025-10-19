@@ -14,7 +14,7 @@ import StockAdjustments from './components/StockAdjustments'
 import InventoryReports from './components/InventoryReports'
 import PosSyncManagement from './components/PosSyncManagement'
 import TransactionHistory from './components/TransactionHistory'
-import StockAlertManagement from './components/StockAlertManagement'
+import StockAlertPanel from './components/StockAlertPanel'
 
 type InventoryView = 'overview' | 'items' | 'stock-alerts' | 'suppliers' | 'purchase-orders' | 'adjustments' | 'reports' | 'pos-sync' | 'transactions'
 
@@ -132,7 +132,7 @@ export default function InventoryComponent() {
         )
       case 'stock-alerts':
         return (
-          <StockAlertManagement
+          <StockAlertPanel
             lowStockItems={inventoryItems.items}
             activeAlerts={lowStockItems.activeAlerts}
             loading={lowStockItems.loading}
@@ -161,12 +161,13 @@ export default function InventoryComponent() {
       case 'purchase-orders':
         return (
           <PurchaseOrderManagement
-            purchaseOrders={purchaseOrders.purchaseOrders}
+            purchaseOrders={purchaseOrders.purchaseOrders as any}
             suppliers={suppliers.suppliers}
             inventoryItems={inventoryItems.items}
             loading={purchaseOrders.loading}
             error={purchaseOrders.error}
             onRefresh={purchaseOrders.refresh}
+            onRefreshSuppliers={suppliers.refresh}
             onCreatePurchaseOrder={purchaseOrders.createPurchaseOrder}
             onUpdatePurchaseOrder={purchaseOrders.updatePurchaseOrder}
             onReceivePurchaseOrder={purchaseOrders.receivePurchaseOrder}

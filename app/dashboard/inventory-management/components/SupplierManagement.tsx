@@ -342,13 +342,6 @@ export default function SupplierManagement({
                       >
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => handleDeleteSupplier(supplier.id)}
-                        className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
-                        title="Delete Supplier"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
                     </div>
                   </td>
                 </tr>

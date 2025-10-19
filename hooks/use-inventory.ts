@@ -18,6 +18,13 @@ import type { SupplierUpdate } from '@/src/api/generated/models/SupplierUpdate'
 import type { PurchaseOrder } from '@/src/api/generated/models/PurchaseOrder'
 import type { PurchaseOrderCreate } from '@/src/api/generated/models/PurchaseOrderCreate'
 import type { PurchaseOrderUpdate } from '@/src/api/generated/models/PurchaseOrderUpdate'
+
+// Extended PurchaseOrder type with flattened supplier data
+interface PurchaseOrderWithSupplier extends PurchaseOrder {
+  supplier_name?: string;
+  supplier_email?: string;
+  supplier_contact_name?: string;
+}
 import type { StockAlert } from '@/src/api/generated/models/StockAlert'
 import type { StockAlertCreate } from '@/src/api/generated/models/StockAlertCreate'
 import type { InventoryTransaction } from '@/src/api/generated/models/InventoryTransaction'
@@ -434,7 +441,7 @@ export const useSuppliers = (businessId: string) => {
 
 // Hook for purchase orders management
 export const usePurchaseOrders = (businessId: string) => {
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderWithSupplier[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -456,7 +463,8 @@ export const usePurchaseOrders = (businessId: string) => {
         startDate: filters?.start_date,
         endDate: filters?.end_date
       })
-      setPurchaseOrders(data)
+      const typedData = data as PurchaseOrderWithSupplier[]
+      setPurchaseOrders(typedData)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch purchase orders')
       console.error('Error fetching purchase orders:', err)
@@ -465,7 +473,7 @@ export const usePurchaseOrders = (businessId: string) => {
     }
   }, [businessId])
 
-  const createPurchaseOrder = useCallback(async (data: PurchaseOrderCreate, createdBy?: string) => {
+  const createPurchaseOrder = useCallback(async (data: PurchaseOrderCreate, createdBy?: string): Promise<PurchaseOrderWithSupplier> => {
     try {
       console.log('API: Creating purchase order with data:', data)
       console.log('API: Created by:', createdBy)
@@ -474,8 +482,8 @@ export const usePurchaseOrders = (businessId: string) => {
       
       const newPO = await FoodHospitalityInventoryService.createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost({ requestBody: data, createdBy })
       console.log('API: Purchase order created successfully:', newPO)
-      setPurchaseOrders(prev => [newPO, ...prev])
-      return newPO
+      setPurchaseOrders(prev => [newPO as PurchaseOrderWithSupplier, ...prev])
+      return newPO as PurchaseOrderWithSupplier
     } catch (err: any) {
       console.error('API: Error creating purchase order:', err)
       console.error('API: Error details:', {
@@ -491,15 +499,25 @@ export const usePurchaseOrders = (businessId: string) => {
     }
   }, [])
 
-  const updatePurchaseOrder = useCallback(async (poId: string, data: PurchaseOrderUpdate) => {
+  const updatePurchaseOrder = useCallback(async (poId: string, data: PurchaseOrderUpdate): Promise<PurchaseOrderWithSupplier> => {
     try {
       setError(null)
       configureAPI()
       
+      console.log('Updating purchase order:', poId, 'with data:', data)
+      
       const updatedPO = await FoodHospitalityInventoryService.updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut({ poId, requestBody: data })
-      setPurchaseOrders(prev => prev.map(po => po.id === poId ? updatedPO : po))
-      return updatedPO
+      
+      // The backend returns the updated PO with flattened supplier data
+      const typedUpdatedPO = updatedPO as PurchaseOrderWithSupplier
+      
+      // Update the local state with the new data
+      setPurchaseOrders(prev => prev.map(po => po.id === poId ? typedUpdatedPO : po))
+      
+      console.log('Purchase order updated successfully:', typedUpdatedPO)
+      return typedUpdatedPO
     } catch (err: any) {
+      console.error('Failed to update purchase order:', err)
       const errorMessage = err.message || 'Failed to update purchase order'
       setError(errorMessage)
       throw new Error(errorMessage)

@@ -122,6 +122,7 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrdersOverview> => {
     try {
+      console.log('🔍 getOrdersOverview: Starting fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
@@ -130,9 +131,11 @@ export function useOrderAnalytics(businessId: string) {
         period
       })
       
+      console.log('✅ getOrdersOverview: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getOrdersOverview: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get orders overview'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -146,6 +149,7 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrdersTrendResponse> => {
     try {
+      console.log('🔍 getOrdersTrend: Starting fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
@@ -154,9 +158,11 @@ export function useOrderAnalytics(businessId: string) {
         period
       })
       
+      console.log('✅ getOrdersTrend: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getOrdersTrend: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get orders trend'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -170,6 +176,7 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrdersByHourResponse> => {
     try {
+      console.log('🔍 getOrdersByHour: Starting fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
@@ -178,9 +185,11 @@ export function useOrderAnalytics(businessId: string) {
         period
       })
       
+      console.log('✅ getOrdersByHour: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getOrdersByHour: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get orders by hour'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -194,6 +203,7 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrderStatusDistributionResponse> => {
     try {
+      console.log('🔍 getOrderStatusDistribution: Starting fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
@@ -202,9 +212,11 @@ export function useOrderAnalytics(businessId: string) {
         period
       })
       
+      console.log('✅ getOrderStatusDistribution: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getOrderStatusDistribution: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get order status distribution'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -218,6 +230,7 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrderTypesResponse> => {
     try {
+      console.log('🔍 getOrderTypesDistribution: Starting fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
@@ -226,9 +239,11 @@ export function useOrderAnalytics(businessId: string) {
         period
       })
       
+      console.log('✅ getOrderTypesDistribution: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getOrderTypesDistribution: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get order types distribution'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -243,6 +258,7 @@ export function useOrderAnalytics(businessId: string) {
     limit: number = 5
   ): Promise<TopSellingItemsResponse> => {
     try {
+      console.log('🔍 getTopSellingItems: Starting fetch for businessId:', businessId, 'period:', period, 'limit:', limit)
       setLoading(true)
       setError(null)
       
@@ -252,9 +268,11 @@ export function useOrderAnalytics(businessId: string) {
         limit
       })
       
+      console.log('✅ getTopSellingItems: Data received:', result)
       setLastUpdated(new Date())
       return result
     } catch (err: any) {
+      console.error('❌ getTopSellingItems: Error occurred:', err)
       const errorMessage = err.message || 'Failed to get top selling items'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -268,43 +286,79 @@ export function useOrderAnalytics(businessId: string) {
     period: '1d' | '7d' | '30d' | '90d' = '7d'
   ): Promise<OrdersAnalyticsResponse> => {
     try {
-      console.log('useOrderAnalytics: Starting dashboard fetch for businessId:', businessId, 'period:', period)
+      console.log('🚀 getOrdersAnalyticsDashboard: Starting dashboard fetch for businessId:', businessId, 'period:', period)
       setLoading(true)
       setError(null)
       
-      // Use the new OrdersAnalyticsService
-      const result = await OrdersAnalyticsService.getOrdersAnalyticsDashboardApiV1OrdersDashboardBusinessIdGet({
-        businessId,
-        period
+      // Fetch all analytics data in parallel
+      const [
+        overview,
+        trendData,
+        hourData,
+        statusDistribution,
+        orderTypes,
+        topItems
+      ] = await Promise.all([
+        getOrdersOverview(period),
+        getOrdersTrend(period),
+        getOrdersByHour(period),
+        getOrderStatusDistribution(period),
+        getOrderTypesDistribution(period),
+        getTopSellingItems(period)
+      ])
+      
+      console.log('📊 Dashboard data components:', {
+        overview,
+        trendData,
+        hourData,
+        statusDistribution,
+        orderTypes,
+        topItems
       })
       
-      console.log('useOrderAnalytics: Dashboard data received:', result)
+      // Construct the dashboard response
+      const dashboardData: OrdersAnalyticsResponse = {
+        business_id: businessId,
+        period,
+        overview,
+        trend_data: trendData,
+        status_distribution: statusDistribution,
+        hour_data: hourData,
+        order_types: orderTypes,
+        top_items: topItems,
+        generated_at: new Date().toISOString(),
+        cache_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes cache
+      }
+      
+      console.log('✅ getOrdersAnalyticsDashboard: Complete dashboard data:', dashboardData)
       setLastUpdated(new Date())
-      return result
+      return dashboardData
     } catch (err: any) {
-      console.error('useOrderAnalytics: Dashboard fetch failed:', err)
+      console.error('❌ getOrdersAnalyticsDashboard: Dashboard fetch failed:', err)
       const errorMessage = err.message || 'Failed to get orders analytics dashboard'
       setError(errorMessage)
       throw new Error(errorMessage)
     } finally {
       setLoading(false)
     }
-  }, [businessId])
+  }, [businessId, getOrdersOverview, getOrdersTrend, getOrdersByHour, getOrderStatusDistribution, getOrderTypesDistribution, getTopSellingItems])
 
-  // Refresh Analytics Data (if backend supports it)
+  // Refresh Analytics Data
   const refreshOrdersAnalytics = useCallback(async (forceRefresh: boolean = false): Promise<void> => {
     try {
+      console.log('🔄 refreshOrdersAnalytics: Starting refresh for businessId:', businessId, 'forceRefresh:', forceRefresh)
       setLoading(true)
       setError(null)
       
-      // Use the new OrdersAnalyticsService refresh method
       await OrdersAnalyticsService.refreshOrdersAnalyticsApiV1OrdersRefreshBusinessIdPost({
         businessId,
         forceRefresh
       })
       
+      console.log('✅ refreshOrdersAnalytics: Refresh completed')
       setLastUpdated(new Date())
     } catch (err: any) {
+      console.error('❌ refreshOrdersAnalytics: Error occurred:', err)
       const errorMessage = err.message || 'Failed to refresh orders analytics'
       setError(errorMessage)
       throw new Error(errorMessage)

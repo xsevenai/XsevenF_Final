@@ -1,4 +1,4 @@
-// app/dashboard/inventory-management/components/StockAlertManagement.tsx
+// app/dashboard/inventory-management/components/StockAlertPanel.tsx
 
 "use client"
 
@@ -31,9 +31,9 @@ import {
 } from "lucide-react"
 import type { StockAlertCreate } from '@/src/api/generated/models/StockAlertCreate'
 import { AlertType } from '@/src/api/generated/models/AlertType'
-import StockAlertForm from './forms/StockAlertForm'
+import StockAlertForm from './StockAlertForm'
 
-interface StockAlertManagementProps {
+interface StockAlertPanelProps {
   lowStockItems: any[]
   activeAlerts: any[]
   loading: boolean
@@ -46,7 +46,7 @@ interface StockAlertManagementProps {
   onBack: () => void
 }
 
-export default function StockAlertManagement({
+export default function StockAlertPanel({
   lowStockItems,
   activeAlerts,
   loading,
@@ -57,14 +57,14 @@ export default function StockAlertManagement({
   onUpdateStockAlert,
   onDeleteStockAlert,
   onBack
-}: StockAlertManagementProps) {
+}: StockAlertPanelProps) {
   const [allAlerts, setAllAlerts] = useState<any[]>([])
   const [filteredAlerts, setFilteredAlerts] = useState<any[]>([])
   const [isCreatingAlert, setIsCreatingAlert] = useState(false)
   const [editingAlert, setEditingAlert] = useState<string | null>(null)
   const [deletingAlert, setDeletingAlert] = useState<string | null>(null)
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [showEditForm, setShowEditForm] = useState<string | null>(null)
+  const [expandedView, setExpandedView] = useState<'create-alert' | 'edit-alert' | null>(null)
+  const [alertToEdit, setAlertToEdit] = useState<any>(null)
   const [filterType, setFilterType] = useState<'all' | 'active' | 'inactive'>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [mounted, setMounted] = useState(false)
@@ -101,7 +101,7 @@ export default function StockAlertManagement({
 
   useEffect(() => {
     if (businessId) {
-      loadAllAlerts()
+    loadAllAlerts()
     }
   }, [])
 
@@ -234,7 +234,7 @@ export default function StockAlertManagement({
       setIsCreatingAlert(true)
       await onCreateStockAlert(alertData)
       await loadAllAlerts()
-      setShowCreateForm(false)
+      setExpandedView(null)
     } catch (error) {
       console.error('Error creating alert:', error)
       alert(`Failed to create stock alert: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -257,7 +257,11 @@ export default function StockAlertManagement({
   }
 
   const handleEditAlert = (alertId: string) => {
-    setShowEditForm(alertId)
+    const alert = allAlerts.find(a => a.id === alertId)
+    if (alert) {
+      setAlertToEdit(alert)
+      setExpandedView('edit-alert')
+    }
   }
 
   const handleUpdateAlert = async (alertId: string, alertData: StockAlertCreate) => {
@@ -267,7 +271,8 @@ export default function StockAlertManagement({
       await onDeleteStockAlert(alertId)
       await onCreateStockAlert(alertData)
       await loadAllAlerts()
-      setShowEditForm(null)
+      setExpandedView(null)
+      setAlertToEdit(null)
     } catch (error) {
       console.error('Error updating alert:', error)
       alert(`Failed to update stock alert: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -311,6 +316,36 @@ export default function StockAlertManagement({
     return `Inventory Item ${shortId}`
   }
 
+  const handleBack = () => {
+    setExpandedView(null)
+    setAlertToEdit(null)
+  }
+
+  // Handle expanded view rendering (like InventoryItemList does)
+  if (expandedView === 'create-alert') {
+    return (
+      <StockAlertForm
+        onSubmit={handleCreateAlert}
+        onCancel={handleBack}
+        loading={isCreatingAlert}
+        inventoryItems={lowStockItems}
+      />
+    )
+  }
+
+  if (expandedView === 'edit-alert' && alertToEdit) {
+    return (
+          <StockAlertForm
+        onSubmit={(alertData) => handleUpdateAlert(alertToEdit.id, alertData)}
+        onCancel={handleBack}
+        loading={false}
+            inventoryItems={lowStockItems}
+        initialData={alertToEdit}
+        isEdit={true}
+      />
+    )
+  }
+
   if (loading && allAlerts.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -329,12 +364,12 @@ export default function StockAlertManagement({
         <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h3 className={`text-lg font-medium ${textPrimary} mb-2 transition-colors duration-300`}>Error Loading Stock Alerts</h3>
         <p className={`${textSecondary} mb-4 transition-colors duration-300`}>{error}</p>
-        <button
+            <button
           onClick={onRefresh}
           className={`${secondaryButtonBg} px-6 py-3 rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105`}
-        >
+            >
           Try Again
-        </button>
+            </button>
       </div>
     )
   }
@@ -359,7 +394,7 @@ export default function StockAlertManagement({
         <div className="flex justify-between items-center">
           <div className="flex gap-3">
             <button
-              onClick={() => setShowCreateForm(!showCreateForm)}
+              onClick={() => setExpandedView('create-alert')}
               className={`${primaryButtonBg} px-6 py-3 rounded-xl font-medium transition-all duration-300 border shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2`}
             >
               <Plus className="h-4 w-4" />
@@ -427,43 +462,16 @@ export default function StockAlertManagement({
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${textSecondary} transition-colors duration-300`} />
-            <input
-              type="text"
+              <input
+                type="text"
               placeholder="Search alerts by item name, type, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-10 pr-4 py-3 ${inputBg} ${textPrimary} border rounded-xl placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
-            />
-          </div>
+              />
+            </div>
         </div>
       </div>
-
-      {/* Create Alert Form */}
-      {showCreateForm && (
-        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
-          <h3 className={`text-lg font-semibold ${textPrimary} mb-4 transition-colors duration-300`}>Create New Stock Alert</h3>
-          <StockAlertForm
-            inventoryItems={lowStockItems}
-            onSubmit={handleCreateAlert}
-            onCancel={() => setShowCreateForm(false)}
-            loading={isCreatingAlert}
-          />
-        </div>
-      )}
-
-      {/* Edit Alert Form */}
-      {showEditForm && (
-        <div className={`${cardBg} p-6 border shadow-lg transition-colors duration-300`} style={{ borderRadius: '1.5rem' }}>
-          <h3 className={`text-lg font-semibold ${textPrimary} mb-4 transition-colors duration-300`}>Edit Stock Alert</h3>
-          <StockAlertForm
-            inventoryItems={lowStockItems}
-            onSubmit={(alertData) => handleUpdateAlert(showEditForm, alertData)}
-            onCancel={() => setShowEditForm(null)}
-            loading={false}
-            initialData={allAlerts.find(alert => alert.id === showEditForm)}
-          />
-        </div>
-      )}
 
       {/* Alerts Table */}
       {filteredAlerts.length === 0 ? (
@@ -477,7 +485,7 @@ export default function StockAlertManagement({
           </p>
         </div>
       ) : (
-        <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
+      <div className={`${cardBg} border transition-colors duration-300 overflow-hidden`} style={{ borderTopLeftRadius: "1.5rem", borderTopRightRadius: "1.5rem" }}>
           <div className="overflow-x-auto">
             <table className="w-full">
               {/* Table Header */}
@@ -495,7 +503,7 @@ export default function StockAlertManagement({
                         onClick={() => setActiveDropdown(activeDropdown === 'alert_type' ? null : 'alert_type')}
                         className="flex items-center gap-1 hover:text-white transition-colors"
                       >
-                        Alert Type
+                    Alert Type
                         <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === 'alert_type' ? 'rotate-180' : ''}`} />
                       </button>
                     </div>
@@ -529,41 +537,6 @@ export default function StockAlertManagement({
                   <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
                     Threshold
                   </th>
-                  <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm relative dropdown-container`}>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
-                        className="flex items-center gap-1 hover:text-white transition-colors"
-                      >
-                        Status
-                        <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === 'status' ? 'rotate-180' : ''}`} />
-                      </button>
-                    </div>
-                    {activeDropdown === 'status' && (
-                      <div className={`absolute top-full left-0 mt-1 ${cardBg} border shadow-lg rounded-lg z-[9999] min-w-[200px]`}>
-                        <div className="p-2">
-                          <button
-                            onClick={() => {
-                              setFilterType('active')
-                              setActiveDropdown(null)
-                            }}
-                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
-                          >
-                            Active
-                          </button>
-                          <button
-                            onClick={() => {
-                              setFilterType('inactive')
-                              setActiveDropdown(null)
-                            }}
-                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 ${textPrimary}`}
-                          >
-                            Inactive
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </th>
                   <th className={`text-left py-4 px-6 ${textSecondary} font-semibold text-sm`}>
                     Created
                   </th>
@@ -574,113 +547,99 @@ export default function StockAlertManagement({
               </thead>
               
               {/* Table Body */}
-              <tbody>
-                {filteredAlerts.map((alert, index) => (
-                  <tr 
-                    key={alert.id}
-                    className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
-                  >
-                    {/* Alert ID */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Bell className="h-4 w-4 text-blue-500" />
-                        <span className={`${textPrimary} font-medium text-sm`}>
-                          {alert.id || `alert_${String(index + 1).padStart(3, '0')}`}
-                        </span>
-                      </div>
-                    </td>
-                    
-                    {/* Item Name */}
-                    <td className="py-4 px-6">
-                      <div>
-                        <div className={`${textPrimary} font-semibold text-sm`}>
-                          {getItemDisplayName(alert.inventory_item_id)}
-                        </div>
-                        <div className={`${textSecondary} text-xs mt-1`}>
-                          ID: {alert.inventory_item_id?.substring(0, 8)}...
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Alert Type */}
-                    <td className="py-4 px-6">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAlertTypeColor(alert.alert_type)}`}>
-                        {getAlertTypeLabel(alert.alert_type)}
+            <tbody>
+              {filteredAlerts.map((alert, index) => (
+                <tr 
+                  key={alert.id}
+                  className={`${isDark ? "border-b border-[#2a2a2a] hover:bg-[#1f1f1f]" : "border-b border-gray-200 hover:bg-gray-50"} transition-colors duration-200`}
+                >
+                  {/* Alert ID */}
+                  <td className="py-4 px-6">
+                      <span className={`${textPrimary} font-medium text-sm`}>
+                        {alert.id || `alert_${String(index + 1).padStart(3, '0')}`}
                       </span>
-                    </td>
-                    
-                    {/* Threshold */}
-                    <td className="py-4 px-6">
-                      <span className={`${textPrimary} text-sm font-medium`}>
-                        {alert.threshold || 'N/A'}
+                  </td>
+                  
+                  {/* Item Name */}
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className={`${textPrimary} font-semibold text-sm`}>
+                        {getItemDisplayName(alert.inventory_item_id)}
+                      </div>
+                      <div className={`${textSecondary} text-xs mt-1`}>
+                        ID: {alert.inventory_item_id?.substring(0, 8)}...
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Alert Type */}
+                  <td className="py-4 px-6">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAlertTypeColor(alert.alert_type)}`}>
+                      {getAlertTypeLabel(alert.alert_type)}
+                    </span>
+                  </td>
+                  
+                  {/* Threshold */}
+                  <td className="py-4 px-6">
+                    <span className={`${textPrimary} text-sm font-medium`}>
+                      {alert.threshold || 'N/A'}
+                    </span>
+                  </td>
+                  
+                  {/* Created */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className={`${textSecondary} text-sm`}>
+                        {formatDate(alert.created_at)}
                       </span>
-                    </td>
-                    
-                    {/* Status */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${alert.is_active ? "bg-green-500" : "bg-gray-400"}`}></div>
-                        <span className={`${textPrimary} text-sm`}>
-                          {alert.is_active ? "Active" : "Inactive"}
-                        </span>
-                        <ChevronDown className="h-3 w-3 text-gray-400" />
-                      </div>
-                    </td>
-                    
-                    {/* Created */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className={`${textSecondary} text-sm`}>
-                          {formatDate(alert.created_at)}
-                        </span>
-                      </div>
-                    </td>
-                    
-                    {/* Actions */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <button
-                          className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
-                          title="Edit Alert"
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        className={`${textSecondary} hover:text-blue-400 p-1 transition-colors duration-300`}
+                        title="Edit Alert"
                           onClick={() => handleEditAlert(alert.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          className={`${textSecondary} ${alert.is_active ? 'hover:text-green-400' : 'hover:text-gray-600'} p-1 transition-colors duration-300`}
-                          title={alert.is_active ? 'Deactivate Alert' : 'Activate Alert'}
-                          onClick={() => handleToggleAlert(alert.id, !alert.is_active)}
-                          disabled={editingAlert === alert.id}
-                        >
-                          {editingAlert === alert.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : alert.is_active ? (
-                            <Bell className="h-4 w-4" />
-                          ) : (
-                            <BellOff className="h-4 w-4" />
-                          )}
-                        </button>
-                        <button
-                          className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
-                          title="Delete Alert"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className={`${textSecondary} ${alert.is_active ? 'hover:text-green-400' : 'hover:text-gray-600'} p-1 transition-colors duration-300`}
+                        title={alert.is_active ? 'Deactivate Alert' : 'Activate Alert'}
+                        onClick={() => handleToggleAlert(alert.id, !alert.is_active)}
+                        disabled={editingAlert === alert.id}
+                      >
+                        {editingAlert === alert.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : alert.is_active ? (
+                          <Bell className="h-4 w-4" />
+                        ) : (
+                          <BellOff className="h-4 w-4" />
+                        )}
+                      </button>
+                      <button
+                        className={`${textSecondary} hover:text-red-400 p-1 transition-colors duration-300`}
+                        title="Delete Alert"
                           onClick={() => handleDeleteAlert(alert.id)}
-                          disabled={deletingAlert === alert.id}
-                        >
-                          {deletingAlert === alert.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        disabled={deletingAlert === alert.id}
+                      >
+                        {deletingAlert === alert.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+          </div>
       )}
     </div>
   )

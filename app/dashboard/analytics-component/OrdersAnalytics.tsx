@@ -42,73 +42,23 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
   useEffect(() => {
     const fetchAnalyticsData = async () => {
       try {
-        console.log('Fetching orders analytics for businessId:', businessId, 'timeRange:', timeRange)
+        console.log('🔄 OrdersAnalytics: Fetching analytics for businessId:', businessId, 'timeRange:', timeRange)
         const data = await getOrdersAnalyticsDashboard(timeRange as '1d' | '7d' | '30d' | '90d')
-        console.log('Orders analytics data received:', data)
+        console.log('📈 OrdersAnalytics: Data received:', data)
+        
+        // Debug the hour_data structure specifically
+        console.log('🕐 OrdersAnalytics: Hour data structure:', {
+          hour_data: data.hour_data,
+          hour_data_type: typeof data.hour_data,
+          hour_data_keys: data.hour_data ? Object.keys(data.hour_data) : 'null',
+          hour_data_hour_data: data.hour_data?.hour_data,
+          peak_hour: data.hour_data?.peak_hour
+        })
+        
         setAnalyticsData(data)
       } catch (err) {
-        console.error('Failed to fetch orders analytics:', err)
-        // Fallback to mock data if API fails
-        console.log('Using fallback mock data')
-        setAnalyticsData({
-          overview: {
-            total_orders: 1247,
-            completed_orders: 856,
-            pending_orders: 234,
-            cancelled_orders: 157,
-            total_revenue: 45230.50,
-            average_order_value: 36.28,
-            orders_growth: 8.3,
-            revenue_growth: 12.5,
-            completion_rate: 68.7,
-            cancellation_rate: 12.6
-          },
-          trend_data: {
-            trend_data: [
-              { day: 'Mon', orders: 45, revenue: 1200 },
-              { day: 'Tue', orders: 52, revenue: 1900 },
-              { day: 'Wed', orders: 78, revenue: 3000 },
-              { day: 'Thu', orders: 65, revenue: 2800 },
-              { day: 'Fri', orders: 89, revenue: 1890 },
-              { day: 'Sat', orders: 95, revenue: 2390 },
-              { day: 'Sun', orders: 112, revenue: 3490 }
-            ]
-          },
-          hour_data: {
-            hour_data: [
-              { hour: '6AM', orders: 5 },
-              { hour: '9AM', orders: 15 },
-              { hour: '12PM', orders: 45 },
-              { hour: '3PM', orders: 25 },
-              { hour: '6PM', orders: 65 },
-              { hour: '9PM', orders: 35 }
-            ],
-            peak_hour: '6PM'
-          },
-          status_distribution: {
-            status_data: [
-              { status: 'Completed', count: 856, percentage: 68.7 },
-              { status: 'Pending', count: 234, percentage: 18.8 },
-              { status: 'Cancelled', count: 157, percentage: 12.6 }
-            ]
-          },
-          order_types: {
-            type_data: [
-              { type: 'Dine-in', count: 456, percentage: 36.6 },
-              { type: 'Takeout', count: 523, percentage: 41.9 },
-              { type: 'Delivery', count: 268, percentage: 21.5 }
-            ]
-          },
-          top_items: {
-            top_items: [
-              { name: 'Margherita Pizza', quantity: 145, revenue: 2175 },
-              { name: 'Caesar Salad', quantity: 98, revenue: 1470 },
-              { name: 'Chicken Burger', quantity: 87, revenue: 1305 },
-              { name: 'Pasta Carbonara', quantity: 76, revenue: 1520 },
-              { name: 'Fish & Chips', quantity: 65, revenue: 1300 }
-            ]
-          }
-        })
+        console.error('❌ OrdersAnalytics: Failed to fetch analytics:', err)
+        setAnalyticsData(null)
       }
     }
 
@@ -147,7 +97,13 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
         <div className="text-center">
           <div className="text-red-500 mb-4">⚠️</div>
           <p className="text-red-600 mb-2">Failed to load orders analytics</p>
-          <p className="text-gray-600 text-sm">{error}</p>
+          <p className="text-gray-600 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     )
@@ -286,16 +242,38 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
         {/* Orders by Hour */}
         <ChartContainer
           title="Orders by Hour"
-          subtitle="Peak ordering hours throughout the day"
+          subtitle={`Peak ordering hours throughout the day (Peak: ${analyticsData?.hour_data?.peak_hour || 'N/A'})`}
           isDark={isDark}
         >
-          <ModernBarChart
-            data={analyticsData?.hour_data?.hour_data || []}
-            dataKey="orders" 
-            nameKey="hour"
-            isDark={isDark}
-            colors={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']}
-          />
+          {(() => {
+            // Debug the data being passed to the chart
+            const hourData = analyticsData?.hour_data?.hour_data || []
+            console.log('📊 OrdersAnalytics: Rendering hour chart with data:', hourData)
+            console.log('📊 OrdersAnalytics: Data length:', hourData.length)
+            
+            if (hourData.length === 0) {
+              console.log('⚠️ OrdersAnalytics: No hour data available, showing empty state')
+              return (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="text-gray-400 mb-2">📊</div>
+                    <p className="text-gray-600">No hourly data available</p>
+                    <p className="text-gray-500 text-sm">Check console for debugging info</p>
+                  </div>
+                </div>
+              )
+            }
+            
+            return (
+              <ModernBarChart
+                data={hourData}
+                dataKey="orders" 
+                nameKey="hour"
+                isDark={isDark}
+                colors={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']}
+              />
+            )
+          })()}
         </ChartContainer>
 
         {/* Order Types */}
