@@ -48,12 +48,12 @@ export default function MessagesAnalytics({ timeRange }: MessagesAnalyticsProps)
       { day: 'Sun', messages: 789, sessions: 112 }
     ],
     messagesByHour: [
-      { hour: '6AM', messages: 12 },
-      { hour: '9AM', messages: 45 },
-      { hour: '12PM', messages: 89 },
-      { hour: '3PM', messages: 67 },
-      { hour: '6PM', messages: 123 },
-      { hour: '9PM', messages: 78 }
+      { hour: '6AM-9AM', messages: 12 },
+      { hour: '9AM-12PM', messages: 45 },
+      { hour: '12PM-3PM', messages: 89 },
+      { hour: '3PM-6PM', messages: 67 },
+      { hour: '6PM-9PM', messages: 123 },
+      { hour: '9PM-12AM', messages: 78 }
     ],
     messageTypes: [
       { type: 'Customer Support', count: 1456, percentage: 42.1 },
@@ -62,12 +62,12 @@ export default function MessagesAnalytics({ timeRange }: MessagesAnalyticsProps)
       { type: 'Complaints', count: 310, percentage: 9.0 }
     ],
     responseTimeData: [
-      { hour: '6AM', avgTime: 5.2 },
-      { hour: '9AM', avgTime: 3.1 },
-      { hour: '12PM', avgTime: 2.8 },
-      { hour: '3PM', avgTime: 3.5 },
-      { hour: '6PM', avgTime: 2.1 },
-      { hour: '9PM', avgTime: 2.9 }
+      { hour: '6AM-9AM', avgTime: 5.2 },
+      { hour: '9AM-12PM', avgTime: 3.1 },
+      { hour: '12PM-3PM', avgTime: 2.8 },
+      { hour: '3PM-6PM', avgTime: 3.5 },
+      { hour: '6PM-9PM', avgTime: 2.1 },
+      { hour: '9PM-12AM', avgTime: 2.9 }
     ],
     recentActivity: [
       { type: 'New Message', description: 'Customer inquiry about delivery time', timestamp: '2 min ago' },
@@ -145,7 +145,7 @@ export default function MessagesAnalytics({ timeRange }: MessagesAnalyticsProps)
         
         <MetricCard
           title="Peak Activity"
-          value="6PM"
+          value="6PM-9PM"
           icon={<TrendingUp className="h-6 w-6 text-red-500" />}
           subtitle="Most active hour"
           isLoading={loading}

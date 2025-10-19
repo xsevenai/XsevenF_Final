@@ -427,6 +427,37 @@ export class FoodHospitalityOperationsService {
         });
     }
     /**
+     * Update Order Status
+     * Update order status
+     *
+     * - **Status Updates**: Change order status (pending, active, preparing, ready, completed, cancelled)
+     * - **Analytics Integration**: Automatically populates item_performance when completed
+     * - **Real-time Updates**: Publishes status change events
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static updateOrderStatusApiV1FoodOrdersOrderIdStatusPut({
+        orderId,
+        status,
+    }: {
+        orderId: string,
+        status: string,
+    }): CancelablePromise<Record<string, any>> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/food/orders/{order_id}/status',
+            path: {
+                'order_id': orderId,
+            },
+            query: {
+                'status': status,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Create Kds Order
      * Send order to kitchen
      *

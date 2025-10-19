@@ -5,8 +5,15 @@
 import type { CategoryPerformanceResponse } from '../models/CategoryPerformanceResponse';
 import type { MenuAnalyticsOverview } from '../models/MenuAnalyticsOverview';
 import type { MenuAnalyticsResponse } from '../models/MenuAnalyticsResponse';
+import type { OrdersAnalyticsResponse } from '../models/OrdersAnalyticsResponse';
+import type { OrdersByHourResponse } from '../models/OrdersByHourResponse';
+import type { OrdersOverview } from '../models/OrdersOverview';
+import type { OrderStatusDistributionResponse } from '../models/OrderStatusDistributionResponse';
+import type { OrdersTrendResponse } from '../models/OrdersTrendResponse';
+import type { OrderTypesResponse } from '../models/OrderTypesResponse';
 import type { ProfitMarginResponse } from '../models/ProfitMarginResponse';
 import type { TopMenuItemsResponse } from '../models/TopMenuItemsResponse';
+import type { TopSellingItemsResponse } from '../models/TopSellingItemsResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -207,6 +214,227 @@ export class MenuAnalyticsService {
             },
             query: {
                 'force_refresh': forceRefresh,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Orders Overview
+     * Get comprehensive orders analytics overview
+     *
+     * - **Key Metrics**: Total orders, completed, pending, cancelled counts
+     * - **Revenue Metrics**: Total revenue, average order value
+     * - **Growth Trends**: Period-over-period growth calculations
+     * - **Performance Rates**: Completion and cancellation rates
+     * @returns OrdersOverview Successful Response
+     * @throws ApiError
+     */
+    public static getOrdersOverviewApiV1AnalyticsMenuOrdersOverviewBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrdersOverview> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/overview/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Orders Trend
+     * Get daily orders trend data for charts
+     *
+     * - **Daily Volume**: Orders and revenue by day
+     * - **Chart Data**: Formatted for line/bar charts
+     * - **Time Period**: Configurable date ranges
+     * @returns OrdersTrendResponse Successful Response
+     * @throws ApiError
+     */
+    public static getOrdersTrendApiV1AnalyticsMenuOrdersTrendBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrdersTrendResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/trend/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Orders By Hour
+     * Get orders by hour for peak time analysis
+     *
+     * - **Hourly Distribution**: Orders by hour of day
+     * - **Peak Hours**: Identify busiest times
+     * - **Chart Data**: Formatted for bar charts
+     * @returns OrdersByHourResponse Successful Response
+     * @throws ApiError
+     */
+    public static getOrdersByHourApiV1AnalyticsMenuOrdersByHourBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrdersByHourResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/by-hour/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Order Status Distribution
+     * Get order status distribution for pie charts
+     *
+     * - **Status Breakdown**: Completed, Pending, Cancelled
+     * - **Percentages**: Calculated distribution
+     * - **Chart Data**: Formatted for pie charts
+     * @returns OrderStatusDistributionResponse Successful Response
+     * @throws ApiError
+     */
+    public static getOrderStatusDistributionApiV1AnalyticsMenuOrdersStatusDistributionBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrderStatusDistributionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/status-distribution/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Order Types Distribution
+     * Get order types distribution (dine-in, takeout, delivery)
+     *
+     * - **Order Types**: Dine-in, Takeout, Delivery
+     * - **Distribution**: Count and percentage breakdown
+     * - **Chart Data**: Formatted for pie charts
+     * @returns OrderTypesResponse Successful Response
+     * @throws ApiError
+     */
+    public static getOrderTypesDistributionApiV1AnalyticsMenuOrdersTypesBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrderTypesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/types/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Top Selling Items
+     * Get top selling menu items by quantity and revenue
+     *
+     * - **Top Items**: Best performing menu items
+     * - **Metrics**: Quantity sold and revenue generated
+     * - **Ranking**: Sorted by quantity sold
+     * @returns TopSellingItemsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getTopSellingItemsApiV1AnalyticsMenuOrdersTopItemsBusinessIdGet({
+        businessId,
+        period = '7d',
+        limit = 5,
+    }: {
+        businessId: string,
+        period?: string,
+        limit?: number,
+    }): CancelablePromise<TopSellingItemsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/top-items/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
+                'limit': limit,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Orders Analytics Dashboard
+     * Get comprehensive orders analytics dashboard data
+     *
+     * - **Combined Data**: Overview, trends, distributions, top items
+     * - **Real-time**: Latest data with caching considerations
+     * - **Customizable**: Configurable time periods
+     * @returns OrdersAnalyticsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getOrdersAnalyticsDashboardApiV1AnalyticsMenuOrdersDashboardBusinessIdGet({
+        businessId,
+        period = '7d',
+    }: {
+        businessId: string,
+        period?: string,
+    }): CancelablePromise<OrdersAnalyticsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/analytics/menu/orders/dashboard/{business_id}',
+            path: {
+                'business_id': businessId,
+            },
+            query: {
+                'period': period,
             },
             errors: {
                 422: `Validation Error`,

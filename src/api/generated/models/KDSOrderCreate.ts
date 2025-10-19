@@ -13,5 +13,6 @@ export type KDSOrderCreate = {
     priority?: number;
     target_time?: (string | null);
     business_id: string;
+    customer_id?: (string | null);
 };
 

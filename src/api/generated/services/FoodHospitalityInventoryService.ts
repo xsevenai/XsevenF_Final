@@ -544,10 +544,13 @@ export class FoodHospitalityInventoryService {
      */
     public static createPurchaseOrderApiV1FoodInventoryPurchaseOrdersPost({
         requestBody,
-        createdBy = '',
+        createdBy,
     }: {
         requestBody: PurchaseOrderCreate,
-        createdBy?: string,
+        /**
+         * User ID of the person creating the purchase order
+         */
+        createdBy?: (string | null),
     }): CancelablePromise<PurchaseOrder> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -565,7 +568,7 @@ export class FoodHospitalityInventoryService {
     /**
      * List Purchase Orders
      * List purchase orders with filtering
-     * @returns PurchaseOrder Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static listPurchaseOrdersApiV1FoodInventoryPurchaseOrdersGet({
@@ -580,7 +583,7 @@ export class FoodHospitalityInventoryService {
         status?: (string | null),
         startDate?: (string | null),
         endDate?: (string | null),
-    }): CancelablePromise<Array<PurchaseOrder>> {
+    }): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/purchase-orders',
@@ -599,14 +602,14 @@ export class FoodHospitalityInventoryService {
     /**
      * Get Purchase Order
      * Get purchase order details
-     * @returns PurchaseOrder Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static getPurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdGet({
         poId,
     }: {
         poId: string,
-    }): CancelablePromise<PurchaseOrder> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/food/inventory/purchase-orders/{po_id}',
@@ -621,7 +624,7 @@ export class FoodHospitalityInventoryService {
     /**
      * Update Purchase Order
      * Update purchase order status
-     * @returns PurchaseOrder Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static updatePurchaseOrderApiV1FoodInventoryPurchaseOrdersPoIdPut({
@@ -630,7 +633,7 @@ export class FoodHospitalityInventoryService {
     }: {
         poId: string,
         requestBody: PurchaseOrderUpdate,
-    }): CancelablePromise<PurchaseOrder> {
+    }): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/food/inventory/purchase-orders/{po_id}',

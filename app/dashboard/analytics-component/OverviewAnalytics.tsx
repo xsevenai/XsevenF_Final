@@ -52,12 +52,12 @@ export default function OverviewAnalytics({ timeRange }: OverviewAnalyticsProps)
       { status: 'Cancelled', count: 157, percentage: 12.6 }
     ],
     revenueByHour: [
-      { hour: '6AM', revenue: 120 },
-      { hour: '9AM', revenue: 450 },
-      { hour: '12PM', revenue: 1200 },
-      { hour: '3PM', revenue: 800 },
-      { hour: '6PM', revenue: 1500 },
-      { hour: '9PM', revenue: 900 }
+      { hour: '6AM-9AM', revenue: 120 },
+      { hour: '9AM-12PM', revenue: 450 },
+      { hour: '12PM-3PM', revenue: 1200 },
+      { hour: '3PM-6PM', revenue: 800 },
+      { hour: '6PM-9PM', revenue: 1500 },
+      { hour: '9PM-12AM', revenue: 900 }
     ]
   }
 

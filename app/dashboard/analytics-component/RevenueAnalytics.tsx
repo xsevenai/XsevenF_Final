@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/hooks/useTheme'
+import { useRevenueAnalytics } from '@/hooks/use-revenue-analytics'
 import { 
   DollarSign, 
   TrendingUp, 
@@ -21,79 +22,162 @@ import ModernPieChart from './components/ModernPieChart'
 
 interface RevenueAnalyticsProps {
   timeRange: string
+  businessId?: string
 }
 
-export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
+export default function RevenueAnalytics({ timeRange, businessId }: RevenueAnalyticsProps) {
   const { isDark } = useTheme()
-  const [loading, setLoading] = useState(true)
+  
+  // Get businessId from localStorage or props
+  const getBusinessId = () => {
+    if (businessId) return businessId
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('businessId') || localStorage.getItem('business_id')
+    }
+    return null
+  }
+  
+  const validBusinessId = getBusinessId()
+  
+  const { 
+    loading, 
+    error, 
+    getRevenueAnalyticsDashboard 
+  } = useRevenueAnalytics(validBusinessId || '550e8400-e29b-41d4-a716-446655440000')
+  
+  const [dashboardData, setDashboardData] = useState<any>(null)
 
-  // Mock data for demonstration
-  const mockData = {
-    totalRevenue: 45230.50,
-    dailyRevenue: 2150.25,
-    weeklyRevenue: 15050.75,
-    monthlyRevenue: 45230.50,
-    revenueGrowth: 12.5,
-    dailyGrowth: 8.3,
-    weeklyGrowth: 15.2,
-    monthlyGrowth: 12.5,
-    revenueByDay: [
-      { day: 'Mon', revenue: 1200, orders: 45 },
-      { day: 'Tue', revenue: 1900, orders: 52 },
-      { day: 'Wed', revenue: 3000, orders: 78 },
-      { day: 'Thu', revenue: 2800, orders: 65 },
-      { day: 'Fri', revenue: 1890, orders: 89 },
-      { day: 'Sat', revenue: 2390, orders: 95 },
-      { day: 'Sun', revenue: 3490, orders: 112 }
-    ],
-    revenueByHour: [
-      { hour: '6AM', revenue: 120, orders: 5 },
-      { hour: '9AM', revenue: 450, orders: 15 },
-      { hour: '12PM', revenue: 1200, orders: 45 },
-      { hour: '3PM', revenue: 800, orders: 25 },
-      { hour: '6PM', revenue: 1500, orders: 65 },
-      { hour: '9PM', revenue: 900, orders: 35 }
-    ],
-    revenueByChannel: [
-      { channel: 'Dine-in', revenue: 18520, percentage: 40.9 },
-      { channel: 'Takeout', revenue: 18950, percentage: 41.9 },
-      { channel: 'Delivery', revenue: 7760, percentage: 17.2 }
-    ],
-    paymentMethods: [
-      { method: 'Credit Card', revenue: 22615, percentage: 50.0 },
-      { method: 'Cash', revenue: 13569, percentage: 30.0 },
-      { method: 'Mobile Pay', revenue: 9046, percentage: 20.0 }
-    ],
-    revenueByCategory: [
-      { category: 'Main Courses', revenue: 22615, percentage: 50.0 },
-      { category: 'Appetizers', revenue: 9046, percentage: 20.0 },
-      { category: 'Beverages', revenue: 6785, percentage: 15.0 },
-      { category: 'Desserts', revenue: 6785, percentage: 15.0 }
-    ],
-    topRevenueItems: [
-      { name: 'Margherita Pizza', revenue: 2175, orders: 145 },
-      { name: 'Caesar Salad', revenue: 1470, orders: 98 },
-      { name: 'Chicken Burger', revenue: 1305, orders: 87 },
-      { name: 'Pasta Carbonara', revenue: 1520, orders: 76 },
-      { name: 'Fish & Chips', revenue: 1300, orders: 65 }
-    ],
-    revenueProjection: [
-      { month: 'Jan', actual: 42000, projected: 45000 },
-      { month: 'Feb', actual: 38000, projected: 42000 },
-      { month: 'Mar', actual: 45000, projected: 48000 },
-      { month: 'Apr', actual: 42000, projected: 45000 },
-      { month: 'May', actual: 48000, projected: 52000 },
-      { month: 'Jun', actual: 45230, projected: 50000 }
-    ]
+  // Convert timeRange to API period format
+  const getPeriodFromTimeRange = (timeRange: string): '1d' | '7d' | '30d' | '90d' | '1y' => {
+    switch (timeRange) {
+      case '1d': return '1d'
+      case '7d': return '7d'
+      case '30d': return '30d'
+      case '90d': return '90d'
+      case '1y': return '1y'
+      default: return '7d'
+    }
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 100)
-    return () => clearTimeout(timer)
-  }, [timeRange])
+    const fetchData = async () => {
+      // Don't fetch if no valid business ID
+      if (!validBusinessId) {
+        console.warn('No business ID found in localStorage or props')
+        return
+      }
+
+      try {
+        const period = getPeriodFromTimeRange(timeRange)
+        const data = await getRevenueAnalyticsDashboard(period, true)
+        setDashboardData(data)
+      } catch (err) {
+        console.error('Failed to fetch revenue analytics:', err)
+        // Set fallback data structure for error handling
+        setDashboardData({
+          overview: {
+            total_revenue: 0,
+            daily_revenue: 0,
+            weekly_revenue: 0,
+            monthly_revenue: 0,
+            revenue_growth: 0,
+            daily_growth: 0,
+            weekly_growth: 0,
+            monthly_growth: 0,
+            average_order_value: 0,
+            revenue_per_customer: 0,
+            total_orders: 0,
+            total_customers: 0
+          },
+          trend_data: { trend_data: [] },
+          channel_data: { channel_data: [] },
+          hour_data: { hour_data: [] },
+          payment_methods: { payment_data: [] },
+          category_data: { category_data: [] },
+          top_items: { top_items: [] },
+          projection_data: { projection_data: [] }
+        })
+      }
+    }
+
+    fetchData()
+  }, [timeRange, validBusinessId, getRevenueAnalyticsDashboard])
 
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`
   const formatNumber = (num: number) => num.toLocaleString()
+
+  // Show message if no business ID is found
+  if (!validBusinessId) {
+    return (
+      <div className="space-y-6">
+        <div className={`${isDark ? 'bg-yellow-900/20 border-yellow-500/50' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-6`}>
+          <h3 className={`${isDark ? 'text-yellow-400' : 'text-yellow-600'} font-medium mb-2`}>
+            Business ID Required
+          </h3>
+          <p className={`${isDark ? 'text-yellow-300' : 'text-yellow-500'} text-sm`}>
+            Please ensure you're logged in and have a valid business ID in localStorage.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading state while data is being fetched
+  if (loading && !dashboardData) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-6 rounded-lg border ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'} animate-pulse`}>
+              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if there's an error and no data
+  if (error && !dashboardData) {
+    return (
+      <div className="space-y-6">
+        <div className={`${isDark ? 'bg-red-900/20 border-red-500/50' : 'bg-red-50 border-red-200'} border rounded-lg p-6`}>
+          <h3 className={`${isDark ? 'text-red-400' : 'text-red-600'} font-medium mb-2`}>
+            Failed to load revenue analytics
+          </h3>
+          <p className={`${isDark ? 'text-red-300' : 'text-red-500'} text-sm`}>
+            {error}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Use dashboard data or fallback to empty structure
+  const data = dashboardData || {
+    overview: {
+      total_revenue: 0,
+      daily_revenue: 0,
+      weekly_revenue: 0,
+      monthly_revenue: 0,
+      revenue_growth: 0,
+      daily_growth: 0,
+      weekly_growth: 0,
+      monthly_growth: 0,
+      average_order_value: 0,
+      revenue_per_customer: 0,
+      total_orders: 0,
+      total_customers: 0
+    },
+    trend_data: { trend_data: [] },
+    channel_data: { channel_data: [] },
+    hour_data: { hour_data: [] },
+    payment_methods: { payment_data: [] },
+    category_data: { category_data: [] },
+    top_items: { top_items: [] },
+    projection_data: { projection_data: [] }
+  }
 
   return (
     <div className="space-y-6">
@@ -101,36 +185,36 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Revenue"
-          value={formatCurrency(mockData.totalRevenue)}
+          value={formatCurrency(data.overview.total_revenue)}
           icon={<DollarSign className="h-6 w-6 text-green-500" />}
-          trend={{ value: mockData.revenueGrowth, isPositive: mockData.revenueGrowth > 0 }}
+          trend={{ value: data.overview.revenue_growth, isPositive: data.overview.revenue_growth > 0 }}
           isLoading={loading}
           isDark={isDark}
         />
         
         <MetricCard
           title="Daily Revenue"
-          value={formatCurrency(mockData.dailyRevenue)}
+          value={formatCurrency(data.overview.daily_revenue)}
           icon={<Calendar className="h-6 w-6 text-blue-500" />}
-          trend={{ value: mockData.dailyGrowth, isPositive: mockData.dailyGrowth > 0 }}
+          trend={{ value: data.overview.daily_growth, isPositive: data.overview.daily_growth > 0 }}
           isLoading={loading}
           isDark={isDark}
         />
         
         <MetricCard
           title="Weekly Revenue"
-          value={formatCurrency(mockData.weeklyRevenue)}
+          value={formatCurrency(data.overview.weekly_revenue)}
           icon={<TrendingUp className="h-6 w-6 text-purple-500" />}
-          trend={{ value: mockData.weeklyGrowth, isPositive: mockData.weeklyGrowth > 0 }}
+          trend={{ value: data.overview.weekly_growth, isPositive: data.overview.weekly_growth > 0 }}
           isLoading={loading}
           isDark={isDark}
         />
         
         <MetricCard
           title="Monthly Revenue"
-          value={formatCurrency(mockData.monthlyRevenue)}
+          value={formatCurrency(data.overview.monthly_revenue)}
           icon={<BarChart3 className="h-6 w-6 text-orange-500" />}
-          trend={{ value: mockData.monthlyGrowth, isPositive: mockData.monthlyGrowth > 0 }}
+          trend={{ value: data.overview.monthly_growth, isPositive: data.overview.monthly_growth > 0 }}
           isLoading={loading}
           isDark={isDark}
         />
@@ -140,7 +224,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           title="Average Order Value"
-          value={formatCurrency(mockData.totalRevenue / 1247)}
+          value={formatCurrency(data.overview.average_order_value)}
           icon={<ShoppingBag className="h-6 w-6 text-indigo-500" />}
           subtitle="Per transaction"
           isLoading={loading}
@@ -149,7 +233,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
         
         <MetricCard
           title="Revenue per Customer"
-          value={formatCurrency(mockData.totalRevenue / 892)}
+          value={formatCurrency(data.overview.revenue_per_customer)}
           icon={<Users className="h-6 w-6 text-pink-500" />}
           subtitle="Customer value"
           isLoading={loading}
@@ -158,7 +242,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
         
         <MetricCard
           title="Peak Revenue Hour"
-          value="6PM"
+          value={data.hour_data?.peak_hour || "N/A"}
           icon={<TrendingUp className="h-6 w-6 text-red-500" />}
           subtitle="Highest earning time"
           isLoading={loading}
@@ -171,11 +255,11 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
         {/* Daily Revenue Trend */}
         <ChartContainer
           title="Daily Revenue Trend"
-          subtitle="Revenue performance over the last 7 days"
+          subtitle="Revenue performance over the selected period"
           isDark={isDark}
         >
           <ModernLineChart
-            data={mockData.revenueByDay}
+            data={data.trend_data?.trend_data || []}
             dataKey="revenue"
             nameKey="day"
             isDark={isDark}
@@ -191,8 +275,8 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
           isDark={isDark}
         >
           <ModernPieChart
-            data={mockData.revenueByChannel}
-                  dataKey="revenue" 
+            data={data.channel_data?.channel_data || []}
+            dataKey="revenue" 
             nameKey="channel"
             isDark={isDark}
             colors={['#3b82f6', '#8b5cf6', '#06b6d4']}
@@ -209,7 +293,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
           isDark={isDark}
         >
           <ModernBarChart
-            data={mockData.revenueByHour}
+            data={data.hour_data?.hour_data || []}
             dataKey="revenue"
             nameKey="hour"
             isDark={isDark}
@@ -224,7 +308,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
           isDark={isDark}
         >
           <ModernPieChart
-            data={mockData.paymentMethods}
+            data={data.payment_methods?.payment_data || []}
             dataKey="revenue"
             nameKey="method"
             isDark={isDark}
@@ -240,7 +324,7 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
         isDark={isDark}
       >
         <ModernBarChart
-          data={mockData.revenueByCategory}
+          data={data.category_data?.category_data || []}
           dataKey="revenue"
           nameKey="category"
           isDark={isDark}
@@ -248,58 +332,6 @@ export default function RevenueAnalytics({ timeRange }: RevenueAnalyticsProps) {
         />
       </ChartContainer>
 
-      {/* Revenue Projection */}
-      <ChartContainer
-        title="Revenue Projection"
-        subtitle="Actual vs projected revenue for the year"
-        isDark={isDark}
-      >
-        <ModernLineChart
-          data={mockData.revenueProjection}
-          dataKey="actual"
-          nameKey="month"
-          isDark={isDark}
-          color="#3b82f6"
-          type="line"
-        />
-      </ChartContainer>
-
-      {/* Top Revenue Items */}
-      <ChartContainer
-        title="Top Revenue Items"
-        subtitle="Highest earning menu items"
-        isDark={isDark}
-      >
-        <div className="space-y-4">
-          {mockData.topRevenueItems.map((item, index) => (
-            <div key={index} className={`${isDark ? 'bg-[#1f1f1f]' : 'bg-gray-50'} p-4 rounded-lg border ${isDark ? 'border-[#2a2a2a]' : 'border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm
-                    ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-500' : 'bg-blue-500'}
-                  `}>
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h5 className={`${isDark ? 'text-white' : 'text-gray-900'} font-medium`}>{item.name}</h5>
-                    <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
-                      {formatNumber(item.orders)} orders
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className={`${isDark ? 'text-white' : 'text-gray-900'} font-bold`}>
-                    {formatCurrency(item.revenue)}
-                  </div>
-                  <div className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
-                    Revenue
-                  </div>
-          </div>
-          </div>
-          </div>
-          ))}
-        </div>
-      </ChartContainer>
     </div>
   )
 }

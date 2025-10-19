@@ -77,15 +77,18 @@ export default function ModernBarChart({
         <ResponsiveContainer width="100%" height={height}>
           <BarChart 
             data={data} 
-            margin={{ top: selectedItem ? 60 : 20, right: 30, left: 20, bottom: 20 }}
+            margin={{ top: selectedItem ? 60 : 20, right: 30, left: 20, bottom: 60 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.3} />
             <XAxis 
               dataKey={nameKey} 
-              tick={{ fill: textColor, fontSize: 0 }}
+              tick={{ fill: textColor, fontSize: 11 }}
               axisLine={{ stroke: gridColor }}
               tickLine={{ stroke: gridColor }}
-              height={30}
+              height={50}
+              angle={-45}
+              textAnchor="end"
+              interval={0}
             />
             <YAxis 
               tick={{ fill: textColor, fontSize: 12 }}
