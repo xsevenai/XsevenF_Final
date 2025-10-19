@@ -79,6 +79,32 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
     return num.toLocaleString()
   }
 
+  // Format time range for display (e.g., "3PM-6PM" -> "3:00 PM - 6:00 PM")
+  const formatTimeRange = (timeRange: string) => {
+    if (!timeRange || timeRange === 'N/A') return 'N/A'
+    
+    // Handle time ranges like "3PM-6PM", "6AM-9AM", "9PM-6AM"
+    const timeRangePattern = /^(\d{1,2})(AM|PM)-(\d{1,2})(AM|PM)$/
+    const match = timeRange.match(timeRangePattern)
+    
+    if (match) {
+      const [, startHour, startPeriod, endHour, endPeriod] = match
+      const startHourNum = parseInt(startHour)
+      const endHourNum = parseInt(endHour)
+      
+      // Format start time
+      const startTime = `${startHourNum}:00 ${startPeriod}`
+      
+      // Format end time
+      const endTime = `${endHourNum}:00 ${endPeriod}`
+      
+      return `${startTime} - ${endTime}`
+    }
+    
+    // If it doesn't match the pattern, return as-is
+    return timeRange
+  }
+
   // Show loading state or error
   if (loading && !analyticsData) {
     return (
@@ -195,7 +221,7 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
         
         <MetricCard
           title="Peak Hour"
-          value={analyticsData?.hour_data?.peak_hour || 'N/A'}
+          value={formatTimeRange(analyticsData?.hour_data?.peak_hour || 'N/A')}
           icon={<Clock className="h-6 w-6 text-orange-500" />}
           subtitle="Most active time"
           isLoading={loading}
@@ -242,7 +268,7 @@ export default function OrdersAnalytics({ timeRange, businessId }: OrdersAnalyti
         {/* Orders by Hour */}
         <ChartContainer
           title="Orders by Hour"
-          subtitle={`Peak ordering hours throughout the day (Peak: ${analyticsData?.hour_data?.peak_hour || 'N/A'})`}
+          subtitle={`Peak ordering hours throughout the day (Peak: ${formatTimeRange(analyticsData?.hour_data?.peak_hour || 'N/A')})`}
           isDark={isDark}
         >
           {(() => {

@@ -106,6 +106,32 @@ export default function RevenueAnalytics({ timeRange, businessId }: RevenueAnaly
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`
   const formatNumber = (num: number) => num.toLocaleString()
 
+  // Format time range for display (e.g., "3PM-6PM" -> "3:00 PM - 6:00 PM")
+  const formatTimeRange = (timeRange: string) => {
+    if (!timeRange || timeRange === 'N/A') return 'N/A'
+    
+    // Handle time ranges like "3PM-6PM", "6AM-9AM", "9PM-6AM"
+    const timeRangePattern = /^(\d{1,2})(AM|PM)-(\d{1,2})(AM|PM)$/
+    const match = timeRange.match(timeRangePattern)
+    
+    if (match) {
+      const [, startHour, startPeriod, endHour, endPeriod] = match
+      const startHourNum = parseInt(startHour)
+      const endHourNum = parseInt(endHour)
+      
+      // Format start time
+      const startTime = `${startHourNum}:00 ${startPeriod}`
+      
+      // Format end time
+      const endTime = `${endHourNum}:00 ${endPeriod}`
+      
+      return `${startTime} - ${endTime}`
+    }
+    
+    // If it doesn't match the pattern, return as-is
+    return timeRange
+  }
+
   // Show message if no business ID is found
   if (!validBusinessId) {
     return (
@@ -242,7 +268,7 @@ export default function RevenueAnalytics({ timeRange, businessId }: RevenueAnaly
         
         <MetricCard
           title="Peak Revenue Hour"
-          value={data.hour_data?.peak_hour || "N/A"}
+          value={formatTimeRange(data.hour_data?.peak_hour || "N/A")}
           icon={<TrendingUp className="h-6 w-6 text-red-500" />}
           subtitle="Highest earning time"
           isLoading={loading}
@@ -289,7 +315,7 @@ export default function RevenueAnalytics({ timeRange, businessId }: RevenueAnaly
         {/* Revenue by Hour */}
         <ChartContainer
           title="Revenue by Hour"
-          subtitle="Peak revenue hours throughout the day"
+          subtitle={`Peak revenue hours throughout the day (Peak: ${formatTimeRange(data.hour_data?.peak_hour || 'N/A')})`}
           isDark={isDark}
         >
           <ModernBarChart
@@ -316,21 +342,6 @@ export default function RevenueAnalytics({ timeRange, businessId }: RevenueAnaly
           />
         </ChartContainer>
       </div>
-
-      {/* Revenue by Category */}
-      <ChartContainer
-        title="Revenue by Category"
-        subtitle="Revenue distribution across menu categories"
-        isDark={isDark}
-      >
-        <ModernBarChart
-          data={data.category_data?.category_data || []}
-          dataKey="revenue"
-          nameKey="category"
-          isDark={isDark}
-          colors={['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981']}
-        />
-      </ChartContainer>
 
     </div>
   )
