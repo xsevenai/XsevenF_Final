@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { Plus, Edit, Trash2, Loader2, Percent, Calendar, Users, Target } from 'lucide-react'
 import { useTheme } from '@/hooks/useTheme'
+import MenuDiscountForm from './MenuDiscountForm'
 
 interface Discount {
   id: string
@@ -27,6 +28,8 @@ export default function MenuDiscountsComponent() {
   const { theme, isLoaded: themeLoaded, isDark } = useTheme()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'expired' | 'scheduled'>('all')
+  const [showForm, setShowForm] = useState(false)
+  const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null)
 
   // Mock data - replace with actual data fetching
   const [discounts] = useState<Discount[]>([
@@ -198,6 +201,21 @@ export default function MenuDiscountsComponent() {
     return 'Active'
   }
 
+  if (showForm) {
+    return (
+      <MenuDiscountForm
+        mode={editingDiscount ? 'edit' : 'create'}
+        initialData={editingDiscount || undefined}
+        onBack={() => { setShowForm(false); setEditingDiscount(null) }}
+        onSubmit={(data) => {
+          // TODO: replace with API integration; for now, just close the form
+          setShowForm(false)
+          setEditingDiscount(null)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
@@ -208,6 +226,7 @@ export default function MenuDiscountsComponent() {
             <p className={`${textSecondary} transition-colors duration-300`}>Create and manage promotional offers</p>
           </div>
           <button
+            onClick={() => { setEditingDiscount(null); setShowForm(true) }}
             className={`${primaryButtonBg} px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-2xl hover:scale-110 transition-all border font-medium`}
           >
             <Plus className="h-4 w-4" />
@@ -264,6 +283,7 @@ export default function MenuDiscountsComponent() {
               
               <div className="flex gap-1">
                 <button 
+                  onClick={() => { setEditingDiscount(discount); setShowForm(true) }}
                   className={`${textSecondary} ${isDark ? 'hover:text-white' : 'hover:text-gray-900'} p-1 transition-colors duration-300`} 
                   title="Edit Discount"
                 >

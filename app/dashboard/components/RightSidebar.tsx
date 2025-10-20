@@ -1,7 +1,9 @@
 "use client"
 
 import { useTheme } from "@/hooks/useTheme"
-import { Loader2, Bell, User, Settings, LogOut, ChevronDown, Moon, Sun, Printer } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Loader2, Bell, User, Settings, LogOut, ChevronDown, Moon, Sun, ShoppingCart, ChefHat } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface RightSidebarProps {
@@ -10,32 +12,11 @@ interface RightSidebarProps {
 
 export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
   const { theme, isLoaded: themeLoaded, isDark, toggleTheme } = useTheme()
+  const router = useRouter()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
-  // Mock real-time data - replace with actual API calls
-  const billPrintingData = {
-    pendingBills: 3,
-    todayPrinted: 47,
-    printerStatus: "online"
-  }
-
-  const kitchenData = {
-    ordersInQueue: 7,
-    avgPrepTime: "12 min",
-    staffOnDuty: 8
-  }
-
-  const salesData = {
-    todayRevenue: "$2,847",
-    avgOrderValue: "$23.50"
-  }
-
-  const customerData = {
-    activeCustomers: 156,
-    peakHours: "12-2 PM",
-    tableTurnover: "1.2x"
-  }
+  // Right sidebar simplified to just POS and Kitchen Dashboard
 
   // Theme-aware colors with white text
   const sidebarBg = isDark ? 'bg-[#171717]' : 'bg-white'
@@ -77,12 +58,6 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
   const handleThemeToggle = () => {
     toggleTheme()
     // Keep menu open after theme toggle
-  }
-
-  const handleBillPrintingClick = () => {
-    if (setActiveSection) {
-      setActiveSection("bill-printing")
-    }
   }
 
   const handlePOSClick = () => {
@@ -200,140 +175,31 @@ export default function RightSidebar({ setActiveSection }: RightSidebarProps) {
           }
         `}</style>
 
-        {/* POS Card */}
-<div
-  className={`${cardBg} rounded-xl p-5 border ${borderColor} cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
-  onClick={handlePOSClick}
->
-  <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-    <Printer className="h-4 w-4" /> {/* Replace with POS icon if you have one */}
-    POS
-  </h3>
-  <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-    <span className={`${textPrimary} text-sm`}>Open POS Interface</span>
-  </div>
-</div>
-
-        
-        {/* Bill Printing Card */}
-        <div 
+        {/* POS */}
+        <div
           className={`${cardBg} rounded-xl p-5 border ${borderColor} cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
-          onClick={handleBillPrintingClick}
+          onClick={handlePOSClick}
         >
           <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-            <Printer className="h-4 w-4" />
-            Bill Printing
+            <ShoppingCart className="h-4 w-4" />
+            POS
           </h3>
-          <div className="space-y-3">
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Pending Bills</span>
-                <span className={`${billPrintingData.pendingBills > 0 ? 'text-orange-500' : textPrimary} text-lg font-semibold`}>
-                  {billPrintingData.pendingBills}
-                </span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Today Printed</span>
-                <span className={`${textPrimary} text-lg font-semibold`}>{billPrintingData.todayPrinted}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Printer Status</span>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${billPrintingData.printerStatus === 'online' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                  <span className={`${billPrintingData.printerStatus === 'online' ? 'text-green-500' : 'text-red-500'} text-sm font-semibold capitalize`}>
-                    {billPrintingData.printerStatus}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Kitchen Dashboard Card */}
-        <div className={`${cardBg} rounded-xl p-5 border ${borderColor}`}>
-          <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider`}>Kitchen Dashboard</h3>
-          <div className="space-y-3">
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Orders in Queue</span>
-                <span className={`${textPrimary} text-lg font-semibold`}>{kitchenData.ordersInQueue}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Avg Prep Time</span>
-                <span className={`${textPrimary} text-lg font-semibold`}>{kitchenData.avgPrepTime}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Staff on Duty</span>
-                <span className={`${textPrimary} text-lg font-semibold`}>{kitchenData.staffOnDuty}</span>
-              </div>
-            </div>
+          <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+            <span className={`${textPrimary} text-sm`}>Open POS Interface</span>
           </div>
         </div>
 
-        {/* Sales Overview Card */}
-        <div className={`${cardBg} rounded-xl p-5 border ${borderColor}`}>
-          <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider`}>Sales Overview</h3>
-          <div className="space-y-3">
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Today's Revenue</span>
-                <span className="text-green-500 text-lg font-semibold">{salesData.todayRevenue}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Avg Order Value</span>
-                <span className={`${textPrimary} text-lg font-semibold`}>{salesData.avgOrderValue}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Customer Analytics Card */}
-        <div className={`${cardBg} rounded-xl p-5 border ${borderColor}`}>
-          <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider`}>Customer Analytics</h3>
-          <div className="space-y-3">
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Active Customers</span>
-                <span className="text-blue-500 text-lg font-semibold">{customerData.activeCustomers}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Peak Hours</span>
-                <span className={`${textPrimary} text-sm font-semibold`}>{customerData.peakHours}</span>
-              </div>
-            </div>
-            
-            <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`${textSecondary} text-xs`}>Table Turnover</span>
-                <span className="text-yellow-500 text-lg font-semibold">{customerData.tableTurnover}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Live Status Card */}
-        <div className={`${cardBg} rounded-xl p-5 border ${borderColor}`}>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-500 text-xs font-medium">Live Updates</span>
+        {/* Kitchen Dashboard */}
+        <div
+          onClick={() => router.push('/dashboard/kds')}
+          className={`${cardBg} rounded-xl p-5 border ${borderColor} cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
+        >
+          <h3 className={`text-sm font-medium ${textSecondary} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+            <ChefHat className="h-4 w-4" />
+            Kitchen Dashboard
+          </h3>
+          <div className={`${innerCardBg} rounded-lg p-4 border ${borderColor}`}>
+            <span className={`${textPrimary} text-sm`}>Open KDS</span>
           </div>
         </div>
       </div>

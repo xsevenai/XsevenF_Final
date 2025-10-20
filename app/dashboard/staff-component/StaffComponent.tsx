@@ -368,7 +368,7 @@ export default function StaffComponent({ businessId }: StaffComponentProps) {
                             <div className={`${textPrimary} font-semibold text-sm`}>
                               {staff.first_name} {staff.last_name}
                             </div>
-                            <div className={`${textSecondary} text-xs`}>ID: {staff.id}</div>
+                            {/* Removed ID from UI per requirement */}
                           </div>
                         </div>
                       </td>

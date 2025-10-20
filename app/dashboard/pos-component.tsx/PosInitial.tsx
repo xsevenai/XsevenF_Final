@@ -1,9 +1,7 @@
 "use client"
 
 import { useTheme } from "@/hooks/useTheme"
-import { useState } from "react"
 import { ShoppingCart, Grid, Clock, Plus } from "lucide-react"
-import ProductCatalog from "./ProductCatalog"
 
 interface Order {
   id: string
@@ -13,27 +11,28 @@ interface Order {
   orderTime: string
 }
 
-export default function PosInitial() {
+interface PosInitialProps {
+  onStartNewOrder: () => void
+  onResumeOrder?: () => void
+  lastSubtotal?: number
+}
+
+export default function PosInitial({ onStartNewOrder, onResumeOrder, lastSubtotal = 0 }: PosInitialProps) {
   const { isDark } = useTheme()
-  const [showCatalog, setShowCatalog] = useState(false)
 
   // Mock recent orders
-  const [recentOrders] = useState<Order[]>([
+  const recentOrders: Order[] = [
     { id: "O001", tableNumber: "Table 5", total: 45.32, status: "pending", orderTime: "2025-10-07 14:30" },
     { id: "O002", tableNumber: "Table 12", total: 47.48, status: "completed", orderTime: "2025-10-07 13:45" },
     { id: "O003", tableNumber: "Table 3", total: 31.28, status: "completed", orderTime: "2025-10-07 13:15" },
-  ])
+  ]
 
   const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
 
-  const handleStartNewOrder = () => setShowCatalog(true)
-
-  if (showCatalog) {
-    return <ProductCatalog onBack={() => setShowCatalog(false)} />
-  }
+  const handleStartNewOrder = onStartNewOrder
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,23 +65,7 @@ export default function PosInitial() {
         </button>
       </div>
 
-      {/* Quick Access Categories */}
-      <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
-        <h2 className={`${textPrimary} text-2xl font-semibold mb-4 flex items-center gap-2`}>
-          <Grid className="h-5 w-5" />
-          Quick Access Categories
-        </h2>
-        <div className="flex gap-3 flex-wrap">
-          {["Burgers", "Pizza", "Salads", "Drinks", "Desserts"].map(cat => (
-            <button
-              key={cat}
-              className={`${innerCardBg} border px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-500 hover:text-white transition-colors`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+      
 
       {/* Recent Orders */}
       <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>

@@ -19,11 +19,9 @@ import {
   ChevronRight,
   UserCheck,
   MessageCircle,
-  List,
   Wrench,
   Settings,
   Percent,
-  Tags,
   ChefHat,
   UserCog,
 } from "lucide-react"
@@ -62,11 +60,9 @@ export default function Sidebar({ activeSection, setActiveSection, setExpandedVi
       hasSubItems: true,
       subItems: [
         { id: "menu-management" as const, label: "Menu & Categories", icon: MenuIcon },
-        { id: "listings" as const, label: "Listings", icon: List },
         { id: "services" as const, label: "Services", icon: Wrench },
         { id: "modifiers" as const, label: "Modifiers", icon: Settings },
         { id: "discounts" as const, label: "Discounts", icon: Percent },
-        { id: "attributes" as const, label: "Attributes", icon: Tags },
       ]
     },
     { id: "inventory" as const, label: "Inventory", icon: Package },

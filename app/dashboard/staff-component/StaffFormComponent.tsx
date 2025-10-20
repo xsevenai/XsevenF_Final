@@ -116,10 +116,10 @@ export default function StaffFormComponent({
       if (!formData.last_name.trim()) {
         throw new Error('Last name is required')
       }
-      if (!formData.email.trim()) {
+      if (!String(formData.email || '').trim()) {
         throw new Error('Email is required')
       }
-      if (!formData.position.trim()) {
+      if (!String(formData.position || '').trim()) {
         throw new Error('Position is required')
       }
 
@@ -174,6 +174,16 @@ export default function StaffFormComponent({
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Ensure hire_date year never exceeds 4 digits and keep format YYYY-MM-DD
+  const handleHireDateChange = (raw: string) => {
+    // Keep only digits and dashes, hard limit to 10 chars (YYYY-MM-DD)
+    const cleaned = raw.replace(/[^0-9-]/g, '').slice(0, 10)
+    const parts = cleaned.split('-')
+    if (parts[0]) parts[0] = parts[0].slice(0, 4)
+    const sanitized = parts.join('-').slice(0, 10)
+    setFormData(prev => ({ ...prev, hire_date: sanitized }))
   }
 
   return (
@@ -258,7 +268,7 @@ export default function StaffFormComponent({
                   </label>
                   <input
                     type="email"
-                    value={formData.email}
+                    value={formData.email || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                     placeholder="Enter email address"
@@ -272,7 +282,7 @@ export default function StaffFormComponent({
                   </label>
                   <input
                     type="tel"
-                    value={formData.phone}
+                    value={formData.phone || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                     className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                     placeholder="Enter phone number"
@@ -285,7 +295,7 @@ export default function StaffFormComponent({
                   </label>
                   <input
                     type="text"
-                    value={formData.position}
+                    value={formData.position || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
                     className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                     placeholder="Enter position (e.g., Server, Chef, Manager)"
@@ -314,8 +324,9 @@ export default function StaffFormComponent({
                   </label>
                   <input
                     type="date"
-                    value={formData.hire_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hire_date: e.target.value }))}
+                    value={formData.hire_date || ''}
+                    onChange={(e) => handleHireDateChange(e.target.value)}
+                    inputMode="numeric"
                     className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   />
                 </div>
@@ -325,7 +336,7 @@ export default function StaffFormComponent({
                     Status
                   </label>
                   <select
-                    value={formData.status}
+                    value={String(formData.status ?? 'active')}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                     className={`w-full ${inputBg} ${textPrimary} px-4 py-3 rounded-xl border focus:border-blue-500 focus:outline-none transition-all duration-200 transition-colors duration-300`}
                   >

@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/hooks/useTheme"
 import { useState } from "react"
-import { ArrowLeft, DollarSign, CreditCard, Wallet, Tag } from "lucide-react"
+import { ArrowLeft, Euro, CreditCard, Wallet, Percent } from "lucide-react"
 
 interface Product {
   id: string
@@ -19,8 +19,12 @@ interface PaymentScreenProps {
 
 export default function PaymentScreen({ cart, onBack, onOrderComplete }: PaymentScreenProps) {
   const { isDark } = useTheme()
-  const [selectedPayment, setSelectedPayment] = useState<string>("cash")
+  const [selectedPayment, setSelectedPayment] = useState<string>("card")
+  const [discountType, setDiscountType] = useState<"amount" | "percent">("amount")
   const [discount, setDiscount] = useState<number>(0)
+  const [vatPercent, setVatPercent] = useState<number>(20)
+  const [tipPercent, setTipPercent] = useState<number>(0)
+  const [serviceChargePercent, setServiceChargePercent] = useState<number>(0)
 
   const cardBg = isDark ? 'bg-[#171717] border-[#2a2a2a]' : 'bg-white border-gray-200'
   const textPrimary = isDark ? 'text-white' : 'text-gray-900'
@@ -28,8 +32,12 @@ export default function PaymentScreen({ cart, onBack, onOrderComplete }: Payment
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
   
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const tax = subtotal * 0.08 // 8% tax
-  const total = subtotal + tax - discount
+  const discountValue = discountType === 'percent' ? (subtotal * (discount / 100)) : discount
+  const serviceCharge = (subtotal - discountValue) * (serviceChargePercent / 100)
+  const tip = (subtotal - discountValue) * (tipPercent / 100)
+  const baseForTax = Math.max(0, subtotal - discountValue + serviceCharge)
+  const vat = baseForTax * (vatPercent / 100)
+  const grossTotal = baseForTax + vat + tip
 
   const handleCompleteOrder = () => {
     onOrderComplete(selectedPayment, discount)
@@ -39,14 +47,13 @@ export default function PaymentScreen({ cart, onBack, onOrderComplete }: Payment
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className={`${cardBg} p-6 border shadow-lg flex justify-between items-center`} style={{ borderRadius: '1.5rem' }}>
+        <h1 className={`text-3xl font-bold ${textPrimary}`}>Payment</h1>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+          className={`${isDark ? 'bg-white text-gray-900 border-gray-300' : 'bg-gray-900 text-white border-gray-700'} px-4 py-2 rounded-lg font-semibold border`}
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Cart
+          <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </button>
-        <h1 className={`text-3xl font-bold ${textPrimary}`}>Payment & Checkout</h1>
       </div>
 
       {/* Order Summary */}
@@ -61,28 +68,54 @@ export default function PaymentScreen({ cart, onBack, onOrderComplete }: Payment
           ))}
         </div>
 
-        <div className="mt-4 border-t pt-4 space-y-2">
+        <div className="mt-4 border-t pt-4 space-y-3">
           <div className="flex justify-between">
             <span className={`${textPrimary} font-medium`}>Subtotal:</span>
             <span className={`${textSecondary}`}>${subtotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between">
-            <span className={`${textPrimary} font-medium`}>Tax (8%):</span>
-            <span className={`${textSecondary}`}>${tax.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
+          <div className="flex items-center gap-3">
             <span className={`${textPrimary} font-medium`}>Discount:</span>
+            <select
+              value={discountType}
+              onChange={(e) => setDiscountType(e.target.value as any)}
+              className={`px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`}
+            >
+              <option value="amount">Amount</option>
+              <option value="percent">Percent</option>
+            </select>
             <input
               type="number"
               min={0}
               value={discount}
               onChange={(e) => setDiscount(Number(e.target.value))}
-              className={`w-20 px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`}
+              className={`w-24 px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`}
             />
+            {discountType === 'percent' && <Percent className={`${textSecondary} h-4 w-4`} />}
+            <span className={`${textSecondary} text-sm`}>
+              -${discountValue.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`${textPrimary} font-medium`}>Service Charge:</span>
+            <input type="number" min={0} value={serviceChargePercent} onChange={e => setServiceChargePercent(Number(e.target.value))} className={`w-24 px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`} />
+            <span className={`${textSecondary}`}>%</span>
+            <span className={`${textSecondary} ml-auto`}>+${serviceCharge.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`${textPrimary} font-medium`}>Tip:</span>
+            <input type="number" min={0} value={tipPercent} onChange={e => setTipPercent(Number(e.target.value))} className={`w-24 px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`} />
+            <span className={`${textSecondary}`}>%</span>
+            <span className={`${textSecondary} ml-auto`}>+${tip.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`${textPrimary} font-medium`}>VAT:</span>
+            <input type="number" min={0} max={27} value={vatPercent} onChange={e => setVatPercent(Number(e.target.value))} className={`w-20 px-2 py-1 rounded border ${innerCardBg} ${textPrimary}`} />
+            <span className={`${textSecondary}`}>%</span>
+            <span className={`${textSecondary} ml-auto`}>VAT: €{vat.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold text-2xl mt-2">
             <span>Total:</span>
-            <span className="text-green-500">${total.toFixed(2)}</span>
+            <span className="text-green-500">€{grossTotal.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -91,14 +124,6 @@ export default function PaymentScreen({ cart, onBack, onOrderComplete }: Payment
       <div className={`${cardBg} p-6 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
         <h2 className={`${textPrimary} text-xl font-semibold mb-4`}>Select Payment Method</h2>
         <div className="flex gap-4">
-          <button
-            onClick={() => setSelectedPayment("cash")}
-            className={`flex-1 p-4 rounded-xl flex flex-col items-center gap-2 font-semibold transition-colors
-              ${selectedPayment === "cash" ? 'bg-blue-500 text-white' : `${innerCardBg} ${textPrimary}`}`}
-          >
-            <DollarSign className="h-6 w-6" />
-            Cash
-          </button>
           <button
             onClick={() => setSelectedPayment("card")}
             className={`flex-1 p-4 rounded-xl flex flex-col items-center gap-2 font-semibold transition-colors
@@ -114,6 +139,14 @@ export default function PaymentScreen({ cart, onBack, onOrderComplete }: Payment
           >
             <Wallet className="h-6 w-6" />
             Wallet
+          </button>
+          <button
+            onClick={() => setSelectedPayment("cash")}
+            className={`flex-1 p-4 rounded-xl flex flex-col items-center gap-2 font-semibold transition-colors
+              ${selectedPayment === "cash" ? 'bg-blue-500 text-white' : `${innerCardBg} ${textPrimary}`}`}
+          >
+            <Euro className="h-6 w-6" />
+            Cash
           </button>
         </div>
       </div>

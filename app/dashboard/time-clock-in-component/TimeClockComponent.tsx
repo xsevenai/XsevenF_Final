@@ -128,6 +128,84 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600'
   const innerCardBg = isDark ? 'bg-[#1f1f1f] border-[#2a2a2a]' : 'bg-gray-50 border-gray-200'
 
+  // Full-page form view (like Menu add form)
+  if (showClockInForm) {
+    return (
+      <div className={`flex-1 ${mainPanelBg} h-screen overflow-y-auto transition-colors duration-300`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          div::-webkit-scrollbar { display: none; }
+        `}</style>
+        <div className="p-6 space-y-6">
+          <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className={`text-4xl font-bold ${textPrimary} mb-2`}>Clock In Staff</h1>
+                <p className={`${textSecondary}`}>Create a new time clock entry</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => { setShowClockInForm(false); resetClockInForm() }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleClockIn}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!clockInFormData.staff_id || !clockInFormData.clock_in}
+                >
+                  Save Entry
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${cardBg} p-8 border shadow-lg`} style={{ borderRadius: '1.5rem' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className={`${textPrimary} font-medium`}>Staff Member *</Label>
+                <select
+                  value={clockInFormData.staff_id}
+                  onChange={(e) => setClockInFormData({ ...clockInFormData, staff_id: e.target.value })}
+                  className={`${innerCardBg} ${textPrimary} mt-1 w-full px-3 py-2 rounded-lg border`}
+                  required
+                >
+                  <option value="">Select staff member</option>
+                  {staffMembers.map(staff => (
+                    <option key={staff.id} value={staff.id}>
+                      {staff.first_name} {staff.last_name} - {staff.position}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className={`${textPrimary} font-medium`}>Clock In Time *</Label>
+                <Input
+                  type="datetime-local"
+                  value={clockInFormData.clock_in ? new Date(clockInFormData.clock_in).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setClockInFormData({ ...clockInFormData, clock_in: new Date(e.target.value).toISOString() })}
+                  className={`${innerCardBg} ${textPrimary} mt-1`}
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label className={`${textPrimary} font-medium`}>Notes</Label>
+                <Input
+                  value={clockInFormData.notes || ''}
+                  onChange={(e) => setClockInFormData({ ...clockInFormData, notes: e.target.value })}
+                  className={`${innerCardBg} ${textPrimary} mt-1`}
+                  placeholder="Optional notes"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`flex-1 ${mainPanelBg} h-screen flex flex-col transition-colors duration-300`}>
       <div className="px-6 pt-6 pb-0 flex flex-col flex-1">
@@ -307,7 +385,7 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
           </div>
         </div>
 
-        {/* Time Clock Entries Table */}
+        {/* Time Clock Entries Table (sticky header like PurchaseOrderManagement) */}
         <div className={`${cardBg} border-l border-r border-t shadow-lg transition-colors duration-300 overflow-hidden flex-1`} style={{ borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem' }}>
           {loading ? (
             <div className="p-8 flex items-center justify-center">
@@ -332,7 +410,7 @@ export default function TimeClockComponent({ businessId }: TimeClockComponentPro
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto overflow-y-auto flex-1">
+            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto flex-1">
               <table className="w-full">
                 {/* Table Header */}
                 <thead className="sticky top-0 z-10">
